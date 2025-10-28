@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react"; // Import useRef
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { authAPI } from "../utils/api";
-import { setToken, setUsername } from "../utils/auth";
+import { setToken, setUsername } from "../utils/auth"; // Ensure these handle missing 'rememberMe' argument (e.g., default to localStorage)
 import { useAuth } from "../App";
 import "../auth.css"; // Keep your existing auth styles
 import { motion, AnimatePresence } from "framer-motion";
@@ -306,8 +306,7 @@ const cookieContent = (
 
 // --- Inline Modal Component Definition (Enhanced Glassmorphism Styles) ---
 const InlinePolicyModal = ({ isOpen, onRequestClose, title, children }) => {
-  // Styles defined directly here (same enhanced styles as before)
-  const backdropStyle = {
+  /* ... [Same modal component definition as before] ... */ const backdropStyle = {
     position: "fixed",
     top: 0,
     left: 0,
@@ -384,11 +383,12 @@ const InlinePolicyModal = ({ isOpen, onRequestClose, title, children }) => {
     transform: "scale(1.03)",
   };
   const scrollbarStyle = ` .modal-body-content::-webkit-scrollbar { width: 10px; } .modal-body-content::-webkit-scrollbar-track { background: transparent; border-radius: 5px; } .modal-body-content::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.4); border-radius: 5px; border: 2px solid transparent; background-clip: content-box; } .modal-body-content::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.6); } .modal-body-content { scrollbar-width: thin; scrollbar-color: rgba(212, 175, 55, 0.4) transparent; } `;
-
   return (
     <AnimatePresence>
+      {" "}
       {isOpen && (
         <>
+          {" "}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -396,7 +396,7 @@ const InlinePolicyModal = ({ isOpen, onRequestClose, title, children }) => {
             transition={{ duration: 0.3 }}
             style={backdropStyle}
             onClick={onRequestClose}
-          />
+          />{" "}
           <motion.div
             initial={{ scale: 0.85, opacity: 0, y: 50, rotateX: -10 }}
             animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
@@ -407,6 +407,7 @@ const InlinePolicyModal = ({ isOpen, onRequestClose, title, children }) => {
             aria-modal="true"
             aria-labelledby="modal-title"
           >
+            {" "}
             <div style={headerStyle}>
               {" "}
               <h2 id="modal-title" style={titleStyle}>
@@ -420,7 +421,7 @@ const InlinePolicyModal = ({ isOpen, onRequestClose, title, children }) => {
               >
                 &times;
               </motion.button>{" "}
-            </div>
+            </div>{" "}
             <div style={bodyStyle} className="modal-body-content">
               {" "}
               <style>
@@ -428,7 +429,7 @@ const InlinePolicyModal = ({ isOpen, onRequestClose, title, children }) => {
                 {` .modal-body-content p { margin-bottom: 1.1em; color: #d1d5db; } .modal-body-content h2 { font-size: 1.4rem; color: #fcd34d; margin-top: 10px; margin-bottom: 18px;} .modal-body-content h3 { color: #93c5fd; margin-top: 28px; margin-bottom: 12px; font-size: 1.15rem; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 6px;} .modal-body-content ul { padding-left: 30px; margin-bottom: 18px; list-style: disc; } .modal-body-content li { margin-bottom: 10px; } .modal-body-content strong { color: #fde047; } ${scrollbarStyle} `}{" "}
               </style>{" "}
               {children}{" "}
-            </div>
+            </div>{" "}
             <div style={footerStyle}>
               {" "}
               <motion.button
@@ -440,10 +441,10 @@ const InlinePolicyModal = ({ isOpen, onRequestClose, title, children }) => {
                 {" "}
                 Close{" "}
               </motion.button>{" "}
-            </div>
-          </motion.div>
+            </div>{" "}
+          </motion.div>{" "}
         </>
-      )}
+      )}{" "}
     </AnimatePresence>
   );
 };
@@ -460,7 +461,8 @@ const SignUp = () => {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  // REMOVED rememberMe state
+  // const [rememberMe, setRememberMe] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [agreedToMarketing, setAgreedToMarketing] = useState(false);
@@ -477,9 +479,7 @@ const SignUp = () => {
     special: false,
   });
 
-  // --- NEW: Ref for the video element ---
-  const videoRef = useRef(null);
-  // --- END NEW ---
+  const videoRef = useRef(null); // Keep video ref
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -489,16 +489,10 @@ const SignUp = () => {
     setError("");
   }, [location.state]);
 
-  // --- NEW: useEffect to set video volume ---
+  // Keep useEffect for video volume
   useEffect(() => {
-    // Check if the video element exists
-    if (videoRef.current) {
-      // Set the volume to 0.5 (50%)
-      videoRef.current.volume = 0.5;
-    }
-    // Run this effect only once when the component mounts
+    if (videoRef.current) videoRef.current.volume = 0.5;
   }, []);
-  // --- END NEW ---
 
   const checkPasswordStrength = (password) => {
     /* ... [same function] ... */ const checks = {
@@ -538,7 +532,7 @@ const SignUp = () => {
     }
   };
   const handleSubmit = async (e) => {
-    /* ... [same function] ... */ e.preventDefault();
+    e.preventDefault();
     setError("");
     if (!agreedToTerms) {
       setError("❌ Please agree to the Terms of Service.");
@@ -567,8 +561,9 @@ const SignUp = () => {
         email: formData.email,
         password: formData.password,
       });
-      setToken(response.data.token, rememberMe);
-      if (response.data.username) setUsername(response.data.username, rememberMe);
+      // REMOVED rememberMe argument from setToken/setUsername
+      setToken(response.data.token);
+      if (response.data.username) setUsername(response.data.username);
       login({ username: response.data.username });
       const from = location.state?.from?.pathname || "/";
       navigate(from, { replace: true });
@@ -594,7 +589,6 @@ const SignUp = () => {
   };
   const closeCookieModal = () => setIsCookieModalOpen(false);
 
-  // --- Framer Motion Variants for Form Elements ---
   const formContainerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
@@ -637,13 +631,17 @@ const SignUp = () => {
   const consentLinkHoverStyle = { color: "#93c5fd" };
 
   return (
+    // Outer div remains the same
     <div style={{ display: "flex", height: "100vh", width: "100vw", overflow: "hidden" }}>
-      <div className="left" style={{ paddingTop: "140px", boxSizing: "border-box" }}>
+      {/* --- Keep className="left", REMOVE inline style --- */}
+      <div className="left">
+        {/* --- ADDED inline style marginTop here to push form down --- */}
         <motion.div
           className="form-container"
           variants={formContainerVariants}
           initial="hidden"
           animate="visible"
+          style={{ marginTop: "140px" }} // Directly counteract the -140px from auth.css
         >
           {/* ... (rest of the form content) ... */}
           <motion.div variants={formItemVariants} className="logo">
@@ -655,6 +653,7 @@ const SignUp = () => {
               {error}
             </motion.div>
           )}
+
           <form id="signupForm" onSubmit={handleSubmit}>
             <motion.label variants={formItemVariants}>Username</motion.label>
             <motion.input
@@ -842,17 +841,17 @@ const SignUp = () => {
                 </label>{" "}
               </div>
             </motion.div>
-            <motion.div variants={formItemVariants} className="checkbox">
-              <div className="checkbox-left">
-                <input
-                  type="checkbox"
-                  id="rememberMeSignup"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <label htmlFor="rememberMeSignup">Remember me</label>
-              </div>
-            </motion.div>
+
+            {/* REMOVED Remember Me Checkbox */}
+            {/*
+              <motion.div variants={formItemVariants} className="checkbox">
+                <div className="checkbox-left">
+                  <input type="checkbox" id="rememberMeSignup" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                  <label htmlFor="rememberMeSignup">Remember me</label>
+                </div>
+              </motion.div>
+              */}
+
             <motion.button
               variants={formItemVariants}
               type="submit"
@@ -862,6 +861,7 @@ const SignUp = () => {
               {loading ? "Creating Account..." : "Sign Up"}
             </motion.button>
           </form>
+
           <motion.div variants={formItemVariants} className="divider">
             or
           </motion.div>
@@ -888,12 +888,11 @@ const SignUp = () => {
 
       {/* Right side (Video) */}
       <div className="right">
-        {/* --- ADDED ref AND REMOVED muted --- */}
+        {/* REMOVED muted attribute */}
         <video ref={videoRef} className="hero-video" autoPlay loop playsInline>
           <source src="/assets/Welcome to Karnataka _ One State Many Worlds.mp4" type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-        {/* --- END CHANGE --- */}
         <div className="video-overlay"></div>
       </div>
 
