@@ -1,8 +1,8 @@
 // /client/src/pages/SignUp.js
-import React, { useState, useEffect, useRef } from "react"; // Import useRef
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { authAPI } from "../utils/api";
-import { setToken, setUsername } from "../utils/auth"; // Ensure these handle missing 'rememberMe' argument (e.g., default to localStorage)
+import { setToken, setUsername } from "../utils/auth";
 import { useAuth } from "../App";
 import "../auth.css"; // Keep your existing auth styles
 import { motion, AnimatePresence } from "framer-motion";
@@ -452,6 +452,7 @@ const InlinePolicyModal = ({ isOpen, onRequestClose, title, children }) => {
 
 // --- SignUp Component ---
 const SignUp = () => {
+  // ... (State variables and useEffects remain the same) ...
   const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: "",
@@ -462,7 +463,6 @@ const SignUp = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   // REMOVED rememberMe state
-  // const [rememberMe, setRememberMe] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [agreedToPrivacy, setAgreedToPrivacy] = useState(false);
   const [agreedToMarketing, setAgreedToMarketing] = useState(false);
@@ -479,7 +479,7 @@ const SignUp = () => {
     special: false,
   });
 
-  const videoRef = useRef(null); // Keep video ref
+  const videoRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -532,7 +532,7 @@ const SignUp = () => {
     }
   };
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    /* ... [same function, uses default token storage] ... */ e.preventDefault();
     setError("");
     if (!agreedToTerms) {
       setError("❌ Please agree to the Terms of Service.");
@@ -561,7 +561,6 @@ const SignUp = () => {
         email: formData.email,
         password: formData.password,
       });
-      // REMOVED rememberMe argument from setToken/setUsername
       setToken(response.data.token);
       if (response.data.username) setUsername(response.data.username);
       login({ username: response.data.username });
@@ -589,6 +588,7 @@ const SignUp = () => {
   };
   const closeCookieModal = () => setIsCookieModalOpen(false);
 
+  // --- Framer Motion Variants for Form Elements ---
   const formContainerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
@@ -633,15 +633,21 @@ const SignUp = () => {
   return (
     // Outer div remains the same
     <div style={{ display: "flex", height: "100vh", width: "100vw", overflow: "hidden" }}>
-      {/* --- Keep className="left", REMOVE inline style --- */}
-      <div className="left">
-        {/* --- ADDED inline style marginTop here to push form down --- */}
+      {/* --- ADDED INLINE STYLE TO OVERRIDE NEGATIVE MARGIN --- */}
+      <div
+        className="left"
+        style={{
+          marginTop: "0px", // Override the -140px from auth.css
+          // We keep align-items: center and justify-content: center from auth.css implicitly
+        }}
+      >
+        {/* REMOVED marginTop from form-container */}
         <motion.div
           className="form-container"
           variants={formContainerVariants}
           initial="hidden"
           animate="visible"
-          style={{ marginTop: "140px" }} // Directly counteract the -140px from auth.css
+          // style={{ marginTop: '140px' }} // REMOVED THIS LINE
         >
           {/* ... (rest of the form content) ... */}
           <motion.div variants={formItemVariants} className="logo">
@@ -842,15 +848,7 @@ const SignUp = () => {
               </div>
             </motion.div>
 
-            {/* REMOVED Remember Me Checkbox */}
-            {/*
-              <motion.div variants={formItemVariants} className="checkbox">
-                <div className="checkbox-left">
-                  <input type="checkbox" id="rememberMeSignup" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
-                  <label htmlFor="rememberMeSignup">Remember me</label>
-                </div>
-              </motion.div>
-              */}
+            {/* Remember Me Checkbox REMOVED */}
 
             <motion.button
               variants={formItemVariants}
@@ -888,7 +886,7 @@ const SignUp = () => {
 
       {/* Right side (Video) */}
       <div className="right">
-        {/* REMOVED muted attribute */}
+        {/* Video code remains the same (no muted, ref added) */}
         <video ref={videoRef} className="hero-video" autoPlay loop playsInline>
           <source src="/assets/Welcome to Karnataka _ One State Many Worlds.mp4" type="video/mp4" />
           Your browser does not support the video tag.

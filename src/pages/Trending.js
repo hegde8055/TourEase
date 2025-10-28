@@ -106,6 +106,7 @@ const Trending = () => {
           marginTop: "-180px", // Adjusted margin if needed based on Navbar height
           background:
             "radial-gradient(ellipse at top, rgba(59,130,246,0.1), transparent 50%), radial-gradient(ellipse at bottom, rgba(212,175,55,0.1), transparent 50%)", // Subtle gradient
+          backgroundImage: "url('/assets/2.jpg')", // Correct path, wrapped in url()
         }}
       >
         <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 20px" }}>
