@@ -1,0 +1,26 @@
+/* Minimal reset and base styles only — Tailwind utilities are provided inline via CDN */
+.main-content {
+  position: relative;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  font-family: "Poppins", sans-serif;
+  background: #0b0e14;
+  color: #e5e7eb;
+}
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Keep very small project-specific selectors if needed below (avoid utility re-definitions) */

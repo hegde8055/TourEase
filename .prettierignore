@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+package-lock.json
+
+# Build outputs
+build
+dist
+.next
+
+# Cache
+.cache
+.parcel-cache
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Misc
+coverage
+.DS_Store
+*.log
