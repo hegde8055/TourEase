@@ -1,10 +1,10 @@
 // /client/src/pages/SignUp.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react"; // Added useRef for video volume (optional)
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { authAPI } from "../utils/api";
-import { setToken, setUsername } from "../utils/auth";
+import { setToken, setUsername } from "../utils/auth"; // Ensure these handle missing 'rememberMe' argument
 import { useAuth } from "../App";
-import "../auth.css"; // Keep your existing auth styles
+import "../auth.css"; // Keep original auth styles
 import { motion, AnimatePresence } from "framer-motion";
 
 // --- START: Template Policy Content (LEGAL REVIEW REQUIRED) ---
@@ -450,9 +450,7 @@ const InlinePolicyModal = ({ isOpen, onRequestClose, title, children }) => {
 };
 // --- End Inline Modal Definition ---
 
-// --- SignUp Component ---
 const SignUp = () => {
-  // ... (State variables and useEffects remain the same) ...
   const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: "",
@@ -479,7 +477,7 @@ const SignUp = () => {
     special: false,
   });
 
-  const videoRef = useRef(null);
+  const videoRef = useRef(null); // Keep video ref
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -532,7 +530,7 @@ const SignUp = () => {
     }
   };
   const handleSubmit = async (e) => {
-    /* ... [same function, uses default token storage] ... */ e.preventDefault();
+    e.preventDefault();
     setError("");
     if (!agreedToTerms) {
       setError("❌ Please agree to the Terms of Service.");
@@ -561,6 +559,7 @@ const SignUp = () => {
         email: formData.email,
         password: formData.password,
       });
+      // Use default storage (likely localStorage) since rememberMe is removed
       setToken(response.data.token);
       if (response.data.username) setUsername(response.data.username);
       login({ username: response.data.username });
@@ -588,19 +587,9 @@ const SignUp = () => {
   };
   const closeCookieModal = () => setIsCookieModalOpen(false);
 
-  // --- Framer Motion Variants for Form Elements ---
-  const formContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
-  };
-  const formItemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 120, damping: 15 } },
-  };
-
+  // Use original Requirement component
   const Requirement = ({ met, text }) => (
-    <motion.div
-      variants={formItemVariants}
+    <div
       style={{
         display: "flex",
         alignItems: "center",
@@ -611,7 +600,7 @@ const SignUp = () => {
     >
       <span>{met ? "✓" : "✗"}</span>
       <span>{text}</span>
-    </motion.div>
+    </div>
   );
   const consentStyle = {
     display: "flex",
@@ -631,39 +620,20 @@ const SignUp = () => {
   const consentLinkHoverStyle = { color: "#93c5fd" };
 
   return (
-    // Outer div remains the same
     <div style={{ display: "flex", height: "100vh", width: "100vw", overflow: "hidden" }}>
-      {/* --- ADDED INLINE STYLE TO OVERRIDE NEGATIVE MARGIN --- */}
-      <div
-        className="left"
-        style={{
-          marginTop: "0px", // Override the -140px from auth.css
-          // We keep align-items: center and justify-content: center from auth.css implicitly
-        }}
-      >
-        {/* REMOVED marginTop from form-container */}
-        <motion.div
-          className="form-container"
-          variants={formContainerVariants}
-          initial="hidden"
-          animate="visible"
-          // style={{ marginTop: '140px' }} // REMOVED THIS LINE
-        >
-          {/* ... (rest of the form content) ... */}
-          <motion.div variants={formItemVariants} className="logo">
+      {/* --- Keep className="left", OVERRIDE margin-top inline --- */}
+      <div className="left" style={{ marginTop: "0px" }}>
+        {/* --- Keep className="form-container", NO inline marginTop --- */}
+        <div className="form-container">
+          <div className="logo">
             <span>Tour</span>
             <span>Ease</span>
-          </motion.div>
-          {error && (
-            <motion.div variants={formItemVariants} className="error-banner">
-              {error}
-            </motion.div>
-          )}
+          </div>
+          {error && <div className="error-banner">{error}</div>}
 
           <form id="signupForm" onSubmit={handleSubmit}>
-            <motion.label variants={formItemVariants}>Username</motion.label>
-            <motion.input
-              variants={formItemVariants}
+            <label>Username</label>
+            <input
               type="text"
               name="username"
               placeholder="Username"
@@ -671,11 +641,8 @@ const SignUp = () => {
               onChange={handleChange}
               required
             />
-            <motion.label variants={formItemVariants} style={{ marginTop: "10px" }}>
-              Email address
-            </motion.label>
-            <motion.input
-              variants={formItemVariants}
+            <label>Email address</label>
+            <input
               type="email"
               name="email"
               placeholder="Email address"
@@ -683,11 +650,8 @@ const SignUp = () => {
               onChange={handleChange}
               required
             />
-            <motion.label variants={formItemVariants} style={{ marginTop: "10px" }}>
-              Password
-            </motion.label>
-            <motion.input
-              variants={formItemVariants}
+            <label>Password</label>
+            <input
               type="password"
               name="password"
               placeholder="Password"
@@ -695,6 +659,8 @@ const SignUp = () => {
               onChange={handleChange}
               required
             />
+
+            {/* --- Original Password Strength Indicator --- */}
             <AnimatePresence>
               {formData.password && (
                 <motion.div
@@ -702,7 +668,6 @@ const SignUp = () => {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   style={{ marginTop: "8px", marginBottom: "12px", overflow: "hidden" }}
-                  variants={formItemVariants}
                 >
                   <div style={{ display: "flex", gap: "4px", height: "5px", marginBottom: "10px" }}>
                     {[1, 2, 3, 4, 5].map((level) => (
@@ -719,26 +684,19 @@ const SignUp = () => {
                       />
                     ))}
                   </div>
-                  <motion.div
-                    variants={formContainerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}
-                  >
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
                     <Requirement met={passwordChecks.length} text="8+ characters" />
                     <Requirement met={passwordChecks.lowercase} text="Lowercase" />
                     <Requirement met={passwordChecks.uppercase} text="Uppercase" />
                     <Requirement met={passwordChecks.number} text="Number" />
                     <Requirement met={passwordChecks.special} text="Special char" />
-                  </motion.div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
-            <motion.label variants={formItemVariants} style={{ marginTop: "10px" }}>
-              Confirm Password
-            </motion.label>
-            <motion.input
-              variants={formItemVariants}
+
+            <label>Confirm Password</label>
+            <input
               type="password"
               name="confirmPassword"
               placeholder="Confirm Password"
@@ -746,10 +704,9 @@ const SignUp = () => {
               onChange={handleChange}
               required
             />
-            <motion.div
-              variants={formItemVariants}
-              style={{ marginTop: "20px", marginBottom: "20px" }}
-            >
+
+            {/* --- Consent Checkboxes Section --- */}
+            <div style={{ marginTop: "20px", marginBottom: "20px" }}>
               <div style={consentStyle}>
                 {" "}
                 <input
@@ -846,24 +803,18 @@ const SignUp = () => {
                   (optional).{" "}
                 </label>{" "}
               </div>
-            </motion.div>
+            </div>
 
             {/* Remember Me Checkbox REMOVED */}
 
-            <motion.button
-              variants={formItemVariants}
-              type="submit"
-              className="btn"
-              disabled={loading}
-            >
+            <button type="submit" className="btn" disabled={loading}>
               {loading ? "Creating Account..." : "Sign Up"}
-            </motion.button>
+            </button>
           </form>
 
-          <motion.div variants={formItemVariants} className="divider">
-            or
-          </motion.div>
-          <motion.div variants={formItemVariants} className="social-buttons">
+          {/* Divider, Social Buttons, Sign In Link */}
+          <div className="divider">or</div>
+          <div className="social-buttons">
             <button aria-label="Sign up with Google">
               <img src="https://www.svgrepo.com/show/355037/google.svg" alt="" /> Sign up with
               Google
@@ -876,12 +827,12 @@ const SignUp = () => {
               />{" "}
               Sign up with Facebook
             </button>
-          </motion.div>
-          <motion.div variants={formItemVariants} className="signin">
+          </div>
+          <div className="signin">
             Already have an account? <Link to="/signin">Sign In</Link>
-          </motion.div>
-        </motion.div>{" "}
-        {/* End form-container motion div */}
+          </div>
+        </div>{" "}
+        {/* End form-container div */}
       </div>
 
       {/* Right side (Video) */}
@@ -894,7 +845,7 @@ const SignUp = () => {
         <div className="video-overlay"></div>
       </div>
 
-      {/* Render Modals using the inline definition (remain the same) */}
+      {/* Render Modals using the inline definition */}
       <InlinePolicyModal
         isOpen={isTermsModalOpen}
         onRequestClose={closeTermsModal}
