@@ -1,10 +1,10 @@
 // /client/src/components/Navbar.js
-import React, { useState, useEffect } from "react"; // --- 'useState' IS ALREADY HERE, BUT MAKE SURE
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../App";
 import { isAuthenticated, logout, getUsername } from "../utils/auth";
 import { FaHome, FaCompass, FaFireAlt, FaRoute, FaUserCircle } from "react-icons/fa";
-import ConfirmModal from "./ConfirmModal"; // --- ADD THIS ---
+import ConfirmModal from "./ConfirmModal";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -12,27 +12,24 @@ const Navbar = () => {
   const [authenticated, setAuthenticated] = useState(isAuthenticated());
   const [username, setUsername] = useState(getUsername());
   const [menuActive, setMenuActive] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // --- ADD THIS ---
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     setAuthenticated(isAuthenticated());
     setUsername(getUsername() || user?.username);
   }, [user]);
 
-  // --- MODIFIED: This function now just *opens* the modal ---
   const handleLogout = () => {
     setIsModalOpen(true);
   };
 
-  // --- ADD THIS: This is the actual logout logic ---
   const handleConfirmLogout = () => {
     logout();
     navigate("/");
     window.location.reload();
-    setIsModalOpen(false); // Close the modal
+    setIsModalOpen(false);
   };
 
-  // --- ADD THIS: This handles the "Cancel" button ---
   const handleCancelLogout = () => {
     setIsModalOpen(false);
   };
@@ -45,7 +42,6 @@ const Navbar = () => {
     setMenuActive(false);
   };
 
-  // Scroll to top helper
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -115,14 +111,17 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* --- ADD THIS: Conditionally render the modal --- */}
-      {isModalOpen && (
-        <ConfirmModal
-          message="Are you sure you want to sign out?"
-          onConfirm={handleConfirmLogout}
-          onCancel={handleCancelLogout}
-        />
-      )}
+      {/* --- THIS IS THE CHANGE ---
+          We no longer use '&&'. We render the modal permanently
+          and pass 'isOpen' to let it control its own visibility.
+      */}
+      <ConfirmModal
+        isOpen={isModalOpen}
+        message="Are you sure you want to sign out?"
+        onConfirm={handleConfirmLogout}
+        onCancel={handleCancelLogout}
+      />
+      {/* --- END OF CHANGE --- */}
     </header>
   );
 };
