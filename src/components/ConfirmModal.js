@@ -1,82 +1,262 @@
 // src/components/ConfirmModal.js
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import { motion } from "framer-motion";
 import { FaExclamationTriangle } from "react-icons/fa";
 
+// Audio URLs (you can replace these with your own hosted sounds)
+const openSound = "https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3";
+const confirmSound = "https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3";
+
 const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
+  const colors = {
+    gold: "#D4AF37",
+    goldDeep: "#B38F2B",
+    bgDark: "#0B0E14",
+    surface: "#111827",
+    text: "#E5E7EB",
+    muted: "#94A3B8",
+  };
+
+  // Play chime when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const audio = new Audio(openSound);
+      audio.volume = 0.4;
+      audio.play().catch(() => {}); // Prevents autoplay errors
+    }
+  }, [isOpen]);
+
+  const handleConfirm = () => {
+    const audio = new Audio(confirmSound);
+    audio.volume = 0.5;
+    audio.play().catch(() => {});
+    onConfirm();
+  };
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onCancel}>
-        {/* Backdrop is just a blur */}
+        {/* BACKDROP */}
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-300"
+          enter="ease-out duration-400"
           enterFrom="opacity-0"
           enterTo="opacity-100"
-          leave="ease-in duration-200"
+          leave="ease-in duration-300"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 backdrop-blur-sm" />
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(0,0,0,0.7)",
+              backdropFilter: "blur(8px)",
+            }}
+          />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+        {/* MODAL CONTAINER */}
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            overflowY: "auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+            textAlign: "center",
+          }}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-500"
+            enterFrom="opacity-0 scale-90 rotate-[-4deg]"
+            enterTo="opacity-100 scale-100 rotate-0"
+            leave="ease-in duration-300"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-90 rotate-2"
+          >
+            <Dialog.Panel
+              style={{
+                position: "relative",
+                width: "100%",
+                maxWidth: "420px",
+                borderRadius: "18px",
+                padding: "28px 22px 32px",
+                background: "linear-gradient(145deg, #000000 0%, #0b0e14 60%, #111827 100%)",
+                boxShadow: "0 0 40px rgba(212,175,55,0.25)",
+                border: "1px solid rgba(212,175,55,0.35)",
+                overflow: "hidden",
+              }}
             >
-              <Dialog.Panel
-                className="w-full max-w-md transform overflow-hidden rounded-2xl 
-                           bg-white/70 backdrop-blur-lg 
-                           p-6 text-left align-middle shadow-xl transition-all 
-                           ring-1 ring-black/10"
-              >
-                <div className="flex items-start">
-                  <div className="mr-4 flex-shrink-0 rounded-full bg-red-100 p-3">
-                    <FaExclamationTriangle className="h-6 w-6 text-red-600" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <Dialog.Title as="h3" className="text-xl font-medium leading-6 text-gray-900">
-                      {message}
-                    </Dialog.Title>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-600">
-                        This action is permanent and cannot be undone.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              {/* Animated border ring */}
+              <motion.div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "18px",
+                  border: "2px solid rgba(212,175,55,0.3)",
+                }}
+                animate={{
+                  opacity: [0.3, 0.9, 0.3],
+                  scale: [1, 1.02, 1],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
 
-                <div className="mt-6 flex justify-end space-x-4">
-                  <button
-                    type="button"
-                    onClick={onCancel}
-                    className="px-5 py-2 bg-white text-gray-900 rounded-md font-medium 
-                               ring-1 ring-inset ring-gray-300
-                               hover:bg-gray-50 transition-colors
-                               focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onConfirm}
-                    className="px-5 py-2 bg-red-600 text-white rounded-md font-medium 
-                               hover:bg-red-700 transition-colors
-                               focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
+              {/* ICON */}
+              <motion.div
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 14,
+                }}
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginBottom: "12px",
+                }}
+              >
+                <motion.div
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 5, -5, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                  style={{
+                    background: "rgba(212,175,55,0.15)",
+                    padding: "16px",
+                    borderRadius: "50%",
+                    border: "1px solid rgba(212,175,55,0.4)",
+                    boxShadow: "0 0 20px rgba(212,175,55,0.4)",
+                  }}
+                >
+                  <FaExclamationTriangle
+                    style={{
+                      width: "38px",
+                      height: "38px",
+                      color: colors.gold,
+                      filter: "drop-shadow(0 0 6px rgba(212,175,55,0.7))",
+                    }}
+                  />
+                </motion.div>
+              </motion.div>
+
+              {/* TITLE */}
+              <Dialog.Title
+                as="h3"
+                style={{
+                  fontSize: "1.3rem",
+                  fontWeight: "700",
+                  background: "linear-gradient(90deg, #D4AF37, #FCE570, #D4AF37)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  letterSpacing: "0.5px",
+                  textAlign: "center",
+                  marginBottom: "6px",
+                }}
+              >
+                {message}
+              </Dialog.Title>
+
+              {/* SUBTEXT */}
+              <p
+                style={{
+                  color: colors.muted,
+                  fontSize: "0.9rem",
+                  textAlign: "center",
+                  marginBottom: "24px",
+                }}
+              >
+                You’ll need to sign in again to continue exploring TourEase.
+              </p>
+
+              {/* BUTTONS */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  gap: "18px",
+                }}
+              >
+                <motion.button
+                  whileHover={{
+                    scale: 1.1,
+                    textShadow: "0 0 10px rgba(255,255,255,0.7)",
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onCancel}
+                  style={{
+                    padding: "10px 26px",
+                    borderRadius: "10px",
+                    backgroundColor: "rgba(17,24,39,0.8)",
+                    border: "1px solid rgba(212,175,55,0.3)",
+                    color: colors.text,
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  Cancel
+                </motion.button>
+
+                <motion.button
+                  whileHover={{
+                    scale: 1.15,
+                    boxShadow: "0 0 24px rgba(212,175,55,0.7)",
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleConfirm}
+                  style={{
+                    padding: "10px 26px",
+                    borderRadius: "10px",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    color: "#0b0e14",
+                    background: "linear-gradient(135deg, #D4AF37, #B38F2B, #F8E78A)",
+                    boxShadow: "0 0 18px rgba(212,175,55,0.4)",
+                    border: "none",
+                    transition: "all 0.3s ease",
+                  }}
+                >
+                  Sign Out
+                </motion.button>
+              </div>
+
+              {/* CLOSE BUTTON */}
+              <button
+                onClick={onCancel}
+                style={{
+                  position: "absolute",
+                  top: "14px",
+                  right: "18px",
+                  fontSize: "1.2rem",
+                  background: "transparent",
+                  color: colors.gold,
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "color 0.2s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = colors.goldDeep)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = colors.gold)}
+              >
+                ✕
+              </button>
+            </Dialog.Panel>
+          </Transition.Child>
         </div>
       </Dialog>
     </Transition>
