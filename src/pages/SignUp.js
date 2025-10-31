@@ -5,25 +5,36 @@ import { authAPI } from "../utils/api";
 import { setToken, setUsername } from "../utils/auth";
 import { useAuth } from "../App";
 import "../auth.css";
-import { motion, AnimatePresence } from "framer-motion"; // Added for animations
+import { motion, AnimatePresence } from "framer-motion";
 
 const SignUp = () => {
   const { login } = useAuth();
+
+  // Form data state
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+
+  // UI states
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  // --- ENHANCED PASSWORD STRENGTH STATE ---
+  // Policy checkboxes states
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [acknowledgePrivacy, setAcknowledgePrivacy] = useState(false);
+  const [acceptCookies, setAcceptCookies] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
+
+  // Password strength state
   const [passwordStrength, setPasswordStrength] = useState({
     score: 0,
     color: "#666",
   });
+
   const [passwordChecks, setPasswordChecks] = useState({
     length: false,
     lowercase: false,
@@ -35,6 +46,7 @@ const SignUp = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Effect hook for initial setup
   useEffect(() => {
     if (location.state?.email) {
       setFormData((prev) => ({ ...prev, email: location.state.email }));
@@ -42,6 +54,7 @@ const SignUp = () => {
     setError("");
   }, [location.state]);
 
+  // Password strength checker function
   const checkPasswordStrength = (password) => {
     const checks = {
       length: password.length >= 8,
@@ -50,22 +63,26 @@ const SignUp = () => {
       number: /[0-9]/.test(password),
       special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
     };
-    setPasswordChecks(checks); // Update detailed checks for the UI
+    setPasswordChecks(checks);
 
     const score = Object.values(checks).filter(Boolean).length;
 
     const strengthLevels = [
-      { color: "#ef4444" }, // Very Weak (Red)
-      { color: "#ef4444" }, // Very Weak (Red)
-      { color: "#f97316" }, // Weak (Orange)
-      { color: "#f59e0b" }, // Medium (Amber)
-      { color: "#eab308" }, // Strong (Yellow)
-      { color: "#22c55e" }, // Very Strong (Green)
+      { color: "#ef4444" }, // Red
+      { color: "#ef4444" }, // Red
+      { color: "#f97316" }, // Orange
+      { color: "#f59e0b" }, // Amber
+      { color: "#eab308" }, // Yellow
+      { color: "#22c55e" }, // Green
     ];
 
-    setPasswordStrength({ score, color: strengthLevels[score].color });
+    setPasswordStrength({
+      score,
+      color: strengthLevels[score].color,
+    });
   };
 
+  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -74,7 +91,6 @@ const SignUp = () => {
       if (value.length > 0) {
         checkPasswordStrength(value);
       } else {
-        // Reset if password is empty
         setPasswordStrength({ score: 0, color: "#666" });
         setPasswordChecks({
           length: false,
@@ -87,17 +103,39 @@ const SignUp = () => {
     }
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
+    // Validation: Check required policies
+    if (!agreeToTerms) {
+      setError("❌ You must agree to the Terms of Service to sign up.");
+      setLoading(false);
+      return;
+    }
+
+    if (!acknowledgePrivacy) {
+      setError("❌ You must acknowledge the Privacy Policy to sign up.");
+      setLoading(false);
+      return;
+    }
+
+    if (!acceptCookies) {
+      setError("❌ You must accept the Cookie Policy to sign up.");
+      setLoading(false);
+      return;
+    }
+
+    // Validation: Check password strength
     if (passwordStrength.score < 5) {
       setError("❌ Your password does not meet all the strength requirements.");
       setLoading(false);
       return;
     }
 
+    // Validation: Check password match
     if (formData.password !== formData.confirmPassword) {
       setError("❌ Passwords do not match! Please make sure both passwords are identical.");
       setLoading(false);
@@ -109,14 +147,15 @@ const SignUp = () => {
         username: formData.username,
         email: formData.email,
         password: formData.password,
+        marketingOptIn: marketingOptIn,
       });
 
       setToken(response.data.token, rememberMe);
       if (response.data.username) {
         setUsername(response.data.username, rememberMe);
       }
-
       login({ username: response.data.username });
+
       const from = location.state?.from?.pathname || "/";
       navigate(from, { replace: true });
     } catch (err) {
@@ -126,7 +165,7 @@ const SignUp = () => {
     }
   };
 
-  // Helper component for rendering individual requirements
+  // Helper component for password requirements
   const Requirement = ({ met, text }) => (
     <div
       style={{
@@ -150,8 +189,11 @@ const SignUp = () => {
             <span>Tour</span>
             <span>Ease</span>
           </div>
+
           {error && <div className="error-banner">{error}</div>}
+
           <form id="signupForm" onSubmit={handleSubmit}>
+            {/* Username Field */}
             <label>Username</label>
             <input
               type="text"
@@ -161,6 +203,8 @@ const SignUp = () => {
               onChange={handleChange}
               required
             />
+
+            {/* Email Field */}
             <label>Email address</label>
             <input
               type="email"
@@ -170,6 +214,8 @@ const SignUp = () => {
               onChange={handleChange}
               required
             />
+
+            {/* Password Field */}
             <label>Password</label>
             <input
               type="password"
@@ -180,41 +226,64 @@ const SignUp = () => {
               required
             />
 
-            {/* --- ENHANCED PASSWORD STRENGTH VISUAL FEEDBACK --- */}
+            {/* Password Strength Indicator */}
             <AnimatePresence>
               {formData.password && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
-                  style={{ marginTop: "8px", marginBottom: "12px", overflow: "hidden" }}
+                  transition={{ duration: 0.3 }}
+                  style={{
+                    marginTop: "12px",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    backgroundColor: "#f9fafb",
+                    border: "1px solid #e5e7eb",
+                  }}
                 >
-                  <div style={{ display: "flex", gap: "4px", height: "5px", marginBottom: "10px" }}>
-                    {[1, 2, 3, 4, 5].map((level) => (
-                      <div
-                        key={level}
-                        style={{
-                          flex: 1,
-                          height: "100%",
-                          borderRadius: "2px",
-                          backgroundColor:
-                            level <= passwordStrength.score ? passwordStrength.color : "#e0e0e0",
-                          transition: "background-color 0.3s ease",
-                        }}
-                      />
-                    ))}
+                  <div
+                    style={{
+                      marginBottom: "12px",
+                      fontSize: "13px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Password Strength
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                    <Requirement met={passwordChecks.length} text="8+ characters" />
-                    <Requirement met={passwordChecks.lowercase} text="Lowercase" />
-                    <Requirement met={passwordChecks.uppercase} text="Uppercase" />
-                    <Requirement met={passwordChecks.number} text="Number" />
-                    <Requirement met={passwordChecks.special} text="Special char" />
+                  <div
+                    style={{
+                      height: "6px",
+                      backgroundColor: "#e5e7eb",
+                      borderRadius: "3px",
+                      overflow: "hidden",
+                      marginBottom: "12px",
+                    }}
+                  >
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{
+                        width: `${(passwordStrength.score / 5) * 100}%`,
+                        backgroundColor: passwordStrength.color,
+                      }}
+                      transition={{ duration: 0.3 }}
+                      style={{ height: "100%" }}
+                    />
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <Requirement met={passwordChecks.length} text="At least 8 characters" />
+                    <Requirement met={passwordChecks.lowercase} text="One lowercase letter" />
+                    <Requirement met={passwordChecks.uppercase} text="One uppercase letter" />
+                    <Requirement met={passwordChecks.number} text="One number" />
+                    <Requirement met={passwordChecks.special} text="One special character" />
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
+            {/* Confirm Password Field */}
             <label>Confirm Password</label>
             <input
               type="password"
@@ -224,28 +293,300 @@ const SignUp = () => {
               onChange={handleChange}
               required
             />
-            <div className="checkbox">
-              <div className="checkbox-left">
+
+            {/* POLICY CHECKBOXES SECTION */}
+            <div style={{ marginTop: "20px", marginBottom: "10px" }}>
+              {/* Terms of Service - REQUIRED */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  marginBottom: "14px",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  transition: "background 0.2s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)")
+                }
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
                 <input
                   type="checkbox"
-                  id="rememberMeSignup"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
+                  id="agreeToTerms"
+                  checked={agreeToTerms}
+                  onChange={(e) => setAgreeToTerms(e.target.checked)}
+                  required
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    minWidth: "18px",
+                    marginRight: "10px",
+                    marginTop: "2px",
+                    cursor: "pointer",
+                    accentColor: "#d4af37",
+                  }}
                 />
-                <label htmlFor="rememberMeSignup">Remember me</label>
+                <label
+                  htmlFor="agreeToTerms"
+                  style={{
+                    fontSize: "13px",
+                    lineHeight: "1.5",
+                    color: "#cbd5e1",
+                    cursor: "pointer",
+                    margin: 0,
+                    userSelect: "none",
+                  }}
+                >
+                  I agree to the{" "}
+                  <a
+                    href="/terms-of-service"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: "#3b82f6",
+                      textDecoration: "none",
+                      fontWeight: "600",
+                      transition: "color 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.color = "#60a5fa";
+                      e.target.style.textDecoration = "underline";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.color = "#3b82f6";
+                      e.target.style.textDecoration = "none";
+                    }}
+                  >
+                    TourEase Terms of Service
+                  </a>
+                  <span style={{ color: "#ef4444", marginLeft: "2px", fontWeight: "700" }}>*</span>
+                </label>
+              </div>
+
+              {/* Privacy Policy - REQUIRED */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  marginBottom: "14px",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  transition: "background 0.2s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)")
+                }
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                <input
+                  type="checkbox"
+                  id="acknowledgePrivacy"
+                  checked={acknowledgePrivacy}
+                  onChange={(e) => setAcknowledgePrivacy(e.target.checked)}
+                  required
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    minWidth: "18px",
+                    marginRight: "10px",
+                    marginTop: "2px",
+                    cursor: "pointer",
+                    accentColor: "#d4af37",
+                  }}
+                />
+                <label
+                  htmlFor="acknowledgePrivacy"
+                  style={{
+                    fontSize: "13px",
+                    lineHeight: "1.5",
+                    color: "#cbd5e1",
+                    cursor: "pointer",
+                    margin: 0,
+                    userSelect: "none",
+                  }}
+                >
+                  I acknowledge the{" "}
+                  <a
+                    href="/privacy-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: "#3b82f6",
+                      textDecoration: "none",
+                      fontWeight: "600",
+                      transition: "color 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.color = "#60a5fa";
+                      e.target.style.textDecoration = "underline";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.color = "#3b82f6";
+                      e.target.style.textDecoration = "none";
+                    }}
+                  >
+                    Privacy Policy
+                  </a>
+                  <span style={{ color: "#ef4444", marginLeft: "2px", fontWeight: "700" }}>*</span>
+                </label>
+              </div>
+
+              {/* Cookie Policy - REQUIRED */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  marginBottom: "14px",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  transition: "background 0.2s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)")
+                }
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                <input
+                  type="checkbox"
+                  id="acceptCookies"
+                  checked={acceptCookies}
+                  onChange={(e) => setAcceptCookies(e.target.checked)}
+                  required
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    minWidth: "18px",
+                    marginRight: "10px",
+                    marginTop: "2px",
+                    cursor: "pointer",
+                    accentColor: "#d4af37",
+                  }}
+                />
+                <label
+                  htmlFor="acceptCookies"
+                  style={{
+                    fontSize: "13px",
+                    lineHeight: "1.5",
+                    color: "#cbd5e1",
+                    cursor: "pointer",
+                    margin: 0,
+                    userSelect: "none",
+                  }}
+                >
+                  I accept the use of cookies as described in the{" "}
+                  <a
+                    href="/cookie-policy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: "#3b82f6",
+                      textDecoration: "none",
+                      fontWeight: "600",
+                      transition: "color 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.color = "#60a5fa";
+                      e.target.style.textDecoration = "underline";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.color = "#3b82f6";
+                      e.target.style.textDecoration = "none";
+                    }}
+                  >
+                    Cookie Policy
+                  </a>
+                  <span style={{ color: "#ef4444", marginLeft: "2px", fontWeight: "700" }}>*</span>
+                </label>
+              </div>
+
+              {/* Marketing Opt-in - OPTIONAL */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  marginBottom: "14px",
+                  padding: "10px",
+                  borderRadius: "8px",
+                  transition: "background 0.2s ease",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)";
+                  const label = e.currentTarget.querySelector("label");
+                  if (label) label.style.color = "#cbd5e1";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  const label = e.currentTarget.querySelector("label");
+                  if (label) label.style.color = "#9ca3af";
+                }}
+              >
+                <input
+                  type="checkbox"
+                  id="marketingOptIn"
+                  checked={marketingOptIn}
+                  onChange={(e) => setMarketingOptIn(e.target.checked)}
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    minWidth: "18px",
+                    marginRight: "10px",
+                    marginTop: "2px",
+                    cursor: "pointer",
+                    accentColor: "#d4af37",
+                  }}
+                />
+                <label
+                  htmlFor="marketingOptIn"
+                  style={{
+                    fontSize: "13px",
+                    lineHeight: "1.5",
+                    color: "#9ca3af",
+                    cursor: "pointer",
+                    margin: 0,
+                    userSelect: "none",
+                    transition: "color 0.2s ease",
+                  }}
+                >
+                  I would like to receive occasional emails about new features, promotions, and tips
+                  (optional)
+                </label>
+              </div>
+
+              {/* Remember Me Checkbox */}
+              <div className="checkbox">
+                <div className="checkbox-left">
+                  <input
+                    type="checkbox"
+                    id="rememberMeSignup"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <label htmlFor="rememberMeSignup">Remember me</label>
+                </div>
               </div>
             </div>
+
+            {/* Submit Button */}
             <button type="submit" className="btn" disabled={loading}>
               {loading ? "Creating Account..." : "Sign Up"}
             </button>
           </form>
+
+          {/* Divider */}
           <div className="divider">or</div>
+
+          {/* Social Login Buttons */}
           <div className="social-buttons">
-            <button>
+            <button type="button">
               <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" />
               Sign up with Google
             </button>
-            <button>
+            <button type="button">
               <img
                 src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
                 alt="Facebook"
@@ -254,19 +595,25 @@ const SignUp = () => {
               Sign up with Facebook
             </button>
           </div>
+
+          {/* Sign In Link */}
           <div className="signin">
             Already have an account? <Link to="/signin">Sign In</Link>
           </div>
         </div>
       </div>
+
+      {/* Right Video Section */}
       <div className="right">
         <video
           className="hero-video"
           autoPlay
           loop
           playsInline
-          volume="0.5"
-          onLoadedMetadata={(e) => (e.target.volume = 0.5)}
+          muted
+          onLoadedMetadata={(e) => {
+            e.target.volume = 0.5;
+          }}
         >
           <source src="/assets/Welcome to Karnataka _ One State Many Worlds.mp4" type="video/mp4" />
           Your browser does not support the video tag.

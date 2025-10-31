@@ -18,9 +18,16 @@ const Navbar = () => {
   }, [user]);
 
   const handleLogout = () => {
-    logout();
-    navigate("/");
-    window.location.reload();
+    // --- THIS IS THE CHANGE ---
+    // Show a confirmation dialog.
+    // If the user clicks "OK", the code inside the 'if' block will run.
+    // If they click "Cancel", nothing will happen.
+    if (window.confirm("Are you sure you want to sign out?")) {
+      logout();
+      navigate("/");
+      window.location.reload();
+    }
+    // --- END OF CHANGE ---
   };
 
   const toggleMenu = () => {
