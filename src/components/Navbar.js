@@ -1,9 +1,10 @@
 // /client/src/components/Navbar.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; // --- 'useState' IS ALREADY HERE, BUT MAKE SURE
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../App";
 import { isAuthenticated, logout, getUsername } from "../utils/auth";
 import { FaHome, FaCompass, FaFireAlt, FaRoute, FaUserCircle } from "react-icons/fa";
+import ConfirmModal from "./ConfirmModal"; // --- ADD THIS ---
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -11,23 +12,29 @@ const Navbar = () => {
   const [authenticated, setAuthenticated] = useState(isAuthenticated());
   const [username, setUsername] = useState(getUsername());
   const [menuActive, setMenuActive] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // --- ADD THIS ---
 
   useEffect(() => {
     setAuthenticated(isAuthenticated());
     setUsername(getUsername() || user?.username);
   }, [user]);
 
+  // --- MODIFIED: This function now just *opens* the modal ---
   const handleLogout = () => {
-    // --- THIS IS THE CHANGE ---
-    // Show a confirmation dialog.
-    // If the user clicks "OK", the code inside the 'if' block will run.
-    // If they click "Cancel", nothing will happen.
-    if (window.confirm("Are you sure you want to sign out?")) {
-      logout();
-      navigate("/");
-      window.location.reload();
-    }
-    // --- END OF CHANGE ---
+    setIsModalOpen(true);
+  };
+
+  // --- ADD THIS: This is the actual logout logic ---
+  const handleConfirmLogout = () => {
+    logout();
+    navigate("/");
+    window.location.reload();
+    setIsModalOpen(false); // Close the modal
+  };
+
+  // --- ADD THIS: This handles the "Cancel" button ---
+  const handleCancelLogout = () => {
+    setIsModalOpen(false);
   };
 
   const toggleMenu = () => {
@@ -107,6 +114,15 @@ const Navbar = () => {
           <span className="bar"></span>
         </div>
       </nav>
+
+      {/* --- ADD THIS: Conditionally render the modal --- */}
+      {isModalOpen && (
+        <ConfirmModal
+          message="Are you sure you want to sign out?"
+          onConfirm={handleConfirmLogout}
+          onCancel={handleCancelLogout}
+        />
+      )}
     </header>
   );
 };
