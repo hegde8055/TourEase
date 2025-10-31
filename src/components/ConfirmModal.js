@@ -1,17 +1,12 @@
 // src/components/ConfirmModal.js
 import React, { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { FaExclamationTriangle } from "react-icons/fa"; // Added for extra visual cue
+import { FaExclamationTriangle } from "react-icons/fa";
 
 const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
   return (
-    // 'Transition' handles the fade-in/out of the entire modal
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onCancel}>
-        {/*
-          'Transition.Child' for the backdrop (the dark overlay)
-          This fades in and out.
-        */}
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -26,10 +21,6 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
 
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
-            {/*
-              'Transition.Child' for the modal panel itself.
-              This fades in and scales up.
-            */}
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -39,7 +30,6 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              {/* This 'Dialog.Panel' is your original styled modal box */}
               <Dialog.Panel
                 className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 
                            text-left align-middle shadow-2xl transition-all 

@@ -35,7 +35,7 @@ const Navbar = () => {
   };
 
   const toggleMenu = () => {
-    setMenuActive(!menuActive);
+    setMenuActive(false);
   };
 
   const closeMenu = () => {
@@ -111,17 +111,12 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* --- THIS IS THE CHANGE ---
-          We no longer use '&&'. We render the modal permanently
-          and pass 'isOpen' to let it control its own visibility.
-      */}
       <ConfirmModal
         isOpen={isModalOpen}
         message="Are you sure you want to sign out?"
         onConfirm={handleConfirmLogout}
         onCancel={handleCancelLogout}
       />
-      {/* --- END OF CHANGE --- */}
     </header>
   );
 };
