@@ -49,9 +49,11 @@ export const aiItineraryAPI = {
 
 // --- Destinations & Places API ---
 export const destinationsAPI = {
-  getAll: () => api.get("/destinations"),
+  getAll: (params) => api.get("/destinations", { params }),
   getById: (id) => api.get(`/destinations/${id}`),
-  getTrending: () => api.get("/trending"),
+  getTrending: (limit) => api.get("/trending", { params: { limit } }),
+  getCategories: () => api.get("/destinations/categories"), // Assuming this route exists
+  ingestFromGeoapify: (payload) => api.post("/destinations/ingest", payload),
 };
 
 // --- Geo & Places API (Geoapify) ---
@@ -66,28 +68,23 @@ export const enhancedPlacesAPI = {
   getNearbyPlaces: (params) => api.get("/places/nearby", { params }),
   getTouristPlaces: (params) => api.get("/places/tourist", { params }),
   searchPlaces: (params) => api.get("/places/search-autocomplete", { params }),
+
+  // --- ADDED MISSING FUNCTIONS ---
+  getWeather: (lat, lng) => api.get("/places/weather", { params: { lat, lng } }),
+  getPlaceDetails: (placeId) => api.get(`/places/place-details/${placeId}`),
+  getMapImage: (coords, zoom, format) => api.post("/places/map-image", { coords, zoom, format }),
 };
 
 // --- Image API ---
-// THIS IS THE UPDATED SECTION
 export const imageAPI = {
-  /**
-   * Gets a destination hero image from our *own* caching backend.
-   * @param {string} destinationName - The name of the destination
-   * @returns {Promise<Object>} - Axios response with { imageUrl: "..." }
-   */
   getDestinationImage: (destinationName) => {
-    // We use encodeURIComponent to safely pass names with spaces
-    // (e.g., "New York" becomes "New%20York")
     return api.get(`/images/destination/${encodeURIComponent(destinationName)}`);
   },
 };
-// --- END OF UPDATE ---
 
 // --- Chatbot API ---
 export const chatAPI = {
   send: (payload) => {
-    // We must pass the token manually for the chat API
     return api.post("/chatbot", payload, {
       headers: {
         Authorization: `Bearer ${getToken()}`,
