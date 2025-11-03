@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import InteractiveMap from "../components/InteractiveMap";
-import { destinationAPI } from "../utils/api"; // Assuming api.js exports destinationAPI correctly
+import { destinationsAPI } from "../utils/api"; // <-- FIX: Renamed to destinationsAPI
 import { getDestinationHeroImage } from "../utils/imageHelpers";
 import { extractCoordinates } from "../utils/locationHelpers"; // Import coordinate extractor
 import AIChatbot from "../components/AIChatbot";
@@ -87,7 +87,7 @@ const Destination = () => {
       setDestination(null); // Reset destination data
 
       // Call the API function to get destination by ID/slug
-      const response = await destinationAPI.getById(id);
+      const response = await destinationsAPI.getById(id); // <-- FIX: Renamed to destinationsAPI
 
       // Check if data was received successfully
       if (response.data) {

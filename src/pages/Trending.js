@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { destinationAPI, enhancedPlacesAPI } from "../utils/api";
+import { destinationsAPI, enhancedPlacesAPI } from "../utils/api"; // <-- FIX: Renamed to destinationsAPI
 import { getDestinationHeroImage } from "../utils/imageHelpers";
 import { extractCoordinates } from "../utils/locationHelpers";
 import Navbar from "../components/Navbar";
@@ -33,7 +33,7 @@ const Trending = () => {
       setLoading(true);
       try {
         // Fetching 25 destinations
-        const results = await destinationAPI.getTrending(25);
+        const results = await destinationsAPI.getTrending(25); // <-- FIX: Renamed to destinationsAPI
         mapPreviewsRef.current = {}; // Reset map previews
         setDestinations(results || []); // Ensure it's an array
       } catch (error) {
