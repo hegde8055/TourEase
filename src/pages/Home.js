@@ -5,8 +5,7 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import Navbar from "../components/Navbar";
 import AIChatbot from "../components/AIChatbot";
 import { useAuth } from "../App";
-import { destinationsAPI, itineraryAPI, enhancedPlacesAPI } from "../utils/api"; // <-- FIX: Renamed to destinationsAPI
-
+import { destinationAPI, itineraryAPI, enhancedPlacesAPI } from "../utils/api";
 const Home = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -221,7 +220,7 @@ const Home = () => {
 
       if (options.force) payload.force = true;
 
-      const response = await destinationsAPI.ingestFromGeoapify(payload); // <-- FIX: Renamed to destinationsAPI
+      const response = await destinationAPI.ingestFromGeoapify(payload);
       const destination = response.data?.destination;
 
       if (!destination) {
@@ -307,7 +306,7 @@ const Home = () => {
 
     const bootstrapDestination = async () => {
       try {
-        const trending = await destinationsAPI.getTrending(6); // <-- FIX: Renamed to destinationsAPI
+        const trending = await destinationAPI.getTrending(6);
         if (!isMounted) return;
 
         if (Array.isArray(trending) && trending.length > 0) {
