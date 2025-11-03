@@ -29,7 +29,7 @@ import {
   IoTrash,
 } from "react-icons/io5";
 
-// --- NEW: DND-KIT IMPORTS ---
+// --- DND-KIT IMPORTS ---
 import {
   DndContext,
   closestCenter,
@@ -46,6 +46,9 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+
+// --- OPTIMIZATION: Import debounce ---
+import debounce from "lodash.debounce";
 
 // All styles from ItineraryPlanner.css are converted to a JS object
 const styles = {
@@ -137,9 +140,8 @@ const filterOptions = [
   { value: "past", label: "Past" },
 ];
 
-// --- NEW: Draggable Place Card Component ---
-// For places in the suggestions/search list that can be dragged to itinerary days
-const DraggablePlaceCard = ({ place, isDraggedOver, isAlreadySelected }) => {
+// --- OPTIMIZATION: Wrapped in React.memo ---
+const DraggablePlaceCard = React.memo(({ place, isDraggedOver, isAlreadySelected }) => {
   const placeKey = place.placeId || place.id;
 
   return (
@@ -190,11 +192,10 @@ const DraggablePlaceCard = ({ place, isDraggedOver, isAlreadySelected }) => {
       </div>
     </div>
   );
-};
+});
 
-// --- NEW: DND-Kit Sortable Item Component ---
-// This component wraps each place in your itinerary list
-const SortablePlaceItem = ({ id, place, dayIndex, removePlaceFromDay, distanceMap }) => {
+// --- OPTIMIZATION: Wrapped in React.memo ---
+const SortablePlaceItem = React.memo(({ id, place, dayIndex, removePlaceFromDay, distanceMap }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
   });
@@ -202,7 +203,7 @@ const SortablePlaceItem = ({ id, place, dayIndex, removePlaceFromDay, distanceMa
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 1000 : 1, // High z-index when dragging
+    zIndex: isDragging ? 1000 : 1,
     opacity: isDragging ? 0.85 : 1,
     boxShadow: isDragging ? "0 10px 20px rgba(0,0,0,0.3)" : "none",
   };
@@ -216,7 +217,7 @@ const SortablePlaceItem = ({ id, place, dayIndex, removePlaceFromDay, distanceMa
       style={{
         ...style,
         display: "grid",
-        gridTemplateColumns: "auto 1fr auto", // Column for handle, info, and button
+        gridTemplateColumns: "auto 1fr auto",
         gap: "10px",
         alignItems: "center",
         padding: "10px",
@@ -224,11 +225,11 @@ const SortablePlaceItem = ({ id, place, dayIndex, removePlaceFromDay, distanceMa
         border: "1px solid rgba(59, 130, 246, 0.2)",
         borderRadius: "10px",
       }}
-      {...attributes} // Spread DND attributes
+      {...attributes}
     >
       {/* Drag Handle */}
       <div
-        {...listeners} // Spread DND listeners
+        {...listeners}
         style={{ cursor: "grab", color: "#9ca3af", padding: "0 6px" }}
         title="Drag to reorder"
       >
@@ -252,7 +253,6 @@ const SortablePlaceItem = ({ id, place, dayIndex, removePlaceFromDay, distanceMa
       <div>
         <div style={{ color: "#f8fafc", fontWeight: 600 }}>
           {place.name}
-          {/* --- FIX: This will now be populated correctly --- */}
           {distanceInMeters != null && distanceInMeters > 0 && (
             <span
               style={{
@@ -289,7 +289,7 @@ const SortablePlaceItem = ({ id, place, dayIndex, removePlaceFromDay, distanceMa
       </div>
     </div>
   );
-};
+});
 
 const ItineraryPlanner = () => {
   const { user } = useAuth();
@@ -311,7 +311,7 @@ const ItineraryPlanner = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
   const [aiCostResult, setAiCostResult] = useState(null);
-  const [userBudgetInput, setUserBudgetInput] = useState(0); // NEW: User's entered budget
+  const [userBudgetInput, setUserBudgetInput] = useState(0);
 
   const [itineraryDays, setItineraryDays] = useState([{ dayNumber: 1, places: [] }]);
 
@@ -359,7 +359,6 @@ const ItineraryPlanner = () => {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
 
-  // --- DND-Kit Sensor Setup ---
   const pointerSensor = useSensor(PointerSensor, {
     activationConstraint: {
       distance: 5,
@@ -372,7 +371,6 @@ const ItineraryPlanner = () => {
 
   const sensors = useSensors(pointerSensor, keyboardSensor);
 
-  // --- NEW: State for Responsiveness ---
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [dragOverDayIndex, setDragOverDayIndex] = useState(null);
 
@@ -441,8 +439,6 @@ const ItineraryPlanner = () => {
       transform: scale(1.1);
     }
 
-    /* Other browsers... */
-
     input[type="date"] {
       color-scheme: dark;
     }
@@ -468,8 +464,6 @@ const ItineraryPlanner = () => {
     setError("");
     try {
       const response = await enhancedItineraryAPI.getAll();
-      // === CONSOLE LOG REMOVED ===
-      // console.log("Fetched itineraries response:", response.data);
       setItineraries(response.data?.itineraries || response.data || []);
     } catch (err) {
       console.error("Fetch itineraries error:", err);
@@ -477,13 +471,12 @@ const ItineraryPlanner = () => {
     } finally {
       setLoading(false);
     }
-  }, []); // Added missing dependency
+  }, []);
 
   useEffect(() => {
     fetchItineraries();
   }, [fetchItineraries]);
 
-  // --- UPDATED: Geolocation useEffect with better error handling ---
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       return;
@@ -498,10 +491,10 @@ const ItineraryPlanner = () => {
       },
       () => {
         console.warn("Geolocation failed or was denied. User location will not be used as origin.");
-        setUserLocation({ lat: null, lng: null }); // Explicitly set to null
+        setUserLocation({ lat: null, lng: null });
       }
     );
-  }, []); // Empty dependency array is correct, only run on mount
+  }, []);
 
   useEffect(() => {
     const { startDate, endDate, basePerPerson, passengers, travelClass, season, addOns, taxesPct } =
@@ -578,7 +571,6 @@ const ItineraryPlanner = () => {
     }
     itineraryDays.forEach((day) => {
       day.places.forEach((place) => {
-        // --- This check is now reliable thanks to the fix in handleGeneratePlan ---
         if (place?.coordinates?.lat != null && place?.coordinates?.lng != null) {
           stops.push({
             id: place.placeId || place.id,
@@ -611,7 +603,6 @@ const ItineraryPlanner = () => {
     return stops;
   }, [userLocation, itineraryDays, destinationDetails]);
 
-  // --- UPDATED: Simplified useEffect for route calculation ---
   useEffect(() => {
     if (routeStops.length < 2) {
       setRoutingLoading(false);
@@ -622,7 +613,7 @@ const ItineraryPlanner = () => {
     }
 
     let cancelled = false;
-    const routeMode = "drive"; // Default route mode
+    const routeMode = "drive";
 
     const computeRoute = async () => {
       setRoutingLoading(true);
@@ -630,7 +621,6 @@ const ItineraryPlanner = () => {
 
       try {
         const legs = [];
-        // Removed totalMeters and totalSeconds from here
 
         for (let index = 0; index < routeStops.length - 1; index += 1) {
           const from = routeStops[index];
@@ -663,7 +653,6 @@ const ItineraryPlanner = () => {
             distanceMeters,
             durationSeconds,
           });
-          // Removed accumulation logic from here
         }
 
         if (!cancelled) {
@@ -677,7 +666,7 @@ const ItineraryPlanner = () => {
         if (!cancelled) {
           console.error("Routing failed", err);
           setRouteError(err.response?.data?.error || err.message || "Failed to compute route.");
-          setRouteSummary(null); // This was causing the card to disappear
+          setRouteSummary(null);
         }
       } finally {
         if (!cancelled) {
@@ -693,7 +682,6 @@ const ItineraryPlanner = () => {
     };
   }, [routeStops]);
 
-  // --- NEW: Geoapify Multi-Point Route Calculation ---
   useEffect(() => {
     if (!routeStops || routeStops.length < 2) {
       return;
@@ -703,7 +691,6 @@ const ItineraryPlanner = () => {
 
     const calculateGeoapifyRoute = async () => {
       try {
-        // Extract coordinates from route stops
         const waypoints = routeStops
           .map((stop) => {
             const coords = stop.coordinates;
@@ -728,16 +715,12 @@ const ItineraryPlanner = () => {
           console.log(
             `✅ Geoapify route: ${routeData.distanceKm.toFixed(2)} km, ${routeData.durationMinutes} mins`
           );
-          // Store the geoapify route data in state for map visualization
-          // This will be passed to InteractiveMap component
-          // The existing routeSummary will be updated with more accurate data
         } else {
           console.warn("No route data returned from Geoapify");
         }
       } catch (error) {
         if (!cancelled) {
           console.warn("Geoapify routing failed:", error);
-          // Don't set error state - fall back to geoAPI results above
         }
       }
     };
@@ -761,7 +744,6 @@ const ItineraryPlanner = () => {
     return map;
   }, [routeSummary]);
 
-  // --- NEW: useMemo hook to calculate totals (Fixes Green Arrow) ---
   const routeTotals = useMemo(() => {
     if (!routeSummary?.legs) {
       return { totalMeters: 0, totalSeconds: 0 };
@@ -778,7 +760,6 @@ const ItineraryPlanner = () => {
     return { totalMeters, totalSeconds };
   }, [routeSummary]);
 
-  // --- NEW: Recalculate costs when route distance changes ---
   useEffect(() => {
     if (!aiForm.startDate || !aiForm.endDate || routeTotals.totalMeters === 0) {
       return;
@@ -815,7 +796,6 @@ const ItineraryPlanner = () => {
       } catch (err) {
         if (!cancelled) {
           console.error("Cost re-estimation failed", err);
-          // Don't override existing error, just log
         }
       }
     }, 500);
@@ -847,14 +827,12 @@ const ItineraryPlanner = () => {
     setPlacesLoading(true);
     setPlacesError("");
     try {
-      // Priority 1: Fetch famous tourist spots
       const touristResponse = await enhancedPlacesAPI.getTouristPlaces({
         location: coords,
         radius: 60000,
         limit: 10,
       });
 
-      // Priority 2: Fetch restaurants and diners
       const restaurantResponse = await enhancedPlacesAPI.getNearbyPlaces({
         location: coords,
         categories: "catering.restaurant,catering.fast_food,catering.cafe",
@@ -862,7 +840,6 @@ const ItineraryPlanner = () => {
         limit: 8,
       });
 
-      // Priority 3: Fetch lodging
       const lodgingResponse = await enhancedPlacesAPI.getNearbyPlaces({
         location: coords,
         categories: "accommodation",
@@ -896,32 +873,62 @@ const ItineraryPlanner = () => {
     }
   }, []);
 
-  const handlePlaceSearch = useCallback(async () => {
-    if (!placeSearchQuery.trim() || !destinationDetails?.location?.coordinates) {
-      setPlaceSearchResults([]);
-      return;
-    }
-    setPlaceSearchLoading(true);
-    setPlaceSearchError("");
-    setPlaceSearchResults([]);
-    try {
-      const response = await enhancedPlacesAPI.searchPlaces({
-        query: placeSearchQuery,
-        location: destinationDetails.location.coordinates,
-        limit: 5,
-      });
-      const results = response.data?.suggestions || [];
-      if (results.length === 0) {
-        setPlaceSearchError("No results found for that search.");
+  // --- START DEBOUNCE OPTIMIZATION (WITH LINT FIX) ---
+
+  // 1. Wrap the execution logic in useCallback.
+  //    Its dependencies are destinationDetails and the stable state setters.
+  const executePlaceSearch = useCallback(
+    async (query) => {
+      if (!query.trim() || !destinationDetails?.location?.coordinates) {
+        setPlaceSearchResults([]);
+        return;
       }
-      setPlaceSearchResults(results);
-    } catch (err) {
-      console.error("Custom place search failed:", err);
-      setPlaceSearchError(err.response?.data?.error || "Could not find that place.");
-    } finally {
-      setPlaceSearchLoading(false);
-    }
-  }, [placeSearchQuery, destinationDetails]);
+      setPlaceSearchLoading(true);
+      setPlaceSearchError("");
+      setPlaceSearchResults([]);
+      try {
+        const response = await enhancedPlacesAPI.searchPlaces({
+          query: query,
+          location: destinationDetails.location.coordinates,
+          limit: 5,
+        });
+        const results = response.data?.suggestions || [];
+        if (results.length === 0) {
+          setPlaceSearchError("No results found for that search.");
+        }
+        setPlaceSearchResults(results);
+      } catch (err) {
+        console.error("Custom place search failed:", err);
+        setPlaceSearchError(err.response?.data?.error || "Could not find that place.");
+      } finally {
+        setPlaceSearchLoading(false);
+      }
+    },
+    [destinationDetails]
+  ); // set... functions are stable and not needed here
+
+  // 2. Create the debounced function using useMemo.
+  //    It now correctly depends on the stable executePlaceSearch.
+  const debouncedSearch = useMemo(
+    () => debounce((query) => executePlaceSearch(query), 500),
+    [executePlaceSearch] // This fixes the ESLint warning
+  );
+
+  // 3. This is the event handler for the input field.
+  const handlePlaceSearchQueryChange = (e) => {
+    const query = e.target.value;
+    setPlaceSearchQuery(query);
+    debouncedSearch(query);
+  };
+
+  // 4. Cancel any pending search if the component unmounts
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
+
+  // --- END DEBOUNCE OPTIMIZATION ---
 
   const addDay = () =>
     setItineraryDays((prev) => [...prev, { dayNumber: prev.length + 1, places: [] }]);
@@ -954,27 +961,20 @@ const ItineraryPlanner = () => {
     );
   }, []);
 
-  // --- REMOVED `reorderPlaceInDay` as it's replaced by DND ---
-
-  // --- NEW: DND-Kit Drag End Handler ---
   const handleDragEnd = useCallback((event, dayIndex) => {
     const { active, over } = event;
 
-    // Check if the drag ended on a valid drop target
     if (over && active.id !== over.id) {
       setItineraryDays((prevDays) => {
-        // Create a new copy of the days array
         const newDays = [...prevDays];
         const day = newDays[dayIndex];
-        if (!day) return prevDays; // Safety check
+        if (!day) return prevDays;
 
-        // Find the old and new index of the dragged item
         const oldIndex = day.places.findIndex((p) => (p.placeId || p.id) === active.id);
         const newIndex = day.places.findIndex((p) => (p.placeId || p.id) === over.id);
 
-        if (oldIndex === -1 || newIndex === -1) return prevDays; // Safety check
+        if (oldIndex === -1 || newIndex === -1) return prevDays;
 
-        // Update the places array for the specific day
         newDays[dayIndex] = {
           ...day,
           places: arrayMove(day.places, oldIndex, newIndex),
@@ -983,9 +983,8 @@ const ItineraryPlanner = () => {
         return newDays;
       });
     }
-  }, []); // `setItineraryDays` from useState is stable
+  }, []);
 
-  // --- NEW: Drop Handlers for Dragging Places from Suggestions to Days ---
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "copy";
@@ -1030,7 +1029,6 @@ const ItineraryPlanner = () => {
       distanceCacheRef.current.clear();
       setDestinationDetails(null);
 
-      // --- NEW: This will hold the potentially updated budget ---
       let calculatedBaseBudget = aiForm.basePerPerson;
 
       try {
@@ -1044,18 +1042,28 @@ const ItineraryPlanner = () => {
           throw new Error("End date cannot be earlier than the start date.");
         }
 
-        const geoRes = await geoAPI.geocode({ query: aiForm.destinationName });
+        const geocodePromise = geoAPI.geocode({ query: aiForm.destinationName });
+        const imagePromise = imageAPI.getDestinationImage(aiForm.destinationName);
+
+        let geoRes, imageRes;
+        try {
+          [geoRes, imageRes] = await Promise.all([geocodePromise, imagePromise]);
+        } catch (error) {
+          console.error("Failed to fetch initial destination data (geocode or image):", error);
+          let errorMessage = "Failed to fetch destination details.";
+          if (error.response?.data?.error) {
+            errorMessage = error.response.data.error;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+          throw new Error(`Initial data fetch failed: ${errorMessage}`);
+        }
+
         if (!geoRes || !geoRes.coordinates) {
           throw new Error("Could not find coordinates for the destination.");
         }
 
-        let heroImageURL = null;
-        try {
-          const imageRes = await imageAPI.getDestinationImage(aiForm.destinationName);
-          heroImageURL = imageRes.data.imageUrl;
-        } catch (imgErr) {
-          console.warn("Could not fetch hero image.", imgErr);
-        }
+        const heroImageURL = imageRes?.data?.imageUrl || null;
 
         const destinationFull = {
           name: aiForm.destinationName,
@@ -1072,45 +1080,37 @@ const ItineraryPlanner = () => {
 
         setDestinationDetails(destinationFull);
 
-        // --- NEW: BUDGET CALCULATION LOGIC ---
         if (userLocation.lat && userLocation.lng && destinationFull.location?.coordinates) {
           try {
             const distanceRes = await geoAPI.distance({
               from: userLocation,
               to: destinationFull.location.coordinates,
-              mode: "drive", // Using 'drive' for a ground-distance estimate
+              mode: "drive",
             });
             const distanceInKM = (distanceRes.distanceMeters || 0) / 1000;
 
-            // Simple formula: 3000 base + 5 INR per KM for travel
-            // Only apply if the distance is significant (e.g., > 100km)
             if (distanceInKM > 100) {
               const estimatedTravelCost = 3000 + distanceInKM * 5;
-              calculatedBaseBudget = Math.round(estimatedTravelCost / 100) * 100; // Round to nearest 100
+              calculatedBaseBudget = Math.round(estimatedTravelCost / 100) * 100;
             } else {
-              // For local trips, use a smaller base
               calculatedBaseBudget = 3500;
             }
 
-            // Update the form state so the user sees the new budget
             setAiForm((prev) => ({ ...prev, basePerPerson: calculatedBaseBudget }));
           } catch (distErr) {
             console.warn("Could not calculate distance for budget:", distErr);
-            // Fail silently, use the user's provided budget
             calculatedBaseBudget = aiForm.basePerPerson;
           }
         }
-        // --- END OF BUDGET CALCULATION ---
 
-        // Scroll AFTER state is set
         setTimeout(() => {
           resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 100);
 
         setItineraryDays([{ dayNumber: 1, places: [] }]);
         const loadedPlaces = await loadSuggestedPlaces(destinationFull);
+
         if (loadedPlaces.length) {
-          // --- FIX: Ensure coordinates are correctly formatted for initial places ---
           const initialPlacesRaw = loadedPlaces.slice(0, Math.min(4, loadedPlaces.length));
           const initialPlaces = initialPlacesRaw
             .map((place) => {
@@ -1121,11 +1121,11 @@ const ItineraryPlanner = () => {
                   place.name,
                   coords
                 );
-                return { ...place, coordinates: { lat: undefined, lng: undefined } }; // Add placeholder if invalid
+                return { ...place, coordinates: { lat: undefined, lng: undefined } };
               }
-              return { ...place, coordinates: { lat: coords.lat, lng: coords.lng } }; // Normalize to {lat, lng}
+              return { ...place, coordinates: { lat: coords.lat, lng: coords.lng } };
             })
-            .filter((p) => p.coordinates.lat != null && p.coordinates.lng != null); // Filter out any that were truly invalid
+            .filter((p) => p.coordinates.lat != null && p.coordinates.lng != null);
 
           if (initialPlaces.length > 0) {
             setItineraryDays([{ dayNumber: 1, places: initialPlaces }]);
@@ -1152,7 +1152,6 @@ const ItineraryPlanner = () => {
           save: autoSave,
           userLocation: userLocation.lat && userLocation.lng ? userLocation : null,
           costInputs: {
-            // --- UPDATED: Use the calculated budget ---
             basePerPerson: calculatedBaseBudget,
             passengers: aiForm.passengers,
             nights,
@@ -1180,7 +1179,6 @@ const ItineraryPlanner = () => {
         setAiLoading(false);
       }
     },
-    // --- UPDATED dependencies ---
     [aiForm, userLocation, loadSuggestedPlaces, fetchItineraries]
   );
 
@@ -1202,7 +1200,7 @@ const ItineraryPlanner = () => {
 
     setSaveLoading(true);
     setSaveSuccess(false);
-    setAiError(""); // Clear previous errors
+    setAiError("");
 
     try {
       const destinationLocation = destinationDetails.location || {};
@@ -1251,7 +1249,6 @@ const ItineraryPlanner = () => {
           dayNumber: day.dayNumber,
           places: day.places.map((place) => {
             const key = place.placeId || place.id;
-            // --- Ensure coordinates are included in saved place data ---
             const coords = place.coordinates || place.location?.coordinates || place.location;
             return {
               placeId: key,
@@ -1259,7 +1256,6 @@ const ItineraryPlanner = () => {
               address: place.address,
               rating: place.rating ?? null,
               categories: place.categories || [],
-              // Add coordinates if they exist
               coordinates:
                 coords && coords.lat != null && coords.lng != null
                   ? { lat: coords.lat, lng: coords.lng }
@@ -1275,7 +1271,6 @@ const ItineraryPlanner = () => {
         dateAdded: new Date().toISOString(),
       };
 
-      // --- ADDED CONSOLE LOG FOR DEBUGGING SAVE ---
       console.log("--- Payload being sent to save API:", JSON.stringify(payload, null, 2));
 
       await enhancedItineraryAPI.saveCompletePlan(payload);
@@ -1283,15 +1278,14 @@ const ItineraryPlanner = () => {
       await fetchItineraries();
       setActiveTab("dashboard");
     } catch (err) {
-      // --- IMPROVED ERROR LOGGING ---
-      console.error("Save itinerary failed:", err); // Log the full error object
-      console.error("Error response data:", err.response?.data); // Log specific response data if available
+      console.error("Save itinerary failed:", err);
+      console.error("Error response data:", err.response?.data);
       setAiError(
         `Failed to save: ${err.response?.data?.error || err.message || "Unknown error"}. Check console & server logs.`
-      ); // More detailed error
+      );
     } finally {
       setSaveLoading(false);
-      setTimeout(() => setSaveSuccess(false), 3500); // Increased timeout slightly
+      setTimeout(() => setSaveSuccess(false), 3500);
     }
   }, [
     aiPlan,
@@ -2124,18 +2118,14 @@ const ItineraryPlanner = () => {
                         </span>
                       </div>
 
-                      {/* --- UPDATED: Layout and Responsiveness --- */}
                       <div
                         style={{
                           display: "grid",
-                          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", // Dynamic columns
+                          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                           gap: "20px",
-                          // Removed broken @media query
                         }}
                       >
-                        {/* --- NEW: Wrapper for Left Column --- */}
                         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                          {/* --- Item 1: Discover & Search --- */}
                           <div
                             style={{
                               background: "rgba(2, 6, 23, 0.75)",
@@ -2174,13 +2164,12 @@ const ItineraryPlanner = () => {
                               Curated attractions within 60km of {destinationDetails.name}.
                             </p>
 
-                            {/* Search Input Section */}
+                            {/* --- DEBOUNCE OPTIMIZATION: Input is now controlled by new handler --- */}
                             <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
                               <input
                                 placeholder="Search for a specific place..."
                                 value={placeSearchQuery}
-                                onChange={(e) => setPlaceSearchQuery(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && handlePlaceSearch()}
+                                onChange={handlePlaceSearchQueryChange}
                                 style={{
                                   flex: 1,
                                   padding: "10px 12px",
@@ -2202,7 +2191,7 @@ const ItineraryPlanner = () => {
                                 }}
                               />
                               <motion.button
-                                onClick={handlePlaceSearch}
+                                onClick={() => executePlaceSearch(placeSearchQuery)} // Manually trigger search
                                 disabled={placeSearchLoading || !placeSearchQuery.trim()}
                                 whileHover={{ scale: placeSearchLoading ? 1 : 1.05 }}
                                 whileTap={{ scale: placeSearchLoading ? 1 : 0.95 }}
@@ -2222,6 +2211,7 @@ const ItineraryPlanner = () => {
                                 {placeSearchLoading ? "..." : "Search"}
                               </motion.button>
                             </div>
+                            {/* --- END DEBOUNCE OPTIMIZATION --- */}
 
                             {placeSearchError && (
                               <div
@@ -2380,13 +2370,12 @@ const ItineraryPlanner = () => {
                             padding: "18px",
                             display: "grid",
                             gap: "12px",
-                            alignContent: "start", // Ensures content starts from the top
+                            alignContent: "start",
                           }}
                         >
                           <h4 style={{ color: "#93c5fd", margin: 0 }}>Your Multi-Day Itinerary</h4>
 
                           {itineraryDays.map((day, dayIndex) => {
-                            // --- NEW: Get list of IDs for DND context ---
                             const placeIds = day.places.map((p) => p.placeId || p.id);
 
                             return (
@@ -2457,7 +2446,6 @@ const ItineraryPlanner = () => {
                                       Drag places here or use +/- buttons below
                                     </div>
 
-                                    {/* --- NEW: +/- Fallback Buttons --- */}
                                     {suggestedPlaces.length > 0 && (
                                       <div style={{ marginTop: "12px" }}>
                                         <h6
@@ -2575,7 +2563,6 @@ const ItineraryPlanner = () => {
                                     )}
                                   </div>
                                 ) : (
-                                  // --- NEW: DND-Kit Context Wrapper ---
                                   <DndContext
                                     sensors={sensors}
                                     collisionDetection={closestCenter}
@@ -2639,8 +2626,6 @@ const ItineraryPlanner = () => {
                             </div>
                           )}
 
-                          {/* --- UPDATED: Route Summary (Green Arrow Fix) --- */}
-                          {/* This card will now appear even if summary is null, to show loading/error */}
                           <div
                             style={{
                               background: "rgba(30, 64, 175, 0.2)",
@@ -2694,13 +2679,11 @@ const ItineraryPlanner = () => {
                                 </div>
                               </div>
                             )}
-                            {/* Show loading state inside the card */}
                             {routingLoading && (
                               <div style={{ color: "#60a5fa" }}>
                                 🔄 Calculating route distance and time...
                               </div>
                             )}
-                            {/* Show if no summary and not loading (e.g., error) */}
                             {!routeSummary && !routingLoading && (
                               <div style={{ color: "#9ca3af" }}>
                                 📌 Add places to your itinerary to see route summary
@@ -2708,7 +2691,6 @@ const ItineraryPlanner = () => {
                             )}
                           </div>
 
-                          {/* --- NEW: Budget Overview (Yellow Arrow Fix) --- */}
                           {aiCostResult && (
                             <div
                               style={{
@@ -2852,9 +2834,7 @@ const ItineraryPlanner = () => {
                               )}
                             </div>
                           )}
-                          {/* --- End Budget Overview --- */}
                         </div>
-                        {/* --- End Item 3 --- */}
                       </div>
                     </div>
                   )}
