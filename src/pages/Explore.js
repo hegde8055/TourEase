@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 import InteractiveMap from "../components/InteractiveMap";
-import { placesAPI, destinationsAPI } from "../utils/api";
+// --- FIX: Import enhancedPlacesAPI instead of placesAPI ---
+import { enhancedPlacesAPI, destinationsAPI } from "../utils/api";
 import { extractCoordinates } from "../utils/locationHelpers";
 import { getDestinationHeroImage } from "../utils/imageHelpers";
 import { useAuth } from "../App";
@@ -411,7 +412,8 @@ const Explore = () => {
       return;
     }
     try {
-      const weatherResponse = await placesAPI.getWeather(coordinates.lat, coordinates.lng);
+      // --- FIX: Use enhancedPlacesAPI ---
+      const weatherResponse = await enhancedPlacesAPI.getWeather(coordinates.lat, coordinates.lng);
       setWeather(weatherResponse.data?.weather || null);
     } catch (err) {
       console.warn("Weather fetch failed:", err?.message || err);
@@ -432,7 +434,8 @@ const Explore = () => {
     nearbyDetailsRequestRef.current = requestId;
     setNearbyPlaceStatus("loading");
     try {
-      const response = await placesAPI.getPlaceDetails(place.placeId);
+      // --- FIX: Use enhancedPlacesAPI ---
+      const response = await enhancedPlacesAPI.getPlaceDetails(place.placeId);
       if (nearbyDetailsRequestRef.current !== requestId) return;
       const props = response.data?.place || {};
       if (!props || Object.keys(props).length === 0) {
