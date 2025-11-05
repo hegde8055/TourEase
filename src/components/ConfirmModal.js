@@ -1,14 +1,38 @@
-// src/components/ConfirmModal.js
-import React, { Fragment, useEffect } from "react";
+// /client/src/components/ConfirmModal.js
+import React, { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { motion } from "framer-motion";
 import { FaExclamationTriangle } from "react-icons/fa";
 
-// Audio URLs (you can replace these with your own hosted sounds)
 const openSound = "https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3";
 const confirmSound = "https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3";
 
 const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      const audio = new Audio(openSound);
+      audio.volume = 0.4;
+      audio.play().catch(() => {});
+    }
+  }, [isOpen]);
+
+  const handleConfirm = async (e) => {
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+    try {
+      setIsProcessing(true);
+      const audio = new Audio(confirmSound);
+      audio.volume = 0.5;
+      audio.play().catch(() => {});
+      await Promise.resolve(onConfirm && onConfirm());
+    } catch (err) {
+      console.error("[ConfirmModal] onConfirm error:", err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const colors = {
     gold: "#D4AF37",
     goldDeep: "#B38F2B",
@@ -18,26 +42,9 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
     muted: "#94A3B8",
   };
 
-  // Play chime when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      const audio = new Audio(openSound);
-      audio.volume = 0.4;
-      audio.play().catch(() => {}); // Prevents autoplay errors
-    }
-  }, [isOpen]);
-
-  const handleConfirm = () => {
-    const audio = new Audio(confirmSound);
-    audio.volume = 0.5;
-    audio.play().catch(() => {});
-    onConfirm();
-  };
-
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onCancel}>
-        {/* BACKDROP */}
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-400"
@@ -57,7 +64,6 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
           />
         </Transition.Child>
 
-        {/* MODAL CONTAINER */}
         <div
           style={{
             position: "fixed",
@@ -92,7 +98,6 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                 overflow: "hidden",
               }}
             >
-              {/* Animated border ring */}
               <motion.div
                 style={{
                   position: "absolute",
@@ -100,42 +105,19 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                   borderRadius: "18px",
                   border: "2px solid rgba(212,175,55,0.3)",
                 }}
-                animate={{
-                  opacity: [0.3, 0.9, 0.3],
-                  scale: [1, 1.02, 1],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
+                animate={{ opacity: [0.3, 0.9, 0.3], scale: [1, 1.02, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               />
 
-              {/* ICON */}
               <motion.div
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 14,
-                }}
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginBottom: "12px",
-                }}
+                transition={{ type: "spring", stiffness: 200, damping: 14 }}
+                style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}
               >
                 <motion.div
-                  animate={{
-                    scale: [1, 1.1, 1],
-                    rotate: [0, 5, -5, 0],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
+                  animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                   style={{
                     background: "rgba(212,175,55,0.15)",
                     padding: "16px",
@@ -155,7 +137,6 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                 </motion.div>
               </motion.div>
 
-              {/* TITLE */}
               <Dialog.Title
                 as="h3"
                 style={{
@@ -172,7 +153,6 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                 {message}
               </Dialog.Title>
 
-              {/* SUBTEXT */}
               <p
                 style={{
                   color: colors.muted,
@@ -184,7 +164,6 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                 You’ll need to sign in again to continue exploring TourEase.
               </p>
 
-              {/* BUTTONS */}
               <div
                 style={{
                   display: "flex",
@@ -193,12 +172,10 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                 }}
               >
                 <motion.button
-                  whileHover={{
-                    scale: 1.1,
-                    textShadow: "0 0 10px rgba(255,255,255,0.7)",
-                  }}
+                  whileHover={{ scale: 1.1, textShadow: "0 0 10px rgba(255,255,255,0.7)" }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onCancel}
+                  disabled={isProcessing}
                   style={{
                     padding: "10px 26px",
                     borderRadius: "10px",
@@ -206,37 +183,35 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                     border: "1px solid rgba(212,175,55,0.3)",
                     color: colors.text,
                     fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
+                    cursor: isProcessing ? "not-allowed" : "pointer",
+                    opacity: isProcessing ? 0.7 : 1,
                   }}
                 >
                   Cancel
                 </motion.button>
 
                 <motion.button
-                  whileHover={{
-                    scale: 1.15,
-                    boxShadow: "0 0 24px rgba(212,175,55,0.7)",
-                  }}
+                  whileHover={{ scale: 1.15, boxShadow: "0 0 24px rgba(212,175,55,0.7)" }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleConfirm}
+                  disabled={isProcessing}
                   style={{
                     padding: "10px 26px",
                     borderRadius: "10px",
                     fontWeight: "700",
-                    cursor: "pointer",
+                    cursor: isProcessing ? "not-allowed" : "pointer",
                     color: "#0b0e14",
                     background: "linear-gradient(135deg, #D4AF37, #B38F2B, #F8E78A)",
                     boxShadow: "0 0 18px rgba(212,175,55,0.4)",
                     border: "none",
                     transition: "all 0.3s ease",
+                    opacity: isProcessing ? 0.7 : 1,
                   }}
                 >
-                  Sign Out
+                  {isProcessing ? "Signing out..." : "Sign Out"}
                 </motion.button>
               </div>
 
-              {/* CLOSE BUTTON */}
               <button
                 onClick={onCancel}
                 style={{
@@ -250,8 +225,6 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                   cursor: "pointer",
                   transition: "color 0.2s ease",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = colors.goldDeep)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = colors.gold)}
               >
                 ✕
               </button>

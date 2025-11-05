@@ -8,7 +8,7 @@ import ConfirmModal from "./ConfirmModal";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth(); // make sure your App provides setUser
   const [authenticated, setAuthenticated] = useState(isAuthenticated());
   const [username, setUsername] = useState(getUsername());
   const [menuActive, setMenuActive] = useState(false);
@@ -23,11 +23,46 @@ const Navbar = () => {
     setIsModalOpen(true);
   };
 
-  const handleConfirmLogout = () => {
-    logout();
-    navigate("/");
-    window.location.reload();
-    setIsModalOpen(false);
+  // ✅ fixed logout logic
+  const handleConfirmLogout = async () => {
+    try {
+      console.log("[Navbar] handleConfirmLogout: start");
+
+      // Clear stored tokens
+      logout();
+
+      // Reset auth context if available
+      if (setUser) {
+        try {
+          setUser(null);
+        } catch (err) {
+          console.warn("[Navbar] setUser not available:", err);
+        }
+      }
+
+      // Close modal for smooth UX
+      setIsModalOpen(false);
+
+      // Navigate to sign-in or demo page
+      navigate("/signin"); // change to "/demo" if that's your preferred redirect
+
+      // Optional: give React Router time to navigate before reload
+      setTimeout(() => {
+        try {
+          console.log("[Navbar] Reloading after logout");
+          window.location.reload();
+        } catch (err) {
+          console.warn("Reload failed:", err);
+        }
+      }, 120);
+    } catch (err) {
+      console.error("[Navbar] handleConfirmLogout error:", err);
+      try {
+        navigate("/signin");
+      } catch (e) {
+        console.warn("Fallback navigation failed", e);
+      }
+    }
   };
 
   const handleCancelLogout = () => {
@@ -35,7 +70,7 @@ const Navbar = () => {
   };
 
   const toggleMenu = () => {
-    setMenuActive(false);
+    setMenuActive(!menuActive);
   };
 
   const closeMenu = () => {
@@ -59,13 +94,14 @@ const Navbar = () => {
         <Link to="/" className="nav-logo" onClick={scrollToTop}>
           Tourease
         </Link>
+
         <ul className={`nav-menu ${menuActive ? "active" : ""}`}>
           {navItems.map(({ to, label, icon: Icon }) => (
             <li className="nav-item" key={label}>
               <Link
                 to={to}
                 className="nav-link nav-icon-link"
-                onClick={(e) => {
+                onClick={() => {
                   closeMenu();
                   scrollToTop();
                 }}
@@ -78,13 +114,14 @@ const Navbar = () => {
             </li>
           ))}
         </ul>
+
         <div className="nav-auth">
           {authenticated ? (
             <>
               <Link
                 to="/profile"
                 className="nav-link nav-icon-link nav-user-link"
-                onClick={(e) => {
+                onClick={() => {
                   closeMenu();
                   scrollToTop();
                 }}
@@ -94,6 +131,7 @@ const Navbar = () => {
                 <FaUserCircle size={22} />
                 <span className="nav-label">Hi, {username}</span>
               </Link>
+
               <button onClick={handleLogout} className="nav-link-button signout">
                 Sign Out
               </button>
@@ -104,6 +142,7 @@ const Navbar = () => {
             </Link>
           )}
         </div>
+
         <div className={`hamburger ${menuActive ? "active" : ""}`} onClick={toggleMenu}>
           <span className="bar"></span>
           <span className="bar"></span>
