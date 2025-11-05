@@ -2,13 +2,13 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../App";
-import { isAuthenticated, logout, getUsername } from "../utils/auth";
+import { isAuthenticated, getUsername } from "../utils/auth";
 import { FaHome, FaCompass, FaFireAlt, FaRoute, FaUserCircle } from "react-icons/fa";
 import ConfirmModal from "./ConfirmModal";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { user, setUser } = useAuth(); // make sure your App provides setUser
+  const { user, logout: contextLogout } = useAuth(); // ✅ use logout from AuthContext
   const [authenticated, setAuthenticated] = useState(isAuthenticated());
   const [username, setUsername] = useState(getUsername());
   const [menuActive, setMenuActive] = useState(false);
@@ -23,63 +23,28 @@ const Navbar = () => {
     setIsModalOpen(true);
   };
 
-  // ✅ fixed logout logic
+  // ✅ Corrected logout handler
   const handleConfirmLogout = async () => {
     try {
-      console.log("[Navbar] handleConfirmLogout: start");
-
-      // Clear stored tokens
-      logout();
-
-      // Reset auth context if available
-      if (setUser) {
-        try {
-          setUser(null);
-        } catch (err) {
-          console.warn("[Navbar] setUser not available:", err);
-        }
-      }
-
-      // Close modal for smooth UX
+      console.log("[Navbar] Logging out...");
+      // Close modal first (wait for animation)
       setIsModalOpen(false);
+      await new Promise((res) => setTimeout(res, 150));
+
+      // Use context logout (clears both localStorage + React state)
+      contextLogout();
 
       // Navigate to sign-in or demo page
-      navigate("/signin"); // change to "/demo" if that's your preferred redirect
-
-      // Optional: give React Router time to navigate before reload
-      setTimeout(() => {
-        try {
-          console.log("[Navbar] Reloading after logout");
-          window.location.reload();
-        } catch (err) {
-          console.warn("Reload failed:", err);
-        }
-      }, 120);
+      navigate("/signin", { replace: true });
     } catch (err) {
-      console.error("[Navbar] handleConfirmLogout error:", err);
-      try {
-        navigate("/signin");
-      } catch (e) {
-        console.warn("Fallback navigation failed", e);
-      }
+      console.error("Logout error:", err);
     }
   };
 
-  const handleCancelLogout = () => {
-    setIsModalOpen(false);
-  };
-
-  const toggleMenu = () => {
-    setMenuActive(!menuActive);
-  };
-
-  const closeMenu = () => {
-    setMenuActive(false);
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const handleCancelLogout = () => setIsModalOpen(false);
+  const toggleMenu = () => setMenuActive(!menuActive);
+  const closeMenu = () => setMenuActive(false);
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const navItems = [
     { to: "/", label: "Home", icon: FaHome },
