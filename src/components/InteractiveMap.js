@@ -1,6 +1,6 @@
 // InteractiveMap.js
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { calculateMultiPointRoute, calculateDistance } from "../utils/routingUtils"; // 🔹 include multi-point route
+import { calculateMultiPointRoute } from "../utils/routingUtils"; // 🔹 include multi-point route
 
 const LEAFLET_CSS_ID = "leaflet-css";
 const LEAFLET_JS_ID = "leaflet-js";
@@ -73,7 +73,6 @@ const InteractiveMap = ({
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const routeLayerRef = useRef(null);
-  const markersRef = useRef([]);
   const [mapError, setMapError] = useState("");
 
   const resolvedCoordinates = useMemo(() => normalizeCoordinates(coordinates), [coordinates]);
@@ -224,7 +223,16 @@ const InteractiveMap = ({
     return () => {
       cancelled = true;
     };
-  }, [resolvedCoordinates, userLocation, nearbyPlaces, showRoute, iconUrls, onRouteCalculated]);
+  }, [
+    resolvedCoordinates,
+    userLocation,
+    nearbyPlaces,
+    showRoute,
+    iconUrls,
+    onRouteCalculated,
+    name,
+    address,
+  ]);
 
   // Placeholder view
   if (!resolvedCoordinates) {
