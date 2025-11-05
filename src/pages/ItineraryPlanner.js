@@ -321,6 +321,7 @@ const ItineraryPlanner = () => {
   const [placesLoading, setPlacesLoading] = useState(false);
   const [placesError, setPlacesError] = useState("");
   const [routeSummary, setRouteSummary] = useState(null);
+  const [geoRouteData, setGeoRouteData] = useState(null);
   const [routingLoading, setRoutingLoading] = useState(false);
   const [routeError, setRouteError] = useState("");
 
@@ -615,6 +616,7 @@ const ItineraryPlanner = () => {
   useEffect(() => {
     if (routeStops.length < 2) {
       setRoutingLoading(false);
+      setGeoRouteData(null);
       if (!routeStops.length) {
         setRouteSummary(null);
       }
@@ -696,6 +698,7 @@ const ItineraryPlanner = () => {
   // --- NEW: Geoapify Multi-Point Route Calculation ---
   useEffect(() => {
     if (!routeStops || routeStops.length < 2) {
+      setGeoRouteData(null);
       return;
     }
 
@@ -716,9 +719,11 @@ const ItineraryPlanner = () => {
 
         if (waypoints.length < 2) {
           console.warn("Insufficient waypoints for Geoapify routing");
+          setGeoRouteData(null);
           return;
         }
 
+        setGeoRouteData(null);
         console.log(`📍 Calculating Geoapify route for ${waypoints.length} waypoints...`);
         const routeData = await calculateMultiPointRoute(waypoints, "drive");
 
@@ -731,12 +736,15 @@ const ItineraryPlanner = () => {
           // Store the geoapify route data in state for map visualization
           // This will be passed to InteractiveMap component
           // The existing routeSummary will be updated with more accurate data
+          setGeoRouteData(routeData);
         } else {
           console.warn("No route data returned from Geoapify");
+          setGeoRouteData(null);
         }
       } catch (error) {
         if (!cancelled) {
           console.warn("Geoapify routing failed:", error);
+          setGeoRouteData(null);
           // Don't set error state - fall back to geoAPI results above
         }
       }
@@ -763,6 +771,22 @@ const ItineraryPlanner = () => {
 
   // --- NEW: useMemo hook to calculate totals (Fixes Green Arrow) ---
   const routeTotals = useMemo(() => {
+    if (geoRouteData) {
+      const totalMeters =
+        geoRouteData.distance ??
+        geoRouteData.distanceMeters ??
+        (geoRouteData.distanceKm ?? 0) * 1000;
+      const totalSeconds =
+        geoRouteData.duration ??
+        geoRouteData.durationSeconds ??
+        (geoRouteData.durationMinutes ?? 0) * 60;
+
+      return {
+        totalMeters: Number.isFinite(totalMeters) ? totalMeters : 0,
+        totalSeconds: Number.isFinite(totalSeconds) ? totalSeconds : 0,
+      };
+    }
+
     if (!routeSummary?.legs) {
       return { totalMeters: 0, totalSeconds: 0 };
     }
@@ -776,7 +800,47 @@ const ItineraryPlanner = () => {
     }
 
     return { totalMeters, totalSeconds };
-  }, [routeSummary]);
+  }, [geoRouteData, routeSummary]);
+
+  const legsCount = useMemo(() => {
+    if (geoRouteData?.properties?.waypoints?.length > 1) {
+      return geoRouteData.properties.waypoints.length - 1;
+    }
+    if (routeSummary?.legs?.length) {
+      return routeSummary.legs.length;
+    }
+    return Math.max(routeStops.length - 1, 0);
+  }, [geoRouteData, routeSummary, routeStops]);
+
+  const polylinePreview = useMemo(() => {
+    if (!geoRouteData?.polylineCoordinates?.length) {
+      return null;
+    }
+
+    const coords = geoRouteData.polylineCoordinates;
+    const formatPoint = (point) => {
+      if (!Array.isArray(point) || point.length < 2) {
+        return null;
+      }
+      const [lat, lng] = point;
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return null;
+      }
+      return `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
+    };
+
+    const start = formatPoint(coords[0]);
+    const end = formatPoint(coords[coords.length - 1]);
+
+    if (!start || !end) {
+      return null;
+    }
+
+    return {
+      summary: `${start} → ${end}`,
+      points: coords.length,
+    };
+  }, [geoRouteData]);
 
   // --- NEW: Recalculate costs when route distance changes ---
   useEffect(() => {
@@ -2350,6 +2414,7 @@ const ItineraryPlanner = () => {
                                   legs={routeSummary?.legs || []}
                                   userLocation={userLocation}
                                   nearbyPlaces={suggestedPlaces}
+                                  precomputedRoute={geoRouteData}
                                 />
                               </>
                             ) : (
@@ -2657,7 +2722,7 @@ const ItineraryPlanner = () => {
                             >
                               📍 Route & Trip Summary
                             </div>
-                            {routeSummary && !routingLoading && (
+                            {(routeSummary || geoRouteData) && !routingLoading && (
                               <div style={{ display: "grid", gap: "8px" }}>
                                 <div
                                   style={{
@@ -2687,11 +2752,35 @@ const ItineraryPlanner = () => {
                                 <div
                                   style={{ fontSize: "0.8rem", color: "#93c5fd", marginTop: "4px" }}
                                 >
-                                  {routeSummary.legs.length} legs • Starting from{" "}
+                                  {legsCount} {legsCount === 1 ? "leg" : "legs"} • Starting from{" "}
                                   {userLocation.lat && userLocation.lng
                                     ? "your location"
                                     : "destination"}
                                 </div>
+                                {geoRouteData?.durationMinutes != null &&
+                                  geoRouteData?.distanceKm != null && (
+                                    <div style={{ fontSize: "0.78rem", color: "#bae6fd" }}>
+                                      Geoapify: {geoRouteData.distanceKm.toFixed(2)} km •{" "}
+                                      {geoRouteData.durationMinutes} mins
+                                    </div>
+                                  )}
+                                {polylinePreview && (
+                                  <div
+                                    style={{
+                                      fontSize: "0.78rem",
+                                      color: "#a5b4fc",
+                                      background: "rgba(30, 64, 175, 0.25)",
+                                      borderRadius: "8px",
+                                      padding: "8px 10px",
+                                      lineHeight: 1.4,
+                                    }}
+                                  >
+                                    <div style={{ fontWeight: 600 }}>Polyline Preview</div>
+                                    <div>
+                                      {polylinePreview.summary} ({polylinePreview.points} points)
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             )}
                             {/* Show loading state inside the card */}
@@ -2701,7 +2790,7 @@ const ItineraryPlanner = () => {
                               </div>
                             )}
                             {/* Show if no summary and not loading (e.g., error) */}
-                            {!routeSummary && !routingLoading && (
+                            {!routeSummary && !geoRouteData && !routingLoading && (
                               <div style={{ color: "#9ca3af" }}>
                                 📌 Add places to your itinerary to see route summary
                               </div>

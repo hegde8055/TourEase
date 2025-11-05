@@ -69,6 +69,7 @@ const InteractiveMap = ({
   nearbyPlaces = [],
   showRoute = true, // 🔹 default true for highlight
   onRouteCalculated = () => {},
+  precomputedRoute = null,
 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -163,20 +164,40 @@ const InteractiveMap = ({
             .addTo(map);
         }
 
-        // --- 🆕 Draw the route highlight ---
-        if (showRoute && userLocation?.lat && userLocation?.lng) {
+        const clearRouteLayer = () => {
+          if (routeLayerRef.current && mapInstanceRef.current) {
+            mapInstanceRef.current.removeLayer(routeLayerRef.current);
+            routeLayerRef.current = null;
+          }
+        };
+
+        const drawRoute = async () => {
+          clearRouteLayer();
+
+          if (!(showRoute && userLocation?.lat && userLocation?.lng)) {
+            const bounds = L.latLngBounds(addedCoords);
+            if (bounds.isValid()) {
+              map.fitBounds(bounds.pad(0.2));
+            }
+            return;
+          }
+
           try {
             console.log("📍 Fetching route highlight...");
-            const routeData = await calculateMultiPointRoute(
-              [userLocation, resolvedCoordinates],
-              "drive"
-            );
+            let routeData = precomputedRoute;
+
+            if (!routeData) {
+              routeData = await calculateMultiPointRoute(
+                [userLocation, resolvedCoordinates],
+                "drive"
+              );
+            }
 
             if (cancelled) return;
 
             if (routeData?.polylineCoordinates?.length) {
               const polyline = L.polyline(routeData.polylineCoordinates, {
-                color: "#38bdf8", // cyan blue
+                color: "#38bdf8",
                 weight: 6,
                 opacity: 0.8,
                 lineJoin: "round",
@@ -184,17 +205,18 @@ const InteractiveMap = ({
 
               routeLayerRef.current = polyline;
               const bounds = L.latLngBounds(routeData.polylineCoordinates);
-              map.fitBounds(bounds.pad(0.2), { padding: [50, 50], maxZoom: 15 });
+              if (bounds.isValid()) {
+                map.fitBounds(bounds.pad(0.2), { padding: [50, 50], maxZoom: 15 });
+              }
 
-              onRouteCalculated({
-                distanceKm: routeData.distanceKm,
-                durationMinutes: routeData.durationMinutes,
-              });
+              const distanceKm = routeData.distanceKm ?? routeData.distance / 1000;
+              const durationMinutes =
+                routeData.durationMinutes ?? Math.round((routeData.duration ?? 0) / 60);
+
+              onRouteCalculated({ distanceKm, durationMinutes });
 
               console.log(
-                `✅ Route highlighted: ${routeData.distanceKm.toFixed(
-                  2
-                )} km, ${routeData.durationMinutes} mins`
+                `✅ Route highlighted: ${distanceKm?.toFixed?.(2) ?? distanceKm} km, ${durationMinutes} mins`
               );
             } else {
               console.warn("⚠️ No polyline returned for route.");
@@ -203,11 +225,9 @@ const InteractiveMap = ({
             console.error("❌ Failed to fetch route:", err);
             setMapError("Route calculation failed.");
           }
-        } else {
-          // Fallback zoom
-          const bounds = L.latLngBounds(addedCoords);
-          map.fitBounds(bounds.pad(0.2));
-        }
+        };
+
+        await drawRoute();
 
         setMapError("");
       } catch (err) {
@@ -222,6 +242,16 @@ const InteractiveMap = ({
 
     return () => {
       cancelled = true;
+
+      if (routeLayerRef.current && mapInstanceRef.current) {
+        mapInstanceRef.current.removeLayer(routeLayerRef.current);
+        routeLayerRef.current = null;
+      }
+
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
     };
   }, [
     resolvedCoordinates,
@@ -230,6 +260,7 @@ const InteractiveMap = ({
     showRoute,
     iconUrls,
     onRouteCalculated,
+    precomputedRoute,
     name,
     address,
   ]);
