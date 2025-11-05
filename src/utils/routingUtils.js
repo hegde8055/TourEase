@@ -5,6 +5,12 @@
 
 // NO API KEY HERE! This file is now secure.
 
+// ==========================================================
+// --- THIS IS THE FIX ---
+// We now use an absolute URL to point to your Render backend.
+// ==========================================================
+const API_BASE_URL = process.env.REACT_APP_API_URL || "https://tourease-backend-vj25.onrender.com";
+
 /**
  * Calculate route through multiple waypoints by calling our secure backend
  * @param {Array} waypoints - Array of {lat, lng} coordinates
@@ -18,16 +24,19 @@ export const calculateMultiPointRoute = async (waypoints, mode = "drive") => {
 
   try {
     // 1. Get auth token
-    // Adapt this if you store the token differently (e.g., in Context)
     const token = localStorage.getItem("token");
     if (!token) {
       console.warn("No auth token found, route calculation will fail.");
-      // You could throw new Error("Please log in to calculate routes");
     }
 
-    // 2. Call your NEW backend endpoint
-    console.log("🚗 Fetching secure route from backend...");
-    const response = await fetch("/api/itinerary/calculate-route", {
+    // 2. Call your backend endpoint at the correct Render URL
+    console.log(`🚗 Fetching secure route from backend at ${API_BASE_URL}...`);
+
+    // ==========================================================
+    // --- THIS IS THE FIX ---
+    // The fetch URL is now absolute.
+    // ==========================================================
+    const response = await fetch(`${API_BASE_URL}/api/itinerary/calculate-route`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -37,15 +46,37 @@ export const calculateMultiPointRoute = async (waypoints, mode = "drive") => {
     });
 
     if (!response.ok) {
-      const err = await response.json();
+      const errText = await response.text();
+      let err;
+      try {
+        err = JSON.parse(errText);
+      } catch (e) {
+        err = { error: errText };
+      }
       throw new Error(err.error || `HTTP error! status: ${response.status}`);
     }
 
-    // 3. Process the response data (This logic is copied from your original file)
+    // 3. Process the response data
     const data = await response.json();
 
     if (!data.features || data.features.length === 0) {
-      throw new Error("No route found");
+      // Check for the format I *previously* (and incorrectly) suggested
+      if (data.polylineCoordinates) {
+        console.warn("Route API returned legacy format. Adjusting.");
+        return {
+          distance: data.distanceKm * 1000,
+          duration: data.durationMinutes * 60,
+          distanceKm: data.distanceKm,
+          durationMinutes: data.durationMinutes,
+          polylineCoordinates: data.polylineCoordinates,
+          geometry: {
+            type: "LineString",
+            coordinates: data.polylineCoordinates.map(([lat, lng]) => [lng, lat]),
+          },
+          properties: {},
+        };
+      }
+      throw new Error("No route features found in response");
     }
 
     const feature = data.features[0];
@@ -103,7 +134,7 @@ export const calculateMultiPointRoute = async (waypoints, mode = "drive") => {
  * Calculate distance between two points using the secure backend
  * @param {Object} from - {lat, lng}
  * @param {Object} to - {lat, lng}
- * @param {String} mode - 'drive', 'walk', or 'bike'
+ *D * @param {String} mode - 'drive', 'walk', or 'bike'
  * @returns {Promise} - Distance and duration
  */
 export const calculateDistance = async (from, to, mode = "drive") => {
