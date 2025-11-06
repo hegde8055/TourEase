@@ -1,6 +1,7 @@
 // /client/src/App.js
 import React, { createContext, useContext, useState, useEffect, Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import ScrollProgressBar from "./components/ScrollProgressBar";
 import { AnimatePresence, motion } from "framer-motion";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
@@ -198,6 +199,7 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        <ScrollProgressBar />
         <ScrollToTop />
         <Suspense fallback={<Fallback />}>
           <div className="app-shell">
