@@ -781,19 +781,19 @@ const ItineraryPlanner = () => {
   // --- NEW: useMemo hook to calculate totals (Fixes Green Arrow) ---
   const routeTotals = useMemo(() => {
     if (geoRouteData) {
-      const totalMeters =
-        geoRouteData.distance ??
-        geoRouteData.distanceMeters ??
-        (geoRouteData.distanceKm ?? 0) * 1000;
-      const totalSeconds =
-        geoRouteData.duration ??
-        geoRouteData.durationSeconds ??
-        (geoRouteData.durationMinutes ?? 0) * 60;
+      const totalMeters = Number.parseFloat(
+        geoRouteData.distance ?? geoRouteData.distanceMeters ?? geoRouteData.distanceKm * 1000
+      );
+      const totalSeconds = Number.parseFloat(
+        geoRouteData.duration ?? geoRouteData.durationSeconds ?? geoRouteData.durationMinutes * 60
+      );
 
-      return {
-        totalMeters: Number.isFinite(totalMeters) ? totalMeters : 0,
-        totalSeconds: Number.isFinite(totalSeconds) ? totalSeconds : 0,
-      };
+      const meters = Number.isFinite(totalMeters) ? totalMeters : 0;
+      const seconds = Number.isFinite(totalSeconds) ? totalSeconds : 0;
+
+      if (meters > 0 || seconds > 0) {
+        return { totalMeters: meters, totalSeconds: seconds };
+      }
     }
 
     if (!routeSummary?.legs) {
