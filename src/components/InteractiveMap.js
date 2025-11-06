@@ -197,12 +197,12 @@ const InteractiveMap = ({
         const drawRoute = async () => {
           clearRouteLayer();
 
-          const hasOrigin = userLocation?.lat && userLocation?.lng;
+          const hasOrigin = userLocation?.lat && userLocation?.lng; // ⬅️ Change this line
           if (!(showRoute && hasOrigin)) {
+            // ⬅️ This line is now correct
             fitToBounds(addedCoords);
             return;
           }
-
           let routeData = precomputedRoute;
           const hasPolyline = routeData?.polylineCoordinates?.length;
 
