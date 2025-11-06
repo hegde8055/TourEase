@@ -341,14 +341,24 @@ const Profile = () => {
     e.preventDefault();
     setContactLoading(true);
     setContactStatus({ type: "", message: "" });
+
     try {
       const response = await contactAPI.send(contactForm);
-      setContactStatus({ type: "success", message: response.data.message });
-      setContactForm({ name: "", email: "", subject: "", message: "" });
+
+      // ✅ Show animated toast feedback
+      setContactStatus({
+        type: "success",
+        message: response.data.message || "Message sent successfully!",
+      });
+
+      // ✨ Clear form after success (small delay)
+      setTimeout(() => {
+        setContactForm({ name: "", email: "", subject: "", message: "" });
+      }, 800);
     } catch (error) {
       setContactStatus({
         type: "error",
-        message: error.response?.data?.error || "Failed to send message.",
+        message: error.response?.data?.error || "Failed to send message. Please try again.",
       });
     } finally {
       setContactLoading(false);

@@ -1,9 +1,9 @@
 // /client/src/App.js
 import React, { createContext, useContext, useState, useEffect, Suspense, lazy } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
-// eslint-disable-next-line no-unused-vars
 import {
   getUsername,
   getToken,
@@ -24,7 +24,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Trending = lazy(() => import("./pages/Trending"));
-const ItineraryPlanner = lazy(() => import("./pages/ItineraryPlanner.js"));
+const ItineraryPlanner = lazy(() => import("./pages/ItineraryPlanner"));
 const Explore = lazy(() => import("./pages/Explore"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Footer = lazy(() => import("./components/Footer"));
@@ -69,9 +69,7 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = (userData) => {
-    setUser(userData);
-  };
+  const login = (userData) => setUser(userData);
 
   const logout = async () => {
     try {
@@ -88,6 +86,97 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
 };
+
+// Page transition animation variants
+const pageVariants = {
+  initial: { opacity: 0, y: 20, scale: 0.98 },
+  in: { opacity: 1, y: 0, scale: 1 },
+  out: { opacity: 0, y: -20, scale: 0.98 },
+};
+
+const pageTransition = {
+  type: "spring",
+  stiffness: 100,
+  damping: 20,
+  duration: 0.45,
+};
+
+function AnimatedRoutes() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname + location.search}
+        initial="initial"
+        animate="in"
+        exit="out"
+        variants={pageVariants}
+        transition={pageTransition}
+        className="page-outlet main-content"
+      >
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Home />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/destination/:id"
+            element={
+              <ProtectedRoute>
+                <Destination />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trending"
+            element={
+              <ProtectedRoute>
+                <Trending />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ItineraryPlanner"
+            element={
+              <ProtectedRoute>
+                <ItineraryPlanner />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/explore"
+            element={
+              <ProtectedRoute>
+                <Explore />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 function App() {
   const Fallback = () => (
@@ -112,67 +201,7 @@ function App() {
         <ScrollToTop />
         <Suspense fallback={<Fallback />}>
           <div className="app-shell">
-            <div className="page-outlet main-content">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/signin" element={<SignIn />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/verify-otp" element={<VerifyOTP />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/destination/:id"
-                  element={
-                    <ProtectedRoute>
-                      <Destination />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/trending"
-                  element={
-                    <ProtectedRoute>
-                      <Trending />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/ItineraryPlanner"
-                  element={
-                    <ProtectedRoute>
-                      <ItineraryPlanner />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/explore"
-                  element={
-                    <ProtectedRoute>
-                      <Explore />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute>
-                      <Admin />
-                    </ProtectedRoute>
-                  }
-                />
-
-                <Route path="*" element={<Navigate to="/" />} />
-              </Routes>
-            </div>
+            <AnimatedRoutes />
             <Footer />
           </div>
           <AIChatbot />
