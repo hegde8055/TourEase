@@ -100,17 +100,33 @@ export const calculateMultiPointRoute = async (waypoints, mode = "drive") => {
     // Extract route data
     let distance = 0;
     let duration = 0;
+    const summary = properties.summary || {};
 
     if (properties.distance != null) {
       distance = Number(properties.distance); // in meters
     } else if (properties.distance_m != null) {
       distance = Number(properties.distance_m);
+    } else if (summary.distance != null) {
+      distance = Number(summary.distance);
+    } else if (summary.length != null) {
+      distance = Number(summary.length);
     }
 
     if (properties.time != null) {
       duration = Number(properties.time); // in seconds
     } else if (properties.time_seconds != null) {
       duration = Number(properties.time_seconds);
+    } else if (summary.duration != null) {
+      duration = Number(summary.duration);
+    } else if (summary.time != null) {
+      duration = Number(summary.time);
+    }
+
+    if (!Number.isFinite(distance)) {
+      distance = 0;
+    }
+    if (!Number.isFinite(duration)) {
+      duration = 0;
     }
 
     // Extract polyline coordinates
@@ -132,6 +148,8 @@ export const calculateMultiPointRoute = async (waypoints, mode = "drive") => {
     return {
       distance, // in meters
       duration, // in seconds
+      distanceMeters: distance,
+      durationSeconds: duration,
       distanceKm: distance / 1000,
       durationMinutes: Math.round(duration / 60),
       polylineCoordinates,
