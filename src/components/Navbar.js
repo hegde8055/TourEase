@@ -29,13 +29,17 @@ const Navbar = () => {
       console.log("[Navbar] Logging out...");
       // Close modal first (wait for animation)
       setIsModalOpen(false);
+      setMenuActive(false);
       await new Promise((res) => setTimeout(res, 150));
 
       // Use context logout (clears both localStorage + React state)
-      contextLogout();
+      await Promise.resolve(contextLogout?.());
 
-      // Navigate to sign-in or demo page
-      navigate("/signin", { replace: true });
+      setAuthenticated(false);
+      setUsername("");
+
+      // Navigate to demo (landing) page
+      navigate("/", { replace: true });
     } catch (err) {
       console.error("Logout error:", err);
     }

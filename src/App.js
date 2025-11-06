@@ -1,25 +1,26 @@
 // /client/src/App.js
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Home from "./pages/Home";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
-import Profile from "./pages/Profile";
-import Destination from "./pages/Destination";
-import ForgotPassword from "./pages/ForgotPassword";
-import VerifyOTP from "./pages/VerifyOTP";
-import ResetPassword from "./pages/ResetPassword";
-import Trending from "./pages/Trending";
-import ItineraryPlanner from "./pages/ItineraryPlanner.js";
-import Explore from "./pages/Explore";
-import Admin from "./pages/Admin";
-import AIChatbot from "./components/AIChatbot";
-import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 // eslint-disable-next-line no-unused-vars
 import { getUsername, getToken, logout as authLogout } from "./utils/auth";
 import "./App.css";
+
+const Home = lazy(() => import("./pages/Home"));
+const SignIn = lazy(() => import("./pages/SignIn"));
+const SignUp = lazy(() => import("./pages/SignUp"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Destination = lazy(() => import("./pages/Destination"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Trending = lazy(() => import("./pages/Trending"));
+const ItineraryPlanner = lazy(() => import("./pages/ItineraryPlanner.js"));
+const Explore = lazy(() => import("./pages/Explore"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Footer = lazy(() => import("./components/Footer"));
+const AIChatbot = lazy(() => import("./components/AIChatbot"));
 
 const AuthContext = createContext();
 
@@ -70,77 +71,93 @@ export const AuthProvider = ({ children }) => {
 };
 
 function App() {
+  const Fallback = () => (
+    <div
+      style={{
+        display: "flex",
+        minHeight: "50vh",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#d4af37",
+        fontWeight: 600,
+        letterSpacing: "0.05em",
+      }}
+    >
+      Loading TourEase…
+    </div>
+  );
+
   return (
     <AuthProvider>
       <Router>
         <ScrollToTop />
-        <div className="app-shell">
-          <div className="page-outlet main-content">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/verify-otp" element={<VerifyOTP />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+        <Suspense fallback={<Fallback />}>
+          <div className="app-shell">
+            <div className="page-outlet main-content">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/verify-otp" element={<VerifyOTP />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/destination/:id"
-                element={
-                  <ProtectedRoute>
-                    <Destination />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/trending"
-                element={
-                  <ProtectedRoute>
-                    <Trending />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/ItineraryPlanner"
-                element={
-                  <ProtectedRoute>
-                    <ItineraryPlanner />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/explore"
-                element={
-                  <ProtectedRoute>
-                    <Explore />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <Admin />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/destination/:id"
+                  element={
+                    <ProtectedRoute>
+                      <Destination />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/trending"
+                  element={
+                    <ProtectedRoute>
+                      <Trending />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/ItineraryPlanner"
+                  element={
+                    <ProtectedRoute>
+                      <ItineraryPlanner />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/explore"
+                  element={
+                    <ProtectedRoute>
+                      <Explore />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <Admin />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </div>
+            <Footer />
           </div>
-          <Footer />
-        </div>
-        <AIChatbot />
+          <AIChatbot />
+        </Suspense>
       </Router>
     </AuthProvider>
   );

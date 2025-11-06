@@ -176,6 +176,7 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                   whileTap={{ scale: 0.95 }}
                   onClick={onCancel}
                   disabled={isProcessing}
+                  type="button"
                   style={{
                     padding: "10px 26px",
                     borderRadius: "10px",
@@ -195,6 +196,7 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                   whileTap={{ scale: 0.95 }}
                   onClick={handleConfirm}
                   disabled={isProcessing}
+                  type="button"
                   style={{
                     padding: "10px 26px",
                     borderRadius: "10px",
@@ -225,6 +227,7 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                   cursor: "pointer",
                   transition: "color 0.2s ease",
                 }}
+                type="button"
               >
                 ✕
               </button>

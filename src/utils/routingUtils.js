@@ -126,7 +126,7 @@ export const calculateMultiPointRoute = async (waypoints, mode = "drive") => {
     };
   } catch (error) {
     console.error("❌ Secure route calculation failed:", error);
-    return null;
+    throw error;
   }
 };
 

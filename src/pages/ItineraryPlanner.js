@@ -322,6 +322,8 @@ const ItineraryPlanner = () => {
   const [placesError, setPlacesError] = useState("");
   const [routeSummary, setRouteSummary] = useState(null);
   const [geoRouteData, setGeoRouteData] = useState(null);
+  const [geoRouteLoading, setGeoRouteLoading] = useState(false);
+  const [geoRouteError, setGeoRouteError] = useState("");
   const [routingLoading, setRoutingLoading] = useState(false);
   const [routeError, setRouteError] = useState("");
 
@@ -616,7 +618,6 @@ const ItineraryPlanner = () => {
   useEffect(() => {
     if (routeStops.length < 2) {
       setRoutingLoading(false);
-      setGeoRouteData(null);
       if (!routeStops.length) {
         setRouteSummary(null);
       }
@@ -699,14 +700,18 @@ const ItineraryPlanner = () => {
   useEffect(() => {
     if (!routeStops || routeStops.length < 2) {
       setGeoRouteData(null);
+      setGeoRouteError("");
+      setGeoRouteLoading(false);
       return;
     }
 
     let cancelled = false;
 
     const calculateGeoapifyRoute = async () => {
+      setGeoRouteError("");
+      setGeoRouteLoading(true);
+
       try {
-        // Extract coordinates from route stops
         const waypoints = routeStops
           .map((stop) => {
             const coords = stop.coordinates;
@@ -720,10 +725,10 @@ const ItineraryPlanner = () => {
         if (waypoints.length < 2) {
           console.warn("Insufficient waypoints for Geoapify routing");
           setGeoRouteData(null);
+          setGeoRouteError("Add at least two stops to calculate a route.");
           return;
         }
 
-        setGeoRouteData(null);
         console.log(`📍 Calculating Geoapify route for ${waypoints.length} waypoints...`);
         const routeData = await calculateMultiPointRoute(waypoints, "drive");
 
@@ -733,19 +738,23 @@ const ItineraryPlanner = () => {
           console.log(
             `✅ Geoapify route: ${routeData.distanceKm.toFixed(2)} km, ${routeData.durationMinutes} mins`
           );
-          // Store the geoapify route data in state for map visualization
-          // This will be passed to InteractiveMap component
-          // The existing routeSummary will be updated with more accurate data
           setGeoRouteData(routeData);
         } else {
           console.warn("No route data returned from Geoapify");
           setGeoRouteData(null);
+          setGeoRouteError("No route data returned from Geoapify.");
         }
       } catch (error) {
         if (!cancelled) {
           console.warn("Geoapify routing failed:", error);
           setGeoRouteData(null);
-          // Don't set error state - fall back to geoAPI results above
+          setGeoRouteError(
+            error?.message || "Geoapify could not build a route for the selected waypoints."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setGeoRouteLoading(false);
         }
       }
     };
@@ -2685,7 +2694,7 @@ const ItineraryPlanner = () => {
                             + Add New Day
                           </motion.button>
 
-                          {routingLoading && (
+                          {(routingLoading || geoRouteLoading) && (
                             <div style={{ color: "#93c5fd", fontSize: "0.85rem" }}>
                               Calculating travel distance…
                             </div>
@@ -2701,6 +2710,19 @@ const ItineraryPlanner = () => {
                               }}
                             >
                               {routeError}
+                            </div>
+                          )}
+                          {geoRouteError && (
+                            <div
+                              style={{
+                                color: "#facc15",
+                                background: "rgba(250, 204, 21, 0.12)",
+                                border: "1px solid rgba(250, 204, 21, 0.25)",
+                                borderRadius: "12px",
+                                padding: "10px",
+                              }}
+                            >
+                              {geoRouteError}
                             </div>
                           )}
 
@@ -2722,79 +2744,87 @@ const ItineraryPlanner = () => {
                             >
                               📍 Route & Trip Summary
                             </div>
-                            {(routeSummary || geoRouteData) && !routingLoading && (
-                              <div style={{ display: "grid", gap: "8px" }}>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <span>Total Trip Distance:</span>
-                                  <strong style={{ color: "#60a5fa", fontSize: "1.05rem" }}>
-                                    {(routeTotals.totalMeters / 1000).toFixed(1)} km
-                                  </strong>
-                                </div>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <span>Estimated Travel Time:</span>
-                                  <strong style={{ color: "#34d399", fontSize: "1.05rem" }}>
-                                    {Math.floor(routeTotals.totalSeconds / 3600)}h{" "}
-                                    {Math.round((routeTotals.totalSeconds % 3600) / 60)}m
-                                  </strong>
-                                </div>
-                                <div
-                                  style={{ fontSize: "0.8rem", color: "#93c5fd", marginTop: "4px" }}
-                                >
-                                  {legsCount} {legsCount === 1 ? "leg" : "legs"} • Starting from{" "}
-                                  {userLocation.lat && userLocation.lng
-                                    ? "your location"
-                                    : "destination"}
-                                </div>
-                                {geoRouteData?.durationMinutes != null &&
-                                  geoRouteData?.distanceKm != null && (
-                                    <div style={{ fontSize: "0.78rem", color: "#bae6fd" }}>
-                                      Geoapify: {geoRouteData.distanceKm.toFixed(2)} km •{" "}
-                                      {geoRouteData.durationMinutes} mins
-                                    </div>
-                                  )}
-                                {polylinePreview && (
+                            {(routeSummary || geoRouteData) &&
+                              !(routingLoading || geoRouteLoading) && (
+                                <div style={{ display: "grid", gap: "8px" }}>
                                   <div
                                     style={{
-                                      fontSize: "0.78rem",
-                                      color: "#a5b4fc",
-                                      background: "rgba(30, 64, 175, 0.25)",
-                                      borderRadius: "8px",
-                                      padding: "8px 10px",
-                                      lineHeight: 1.4,
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
                                     }}
                                   >
-                                    <div style={{ fontWeight: 600 }}>Polyline Preview</div>
-                                    <div>
-                                      {polylinePreview.summary} ({polylinePreview.points} points)
-                                    </div>
+                                    <span>Total Trip Distance:</span>
+                                    <strong style={{ color: "#60a5fa", fontSize: "1.05rem" }}>
+                                      {(routeTotals.totalMeters / 1000).toFixed(1)} km
+                                    </strong>
                                   </div>
-                                )}
-                              </div>
-                            )}
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <span>Estimated Travel Time:</span>
+                                    <strong style={{ color: "#34d399", fontSize: "1.05rem" }}>
+                                      {Math.floor(routeTotals.totalSeconds / 3600)}h{" "}
+                                      {Math.round((routeTotals.totalSeconds % 3600) / 60)}m
+                                    </strong>
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: "0.8rem",
+                                      color: "#93c5fd",
+                                      marginTop: "4px",
+                                    }}
+                                  >
+                                    {legsCount} {legsCount === 1 ? "leg" : "legs"} • Starting from{" "}
+                                    {userLocation.lat && userLocation.lng
+                                      ? "your location"
+                                      : "destination"}
+                                  </div>
+                                  {geoRouteData?.durationMinutes != null &&
+                                    geoRouteData?.distanceKm != null && (
+                                      <div style={{ fontSize: "0.78rem", color: "#bae6fd" }}>
+                                        Geoapify: {geoRouteData.distanceKm.toFixed(2)} km •{" "}
+                                        {geoRouteData.durationMinutes} mins
+                                      </div>
+                                    )}
+                                  {polylinePreview && (
+                                    <div
+                                      style={{
+                                        fontSize: "0.78rem",
+                                        color: "#a5b4fc",
+                                        background: "rgba(30, 64, 175, 0.25)",
+                                        borderRadius: "8px",
+                                        padding: "8px 10px",
+                                        lineHeight: 1.4,
+                                      }}
+                                    >
+                                      <div style={{ fontWeight: 600 }}>Polyline Preview</div>
+                                      <div>
+                                        {polylinePreview.summary} ({polylinePreview.points} points)
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             {/* Show loading state inside the card */}
-                            {routingLoading && (
+                            {(routingLoading || geoRouteLoading) && (
                               <div style={{ color: "#60a5fa" }}>
                                 🔄 Calculating route distance and time...
                               </div>
                             )}
                             {/* Show if no summary and not loading (e.g., error) */}
-                            {!routeSummary && !geoRouteData && !routingLoading && (
-                              <div style={{ color: "#9ca3af" }}>
-                                📌 Add places to your itinerary to see route summary
-                              </div>
-                            )}
+                            {!routeSummary &&
+                              !geoRouteData &&
+                              !routingLoading &&
+                              !geoRouteLoading && (
+                                <div style={{ color: "#9ca3af" }}>
+                                  📌 Add places to your itinerary to see route summary
+                                </div>
+                              )}
                           </div>
 
                           {/* --- NEW: Budget Overview (Yellow Arrow Fix) --- */}

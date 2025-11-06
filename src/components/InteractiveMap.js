@@ -74,6 +74,7 @@ const InteractiveMap = ({
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const routeLayerRef = useRef(null);
+  const markersRef = useRef([]);
   const [mapError, setMapError] = useState("");
 
   const resolvedCoordinates = useMemo(() => normalizeCoordinates(coordinates), [coordinates]);
@@ -93,34 +94,31 @@ const InteractiveMap = ({
     if (!resolvedCoordinates) return;
 
     let cancelled = false;
-    let L = null;
 
     const setupMap = async () => {
       try {
-        L = await loadLeaflet();
+        const L = await loadLeaflet();
         if (cancelled || !mapContainerRef.current) return;
 
-        // Cleanup any existing map
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.remove();
-          mapInstanceRef.current = null;
+        let map = mapInstanceRef.current;
+        if (!map) {
+          map = L.map(mapContainerRef.current, {
+            center: [resolvedCoordinates.lat, resolvedCoordinates.lng],
+            zoom: 10,
+            zoomControl: false,
+            zoomAnimation: false,
+          });
+          mapInstanceRef.current = map;
+          L.control.zoom({ position: "bottomright" }).addTo(map);
+
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution:
+              '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+            maxZoom: 19,
+          }).addTo(map);
+        } else {
+          map.setView([resolvedCoordinates.lat, resolvedCoordinates.lng]);
         }
-
-        // Create map
-        const map = L.map(mapContainerRef.current, {
-          center: [resolvedCoordinates.lat, resolvedCoordinates.lng],
-          zoom: 10,
-          zoomControl: false,
-        });
-        mapInstanceRef.current = map;
-        L.control.zoom({ position: "bottomright" }).addTo(map);
-
-        // Tile layer
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
-          maxZoom: 19,
-        }).addTo(map);
 
         const createIcon = (url) =>
           L.icon({
@@ -134,35 +132,60 @@ const InteractiveMap = ({
         const destIcon = createIcon(iconUrls.red);
         const nearIcon = createIcon(iconUrls.green);
 
-        // Add markers
+        const mapRef = mapInstanceRef.current;
+
+        // Remove previous markers
+        if (markersRef.current.length) {
+          markersRef.current.forEach((marker) => {
+            if (mapRef && marker) {
+              mapRef.removeLayer(marker);
+            }
+          });
+          markersRef.current = [];
+        }
+
         const addedCoords = [];
+
         if (userLocation?.lat && userLocation?.lng) {
-          L.marker([userLocation.lat, userLocation.lng], {
+          const marker = L.marker([userLocation.lat, userLocation.lng], {
             icon: userIcon,
             title: "Your Location",
-          })
-            .bindPopup("<strong>You are here</strong>")
-            .addTo(map);
+          }).bindPopup("<strong>You are here</strong>");
+
+          marker.addTo(mapRef);
+          markersRef.current.push(marker);
           addedCoords.push([userLocation.lat, userLocation.lng]);
         }
 
         const destLatLng = [resolvedCoordinates.lat, resolvedCoordinates.lng];
-        L.marker(destLatLng, { icon: destIcon, title: name || "Destination" })
-          .bindPopup(`<b>${name || "Destination"}</b><br>${address || ""}`)
-          .addTo(map);
+        const destMarker = L.marker(destLatLng, {
+          icon: destIcon,
+          title: name || "Destination",
+        }).bindPopup(`<b>${name || "Destination"}</b><br>${address || ""}`);
+
+        destMarker.addTo(mapRef);
+        markersRef.current.push(destMarker);
         addedCoords.push(destLatLng);
 
-        // Nearby places (green)
         for (const place of nearbyPlaces) {
           const coords = normalizeCoordinates(place.coordinates || place.location);
           if (!coords) continue;
-          L.marker([coords.lat, coords.lng], {
+
+          const marker = L.marker([coords.lat, coords.lng], {
             icon: nearIcon,
             title: place.name || "Nearby place",
-          })
-            .bindPopup(`<b>${place.name || "Nearby Place"}</b>`)
-            .addTo(map);
+          }).bindPopup(`<b>${place.name || "Nearby Place"}</b>`);
+
+          marker.addTo(mapRef);
+          markersRef.current.push(marker);
         }
+
+        const fitToBounds = (coords) => {
+          const bounds = L.latLngBounds(coords);
+          if (bounds.isValid()) {
+            mapRef.fitBounds(bounds.pad(0.2), { padding: [50, 50] });
+          }
+        };
 
         const clearRouteLayer = () => {
           if (routeLayerRef.current && mapInstanceRef.current) {
@@ -174,19 +197,18 @@ const InteractiveMap = ({
         const drawRoute = async () => {
           clearRouteLayer();
 
-          if (!(showRoute && userLocation?.lat && userLocation?.lng)) {
-            const bounds = L.latLngBounds(addedCoords);
-            if (bounds.isValid()) {
-              map.fitBounds(bounds.pad(0.2));
-            }
+          const hasOrigin = userLocation?.lat && userLocation?.lng;
+          if (!(showRoute && hasOrigin)) {
+            fitToBounds(addedCoords);
             return;
           }
 
-          try {
-            console.log("📍 Fetching route highlight...");
-            let routeData = precomputedRoute;
+          let routeData = precomputedRoute;
+          const hasPolyline = routeData?.polylineCoordinates?.length;
 
-            if (!routeData) {
+          try {
+            if (!hasPolyline) {
+              console.log("📍 Fetching route highlight...");
               routeData = await calculateMultiPointRoute(
                 [userLocation, resolvedCoordinates],
                 "drive"
@@ -201,12 +223,13 @@ const InteractiveMap = ({
                 weight: 6,
                 opacity: 0.8,
                 lineJoin: "round",
-              }).addTo(map);
+              }).addTo(mapRef);
 
               routeLayerRef.current = polyline;
+
               const bounds = L.latLngBounds(routeData.polylineCoordinates);
               if (bounds.isValid()) {
-                map.fitBounds(bounds.pad(0.2), { padding: [50, 50], maxZoom: 15 });
+                mapRef.fitBounds(bounds.pad(0.2), { padding: [50, 50], maxZoom: 15 });
               }
 
               const distanceKm = routeData.distanceKm ?? routeData.distance / 1000;
@@ -218,18 +241,24 @@ const InteractiveMap = ({
               console.log(
                 `✅ Route highlighted: ${distanceKm?.toFixed?.(2) ?? distanceKm} km, ${durationMinutes} mins`
               );
+              setMapError("");
             } else {
               console.warn("⚠️ No polyline returned for route.");
+              setMapError("Route unavailable for these waypoints.");
+              fitToBounds(addedCoords);
             }
           } catch (err) {
             console.error("❌ Failed to fetch route:", err);
-            setMapError("Route calculation failed.");
+            setMapError(err.message || "Route calculation failed.");
+            fitToBounds(addedCoords);
           }
         };
 
         await drawRoute();
 
-        setMapError("");
+        if (!routeLayerRef.current) {
+          fitToBounds(addedCoords);
+        }
       } catch (err) {
         if (!cancelled) {
           console.error("Map setup failed:", err);
@@ -242,16 +271,6 @@ const InteractiveMap = ({
 
     return () => {
       cancelled = true;
-
-      if (routeLayerRef.current && mapInstanceRef.current) {
-        mapInstanceRef.current.removeLayer(routeLayerRef.current);
-        routeLayerRef.current = null;
-      }
-
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
     };
   }, [
     resolvedCoordinates,
@@ -264,6 +283,28 @@ const InteractiveMap = ({
     name,
     address,
   ]);
+
+  useEffect(() => {
+    return () => {
+      const map = mapInstanceRef.current;
+      if (map) {
+        if (routeLayerRef.current) {
+          map.removeLayer(routeLayerRef.current);
+          routeLayerRef.current = null;
+        }
+        if (markersRef.current.length) {
+          markersRef.current.forEach((marker) => {
+            if (marker) {
+              map.removeLayer(marker);
+            }
+          });
+          markersRef.current = [];
+        }
+        map.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
 
   // Placeholder view
   if (!resolvedCoordinates) {
