@@ -1014,74 +1014,148 @@ const Profile = () => {
                     initial="hidden"
                     animate="visible"
                     exit="exit"
+                    style={{
+                      position: "relative",
+                      overflow: "hidden",
+                      borderRadius: "24px",
+                      padding: "40px 20px",
+                      backdropFilter: "blur(16px)",
+                    }}
                   >
-                    <div style={{ textAlign: "center", marginBottom: "40px" }}>
-                      <h2
-                        style={{
-                          fontSize: "3rem",
-                          fontWeight: "700",
-                          marginBottom: "15px",
-                          background: "linear-gradient(135deg, #d4af37, #3b82f6)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                        }}
-                      >
-                        Get In Touch
-                      </h2>
-                      <p style={{ color: "#cbd5e1", fontSize: "1.1rem" }}>
-                        Have questions or feedback? We'd love to hear from you!
-                      </p>
-                    </div>
-                    <div
+                    {/* ✨ Animated shimmer background */}
+                    <motion.div
+                      animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
+                      transition={{ duration: 25, repeat: Infinity, repeatType: "reverse" }}
                       style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-                        gap: "30px",
+                        position: "absolute",
+                        inset: 0,
+                        background:
+                          "linear-gradient(45deg, rgba(212,175,55,0.05) 0%, rgba(59,130,246,0.05) 100%)",
+                        backgroundSize: "200% 200%",
+                        pointerEvents: "none",
+                        zIndex: 0,
                       }}
+                    />
+
+                    {/* 🪩 Inner fade container */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 40 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.7, ease: "easeOut" }}
+                      style={{ position: "relative", zIndex: 1 }}
                     >
-                      <motion.div
-                        variants={cardVariants}
+                      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+                        <h2
+                          style={{
+                            fontSize: "3rem",
+                            fontWeight: "700",
+                            marginBottom: "15px",
+                            background: "linear-gradient(135deg, #d4af37, #3b82f6)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                          }}
+                        >
+                          Get In Touch
+                        </h2>
+                        <p style={{ color: "#cbd5e1", fontSize: "1.1rem" }}>
+                          Have questions or feedback? We'd love to hear from you!
+                        </p>
+                      </div>
+
+                      <div
                         style={{
-                          background: "var(--glass)",
-                          backdropFilter: "blur(12px)",
-                          padding: "35px",
-                          borderRadius: "20px",
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          gridColumn: "span 2",
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                          gap: "30px",
                         }}
                       >
-                        <h3 style={{ color: "#d4af37", marginBottom: "25px", fontSize: "1.6rem" }}>
-                          Send us a Message
-                        </h3>
-                        <AnimatePresence>
-                          {contactStatus.message && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.95 }}
-                              style={{
-                                padding: "16px",
-                                borderRadius: "12px",
-                                marginBottom: "20px",
-                                background:
-                                  contactStatus.type === "success"
-                                    ? "rgba(16, 185, 129, 0.1)"
-                                    : "rgba(239, 68, 68, 0.1)",
-                                border: `1px solid ${contactStatus.type === "success" ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"}`,
-                                color: contactStatus.type === "success" ? "#10b981" : "#ef4444",
-                              }}
-                            >
-                              {contactStatus.message}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                        <form onSubmit={handleContactSubmit}>
-                          {[
-                            { name: "name", label: "Name *", type: "text", required: true },
-                            { name: "email", label: "Email *", type: "email", required: true },
-                            { name: "subject", label: "Subject", type: "text", required: false },
-                          ].map((field) => (
-                            <div key={field.name} style={{ marginBottom: "20px" }}>
+                        {/* Left: Contact Form */}
+                        <motion.div
+                          variants={cardVariants}
+                          style={{
+                            background: "var(--glass)",
+                            backdropFilter: "blur(12px)",
+                            padding: "35px",
+                            borderRadius: "20px",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            gridColumn: "span 2",
+                          }}
+                        >
+                          <h3
+                            style={{ color: "#d4af37", marginBottom: "25px", fontSize: "1.6rem" }}
+                          >
+                            Send us a Message
+                          </h3>
+
+                          {/* ✅ Status Toast */}
+                          <AnimatePresence>
+                            {contactStatus.message && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                style={{
+                                  padding: "16px",
+                                  borderRadius: "12px",
+                                  marginBottom: "20px",
+                                  background:
+                                    contactStatus.type === "success"
+                                      ? "rgba(16, 185, 129, 0.1)"
+                                      : "rgba(239, 68, 68, 0.1)",
+                                  border: `1px solid ${
+                                    contactStatus.type === "success"
+                                      ? "rgba(16, 185, 129, 0.3)"
+                                      : "rgba(239, 68, 68, 0.3)"
+                                  }`,
+                                  color: contactStatus.type === "success" ? "#10b981" : "#ef4444",
+                                }}
+                              >
+                                {contactStatus.message}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          {/* ✉️ Contact Form */}
+                          <form onSubmit={handleContactSubmit}>
+                            {[
+                              { name: "name", label: "Name *", type: "text", required: true },
+                              { name: "email", label: "Email *", type: "email", required: true },
+                              { name: "subject", label: "Subject", type: "text", required: false },
+                            ].map((field) => (
+                              <div key={field.name} style={{ marginBottom: "20px" }}>
+                                <label
+                                  style={{
+                                    display: "block",
+                                    marginBottom: "8px",
+                                    color: "#e5e7eb",
+                                    fontWeight: "600",
+                                  }}
+                                >
+                                  {field.label}
+                                </label>
+                                <input
+                                  type={field.type}
+                                  value={contactForm[field.name]}
+                                  onChange={(e) =>
+                                    setContactForm({ ...contactForm, [field.name]: e.target.value })
+                                  }
+                                  required={field.required}
+                                  style={{
+                                    width: "100%",
+                                    padding: "14px 18px",
+                                    borderRadius: "12px",
+                                    border: "2px solid rgba(255, 255, 255, 0.1)",
+                                    background: "rgba(17, 24, 39, 0.6)",
+                                    color: "#e5e7eb",
+                                    fontSize: "1rem",
+                                    outline: "none",
+                                    transition: "all 0.3s ease",
+                                  }}
+                                />
+                              </div>
+                            ))}
+
+                            <div style={{ marginBottom: "20px" }}>
                               <label
                                 style={{
                                   display: "block",
@@ -1090,15 +1164,15 @@ const Profile = () => {
                                   fontWeight: "600",
                                 }}
                               >
-                                {field.label}
+                                Message *
                               </label>
-                              <input
-                                type={field.type}
-                                value={contactForm[field.name]}
+                              <textarea
+                                value={contactForm.message}
                                 onChange={(e) =>
-                                  setContactForm({ ...contactForm, [field.name]: e.target.value })
+                                  setContactForm({ ...contactForm, message: e.target.value })
                                 }
-                                required={field.required}
+                                required
+                                rows="5"
                                 style={{
                                   width: "100%",
                                   padding: "14px 18px",
@@ -1107,123 +1181,100 @@ const Profile = () => {
                                   background: "rgba(17, 24, 39, 0.6)",
                                   color: "#e5e7eb",
                                   fontSize: "1rem",
+                                  resize: "vertical",
                                   outline: "none",
-                                  transition: "all 0.3s ease",
                                 }}
                               />
                             </div>
-                          ))}
-                          <div style={{ marginBottom: "20px" }}>
-                            <label
-                              style={{
-                                display: "block",
-                                marginBottom: "8px",
-                                color: "#e5e7eb",
-                                fontWeight: "600",
-                              }}
-                            >
-                              Message *
-                            </label>
-                            <textarea
-                              value={contactForm.message}
-                              onChange={(e) =>
-                                setContactForm({ ...contactForm, message: e.target.value })
-                              }
-                              required
-                              rows="5"
+
+                            {/* ✉️ Submit Button */}
+                            <motion.button
+                              whileHover={!contactLoading ? { scale: 1.05 } : {}}
+                              whileTap={!contactLoading ? { scale: 0.95 } : {}}
+                              type="submit"
+                              disabled={contactLoading}
                               style={{
                                 width: "100%",
-                                padding: "14px 18px",
+                                background: contactLoading
+                                  ? "linear-gradient(135deg, #6b7280, #4b5563)"
+                                  : "linear-gradient(135deg, #d4af37, #f7ef8a)",
+                                color: "#0b0e14",
+                                fontWeight: 700,
+                                fontSize: "1.05rem",
+                                border: "none",
                                 borderRadius: "12px",
-                                border: "2px solid rgba(255, 255, 255, 0.1)",
-                                background: "rgba(17, 24, 39, 0.6)",
-                                color: "#e5e7eb",
-                                fontSize: "1rem",
-                                resize: "vertical",
-                                outline: "none",
+                                padding: "14px",
+                                cursor: contactLoading ? "not-allowed" : "pointer",
+                                boxShadow: contactLoading
+                                  ? "none"
+                                  : "0 6px 20px rgba(212, 175, 55, 0.35)",
+                                opacity: contactLoading ? 0.85 : 1,
+                                transition: "all 0.25s ease",
                               }}
-                            />
-                          </div>
-                          <motion.button
-                            whileHover={!contactLoading ? { scale: 1.05 } : {}}
-                            whileTap={!contactLoading ? { scale: 0.95 } : {}}
-                            type="submit"
-                            disabled={contactLoading}
-                            style={{
-                              width: "100%",
-                              background: contactLoading
-                                ? "linear-gradient(135deg, #6b7280, #4b5563)"
-                                : "linear-gradient(135deg, #d4af37, #f7ef8a)",
-                              color: "#0b0e14",
-                              fontWeight: 700,
-                              fontSize: "1.05rem",
-                              border: "none",
-                              borderRadius: "12px",
-                              padding: "14px",
-                              cursor: contactLoading ? "not-allowed" : "pointer",
-                              boxShadow: contactLoading
-                                ? "none"
-                                : "0 6px 20px rgba(212, 175, 55, 0.35)",
-                              opacity: contactLoading ? 0.85 : 1,
-                              transition: "all 0.25s ease",
-                            }}
-                          >
-                            {contactLoading ? "Sending..." : "Send Message"}
-                          </motion.button>
-                        </form>
-                      </motion.div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                        {[
-                          {
-                            icon: "📍",
-                            title: "Location",
-                            desc: "Bangalore, Karnataka, India",
-                            color: "#d4af37",
-                          },
-                          {
-                            icon: "📧",
-                            title: "Email",
-                            desc: "support@tourease.com",
-                            color: "#3b82f6",
-                          },
-                          {
-                            icon: "📞",
-                            title: "Phone",
-                            desc: "+91 1800 123 4567",
-                            color: "#10b981",
-                          },
-                          {
-                            icon: "🌐",
-                            title: "Website",
-                            desc: "www.tourease.com",
-                            color: "#f59e0b",
-                          },
-                        ].map((info, idx) => (
-                          <motion.div
-                            key={idx}
-                            variants={cardVariants}
-                            whileHover={{ scale: 1.03, y: -3 }}
-                            style={{
-                              background: "var(--glass)",
-                              backdropFilter: "blur(12px)",
-                              padding: "25px",
-                              borderRadius: "16px",
-                              border: "1px solid rgba(255,255,255,0.1)",
-                            }}
-                          >
-                            <div style={{ fontSize: "2rem", marginBottom: "12px" }}>
-                              {info.icon}
-                            </div>
-                            <h4
-                              style={{ color: info.color, marginBottom: "8px", fontSize: "1.1rem" }}
                             >
-                              {info.title}
-                            </h4>
-                            <p style={{ color: "#cbd5e1", margin: 0 }}>{info.desc}</p>
-                          </motion.div>
-                        ))}
+                              {contactLoading ? "Sending..." : "Send Message"}
+                            </motion.button>
+                          </form>
+                        </motion.div>
+
+                        {/* Right: Info Cards */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                          {[
+                            {
+                              icon: "📍",
+                              title: "Location",
+                              desc: "Bangalore, Karnataka, India",
+                              color: "#d4af37",
+                            },
+                            {
+                              icon: "📧",
+                              title: "Email",
+                              desc: "support@tourease.com",
+                              color: "#3b82f6",
+                            },
+                            {
+                              icon: "📞",
+                              title: "Phone",
+                              desc: "+91 1800 123 4567",
+                              color: "#10b981",
+                            },
+                            {
+                              icon: "🌐",
+                              title: "Website",
+                              desc: "www.tourease.com",
+                              color: "#f59e0b",
+                            },
+                          ].map((info, idx) => (
+                            <motion.div
+                              key={idx}
+                              variants={cardVariants}
+                              whileHover={{ scale: 1.03, y: -3 }}
+                              style={{
+                                background: "var(--glass)",
+                                backdropFilter: "blur(12px)",
+                                padding: "25px",
+                                borderRadius: "16px",
+                                border: "1px solid rgba(255,255,255,0.1)",
+                              }}
+                            >
+                              <div style={{ fontSize: "2rem", marginBottom: "12px" }}>
+                                {info.icon}
+                              </div>
+                              <h4
+                                style={{
+                                  color: info.color,
+                                  marginBottom: "8px",
+                                  fontSize: "1.1rem",
+                                }}
+                              >
+                                {info.title}
+                              </h4>
+                              <p style={{ color: "#cbd5e1", margin: 0 }}>{info.desc}</p>
+                            </motion.div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    </motion.div>
                   </motion.div>
                 )}
               </AnimatePresence>
