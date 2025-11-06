@@ -3,20 +3,12 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../App";
 import { isAuthenticated, getUsername } from "../utils/auth";
-import {
-  FaHome,
-  FaCompass,
-  FaFireAlt,
-  FaRoute,
-  FaUserCircle,
-  FaInfoCircle,
-  FaEnvelope,
-} from "react-icons/fa";
+import { FaHome, FaCompass, FaFireAlt, FaRoute, FaUserCircle } from "react-icons/fa";
 import ConfirmModal from "./ConfirmModal";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { pathname, search } = useLocation();
+  const { pathname } = useLocation();
   const { user, logout: contextLogout } = useAuth();
 
   const [authenticated, setAuthenticated] = useState(isAuthenticated());
@@ -25,11 +17,10 @@ const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("");
 
-  // Track route + query param
+  // Track active page based on path and query
   useEffect(() => {
-    const tab = new URLSearchParams(search).get("tab");
     if (pathname === "/profile") {
-      setActiveLink(tab || "profile");
+      setActiveLink("profile");
     } else if (pathname === "/explore") {
       setActiveLink("explore");
     } else if (pathname === "/trending") {
@@ -39,8 +30,9 @@ const Navbar = () => {
     } else {
       setActiveLink("home");
     }
-  }, [pathname, search]);
+  }, [pathname]);
 
+  // Update user info from context or local storage
   useEffect(() => {
     setAuthenticated(isAuthenticated());
     setUsername(getUsername() || user?.username);
@@ -67,13 +59,12 @@ const Navbar = () => {
   const closeMenu = () => setMenuActive(false);
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
+  // 🚀 Simplified Navbar (About Us + Contact Us removed)
   const navItems = [
     { to: "/", label: "Home", icon: FaHome },
     { to: "/explore", label: "Explore", icon: FaCompass },
     { to: "/trending", label: "Trending", icon: FaFireAlt },
     { to: "/ItineraryPlanner", label: "Itinerary Planner", icon: FaRoute },
-    { to: "/profile?tab=about", label: "About Us", icon: FaInfoCircle },
-    { to: "/profile?tab=contact", label: "Contact Us", icon: FaEnvelope },
   ];
 
   return (
