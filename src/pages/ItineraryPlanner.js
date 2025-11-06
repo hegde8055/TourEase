@@ -326,6 +326,7 @@ const ItineraryPlanner = () => {
   const [geoRouteError, setGeoRouteError] = useState("");
   const [routingLoading, setRoutingLoading] = useState(false);
   const [routeError, setRouteError] = useState("");
+  const [mapRouteMetrics, setMapRouteMetrics] = useState(null);
 
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -621,6 +622,7 @@ const ItineraryPlanner = () => {
       if (!routeStops.length) {
         setRouteSummary(null);
       }
+      setMapRouteMetrics(null);
       return;
     }
 
@@ -700,6 +702,7 @@ const ItineraryPlanner = () => {
   useEffect(() => {
     if (!routeStops || routeStops.length < 2) {
       setGeoRouteData(null);
+      setMapRouteMetrics(null);
       setGeoRouteError("");
       setGeoRouteLoading(false);
       return;
@@ -796,6 +799,19 @@ const ItineraryPlanner = () => {
       }
     }
 
+    if (mapRouteMetrics?.distanceKm != null || mapRouteMetrics?.durationMinutes != null) {
+      const totalMeters = Number.isFinite(mapRouteMetrics.distanceKm)
+        ? mapRouteMetrics.distanceKm * 1000
+        : 0;
+      const totalSeconds = Number.isFinite(mapRouteMetrics.durationMinutes)
+        ? mapRouteMetrics.durationMinutes * 60
+        : 0;
+
+      if (totalMeters > 0 || totalSeconds > 0) {
+        return { totalMeters, totalSeconds };
+      }
+    }
+
     if (!routeSummary?.legs) {
       return { totalMeters: 0, totalSeconds: 0 };
     }
@@ -809,7 +825,7 @@ const ItineraryPlanner = () => {
     }
 
     return { totalMeters, totalSeconds };
-  }, [geoRouteData, routeSummary]);
+  }, [geoRouteData, mapRouteMetrics, routeSummary]);
 
   const lastRouteTotalsRef = useRef({ totalMeters: 0, totalSeconds: 0 });
 
@@ -2448,6 +2464,17 @@ const ItineraryPlanner = () => {
                                   legs={routeSummary?.legs || []}
                                   userLocation={userLocation}
                                   nearbyPlaces={suggestedPlaces}
+                                  onRouteCalculated={(metrics) => {
+                                    if (
+                                      metrics &&
+                                      typeof metrics.distanceKm === "number" &&
+                                      Number.isFinite(metrics.distanceKm) &&
+                                      typeof metrics.durationMinutes === "number" &&
+                                      Number.isFinite(metrics.durationMinutes)
+                                    ) {
+                                      setMapRouteMetrics(metrics);
+                                    }
+                                  }}
                                   precomputedRoute={geoRouteData}
                                 />
                               </>
@@ -2769,7 +2796,7 @@ const ItineraryPlanner = () => {
                             >
                               📍 Route & Trip Summary
                             </div>
-                            {(routeSummary || geoRouteData) &&
+                            {(routeSummary || geoRouteData || mapRouteMetrics) &&
                               !(routingLoading || geoRouteLoading) && (
                                 <div style={{ display: "grid", gap: "8px" }}>
                                   <div
@@ -2816,6 +2843,12 @@ const ItineraryPlanner = () => {
                                         {geoRouteData.durationMinutes} mins
                                       </div>
                                     )}
+                                  {!geoRouteData && mapRouteMetrics && (
+                                    <div style={{ fontSize: "0.78rem", color: "#bae6fd" }}>
+                                      Map route: {mapRouteMetrics.distanceKm.toFixed(2)} km •{" "}
+                                      {mapRouteMetrics.durationMinutes} mins
+                                    </div>
+                                  )}
                                   {polylinePreview && (
                                     <div
                                       style={{
