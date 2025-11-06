@@ -1,24 +1,36 @@
 // /client/src/components/ScrollToTop.js
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 
 /**
- * ScrollToTop Component
- * ---------------------
- * Ensures that the page scrolls to the top when navigating between routes
- * or query parameters (e.g. /profile → /profile?tab=about).
- *
- * - Smooth scroll on desktops & tablets
- * - Instant scroll on smaller mobile screens (better performance)
+ * ScrollToTop (Enhanced)
+ * ----------------------
+ * Forces scroll to top whenever pathname or query param changes,
+ * even if it's the same page (like /profile?tab=about).
+ * Includes smooth scrolling and offset for better visual centering.
  */
 export default function ScrollToTop() {
   const { pathname, search } = useLocation();
+  const prevLocation = useRef({ pathname: "", search: "" });
 
   useEffect(() => {
-    const isMobile = window.innerWidth < 768; // Responsive check
-    const scrollBehavior = isMobile ? "auto" : "smooth";
+    const scrollToTop = () => {
+      const isMobile = window.innerWidth < 768;
+      const behavior = isMobile ? "auto" : "smooth";
 
-    window.scrollTo({ top: 0, behavior: scrollBehavior });
+      // Small offset for perfect visual centering
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior,
+      });
+    };
+
+    // Scroll if page or query changed
+    if (prevLocation.current.pathname !== pathname || prevLocation.current.search !== search) {
+      scrollToTop();
+      prevLocation.current = { pathname, search };
+    }
   }, [pathname, search]);
 
   return null;

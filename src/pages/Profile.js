@@ -123,6 +123,13 @@ const Profile = () => {
     const timer = setTimeout(() => setStats({ visited: 12, reviews: 8, photos: 24 }), 500);
     return () => clearTimeout(timer);
   }, []);
+  useEffect(() => {
+    const sectionOffset = window.innerWidth < 768 ? 80 : 130;
+    window.scrollTo({
+      top: sectionOffset,
+      behavior: "smooth",
+    });
+  }, [activeTab]);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
