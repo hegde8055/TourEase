@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { profileAPI, contactAPI } from "../utils/api";
 import { isAuthenticated } from "../utils/auth";
 import Navbar from "../components/Navbar";
-import { aboutFeatures } from "../utils/aboutContent";
+//import { aboutFeatures } from "../utils/aboutContent";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "../App";
@@ -887,125 +887,130 @@ const Profile = () => {
                     initial="hidden"
                     animate="visible"
                     exit="exit"
+                    style={{
+                      position: "relative",
+                      overflow: "hidden",
+                      borderRadius: "24px",
+                      padding: "40px 20px",
+                      backdropFilter: "blur(16px)",
+                    }}
                   >
-                    <div style={{ textAlign: "center", marginBottom: "50px" }}>
+                    {/* ✨ Shimmer background */}
+                    <motion.div
+                      animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
+                      transition={{ duration: 25, repeat: Infinity, repeatType: "reverse" }}
+                      style={{
+                        position: "absolute",
+                        inset: 0,
+                        background:
+                          "linear-gradient(45deg, rgba(212,175,55,0.05) 0%, rgba(59,130,246,0.05) 100%)",
+                        backgroundSize: "200% 200%",
+                        pointerEvents: "none",
+                        zIndex: 0,
+                      }}
+                    />
+
+                    {/* 🪩 Fade-in inner container */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 40 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.7, ease: "easeOut" }}
+                      style={{ position: "relative", zIndex: 1 }}
+                    >
                       <h2
                         style={{
                           fontSize: "3rem",
                           fontWeight: "700",
-                          marginBottom: "15px",
+                          marginBottom: "25px",
                           background: "linear-gradient(135deg, #d4af37, #3b82f6)",
                           WebkitBackgroundClip: "text",
                           WebkitTextFillColor: "transparent",
+                          textAlign: "center",
                         }}
                       >
                         About TourEase
                       </h2>
-                      <p style={{ color: "#cbd5e1", fontSize: "1.2rem" }}>
-                        Your Ultimate Travel Companion for Exploring Incredible India
-                      </p>
-                    </div>
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-                        gap: "30px",
-                      }}
-                    >
-                      {[
-                        {
-                          icon: "🎯",
-                          title: "Our Mission",
-                          desc: "To make travel planning effortless, personalized, and exciting by providing comprehensive information about India's diverse destinations.",
-                          color: "#d4af37",
-                        },
-                        {
-                          icon: "👁️",
-                          title: "Our Vision",
-                          desc: "To become India's most trusted travel platform, helping millions discover hidden gems and create lifelong memories.",
-                          color: "#3b82f6",
-                        },
-                      ].map((item, idx) => (
-                        <motion.div
-                          key={idx}
-                          variants={cardVariants}
-                          whileHover={{ y: -8, scale: 1.02 }}
-                          style={{
-                            background: "var(--glass)",
-                            backdropFilter: "blur(12px)",
-                            padding: "35px",
-                            borderRadius: "20px",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            textAlign: "center",
-                          }}
-                        >
-                          <div style={{ fontSize: "3.5rem", marginBottom: "20px" }}>
-                            {item.icon}
-                          </div>
-                          <h3
-                            style={{ color: item.color, marginBottom: "15px", fontSize: "1.6rem" }}
-                          >
-                            {item.title}
-                          </h3>
-                          <p style={{ color: "#cbd5e1", lineHeight: "1.8" }}>{item.desc}</p>
-                        </motion.div>
-                      ))}
-                    </div>
-                    <div style={{ marginTop: "60px" }}>
-                      <h3
+
+                      <p
                         style={{
+                          color: "#cbd5e1",
+                          lineHeight: "1.8",
+                          fontSize: "1.1rem",
+                          marginBottom: "25px",
                           textAlign: "center",
-                          marginBottom: "26px",
-                          fontSize: "2rem",
-                          color: "#d4af37",
-                          fontWeight: 700,
+                          maxWidth: "800px",
+                          marginLeft: "auto",
+                          marginRight: "auto",
                         }}
                       >
-                        What Sets Us Apart
-                      </h3>
+                        TourEase is a luxury travel companion designed to craft immersive,
+                        hyper-personalized journeys across India. We merge technology with
+                        hospitality to bring travelers an effortless planning experience — whether
+                        it’s an offbeat adventure, a weekend getaway, or a cultural escape.
+                      </p>
+
                       <div
                         style={{
                           display: "grid",
-                          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                          gap: "24px",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                          gap: "25px",
+                          marginTop: "30px",
                         }}
                       >
-                        {aboutFeatures.map((item) => (
-                          <motion.article
-                            key={item.title}
+                        {[
+                          {
+                            icon: "💡",
+                            title: "Our Vision",
+                            desc: "To redefine how travelers explore India — through personalization, ease, and discovery.",
+                            color: "#d4af37",
+                          },
+                          {
+                            icon: "🚀",
+                            title: "Our Mission",
+                            desc: "Empower explorers with AI-driven planning and real-time concierge support.",
+                            color: "#3b82f6",
+                          },
+                          {
+                            icon: "🤝",
+                            title: "Our Promise",
+                            desc: "Every trip curated with attention, detail, and trust — for memories that last a lifetime.",
+                            color: "#10b981",
+                          },
+                        ].map((info, idx) => (
+                          <motion.div
+                            key={idx}
                             variants={cardVariants}
-                            whileHover={{ y: -6, scale: 1.02 }}
+                            whileHover={{ scale: 1.03, y: -3 }}
                             style={{
-                              padding: "28px",
-                              borderRadius: "18px",
                               background: "var(--glass)",
-                              border: "1px solid rgba(255, 255, 255, 0.08)",
                               backdropFilter: "blur(12px)",
-                              minHeight: "210px",
+                              padding: "25px",
+                              borderRadius: "16px",
+                              border: "1px solid rgba(255,255,255,0.1)",
+                              textAlign: "center",
                             }}
                           >
-                            <div style={{ fontSize: "2.2rem", marginBottom: "16px" }}>
-                              {item.icon}
+                            <div style={{ fontSize: "2.2rem", marginBottom: "12px" }}>
+                              {info.icon}
                             </div>
                             <h4
                               style={{
-                                color: "#3b82f6",
+                                color: info.color,
+                                marginBottom: "8px",
                                 fontSize: "1.2rem",
-                                marginBottom: "10px",
                                 fontWeight: 600,
                               }}
                             >
-                              {item.title}
+                              {info.title}
                             </h4>
-                            <p style={{ color: "rgba(226, 232, 240, 0.82)", lineHeight: 1.7 }}>
-                              {item.description}
-                            </p>
-                          </motion.article>
+                            <p style={{ color: "#cbd5e1", lineHeight: "1.6" }}>{info.desc}</p>
+                          </motion.div>
                         ))}
                       </div>
-                    </div>
+                    </motion.div>
                   </motion.div>
                 )}
+
                 {activeTab === "contact" && (
                   <motion.div
                     ref={contactSectionRef}
