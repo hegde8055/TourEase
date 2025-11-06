@@ -779,7 +779,7 @@ const ItineraryPlanner = () => {
   }, [routeSummary]);
 
   // --- NEW: useMemo hook to calculate totals (Fixes Green Arrow) ---
-  const routeTotals = useMemo(() => {
+  const baseRouteTotals = useMemo(() => {
     if (geoRouteData) {
       const totalMeters = Number.parseFloat(
         geoRouteData.distance ?? geoRouteData.distanceMeters ?? geoRouteData.distanceKm * 1000
@@ -810,6 +810,31 @@ const ItineraryPlanner = () => {
 
     return { totalMeters, totalSeconds };
   }, [geoRouteData, routeSummary]);
+
+  const lastRouteTotalsRef = useRef({ totalMeters: 0, totalSeconds: 0 });
+
+  const routeTotals = useMemo(() => {
+    const hasBaseTotals = baseRouteTotals.totalMeters > 0 || baseRouteTotals.totalSeconds > 0;
+
+    if (hasBaseTotals) {
+      lastRouteTotalsRef.current = baseRouteTotals;
+      return baseRouteTotals;
+    }
+
+    if (geoRouteData?.distanceKm != null && geoRouteData?.durationMinutes != null) {
+      const fallback = {
+        totalMeters: Number(geoRouteData.distanceKm) * 1000,
+        totalSeconds: Number(geoRouteData.durationMinutes) * 60,
+      };
+
+      if (fallback.totalMeters > 0 || fallback.totalSeconds > 0) {
+        lastRouteTotalsRef.current = fallback;
+        return fallback;
+      }
+    }
+
+    return lastRouteTotalsRef.current;
+  }, [baseRouteTotals, geoRouteData]);
 
   const legsCount = useMemo(() => {
     if (geoRouteData?.properties?.waypoints?.length > 1) {
