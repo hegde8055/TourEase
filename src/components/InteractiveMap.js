@@ -75,6 +75,10 @@ const InteractiveMap = ({
   const mapInstanceRef = useRef(null);
   const routeLayerRef = useRef(null);
   const markersRef = useRef([]);
+  const addedCoordsRef = useRef([]);
+  const onRouteCalculatedRef = useRef(onRouteCalculated);
+  const routeRequestIdRef = useRef(0);
+  const lastRouteSignatureRef = useRef(null);
   const [mapError, setMapError] = useState("");
 
   const resolvedCoordinates = useMemo(() => normalizeCoordinates(coordinates), [coordinates]);
@@ -89,6 +93,10 @@ const InteractiveMap = ({
     }),
     []
   );
+
+  useEffect(() => {
+    onRouteCalculatedRef.current = onRouteCalculated;
+  }, [onRouteCalculated]);
 
   useEffect(() => {
     if (!resolvedCoordinates) return;
@@ -119,150 +127,10 @@ const InteractiveMap = ({
         } else {
           map.setView([resolvedCoordinates.lat, resolvedCoordinates.lng]);
         }
-
-        const createIcon = (url) =>
-          L.icon({
-            iconUrl: url,
-            shadowUrl: iconUrls.shadow,
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-          });
-
-        const userIcon = createIcon(iconUrls.blue);
-        const destIcon = createIcon(iconUrls.red);
-        const nearIcon = createIcon(iconUrls.green);
-
-        const mapRef = mapInstanceRef.current;
-
-        // Remove previous markers
-        if (markersRef.current.length) {
-          markersRef.current.forEach((marker) => {
-            if (mapRef && marker) {
-              mapRef.removeLayer(marker);
-            }
-          });
-          markersRef.current = [];
-        }
-
-        const addedCoords = [];
-
-        if (userLocation?.lat && userLocation?.lng) {
-          const marker = L.marker([userLocation.lat, userLocation.lng], {
-            icon: userIcon,
-            title: "Your Location",
-          }).bindPopup("<strong>You are here</strong>");
-
-          marker.addTo(mapRef);
-          markersRef.current.push(marker);
-          addedCoords.push([userLocation.lat, userLocation.lng]);
-        }
-
-        const destLatLng = [resolvedCoordinates.lat, resolvedCoordinates.lng];
-        const destMarker = L.marker(destLatLng, {
-          icon: destIcon,
-          title: name || "Destination",
-        }).bindPopup(`<b>${name || "Destination"}</b><br>${address || ""}`);
-
-        destMarker.addTo(mapRef);
-        markersRef.current.push(destMarker);
-        addedCoords.push(destLatLng);
-
-        for (const place of nearbyPlaces) {
-          const coords = normalizeCoordinates(place.coordinates || place.location);
-          if (!coords) continue;
-
-          const marker = L.marker([coords.lat, coords.lng], {
-            icon: nearIcon,
-            title: place.name || "Nearby place",
-          }).bindPopup(`<b>${place.name || "Nearby Place"}</b>`);
-
-          marker.addTo(mapRef);
-          markersRef.current.push(marker);
-        }
-
-        const fitToBounds = (coords) => {
-          const bounds = L.latLngBounds(coords);
-          if (bounds.isValid()) {
-            mapRef.fitBounds(bounds.pad(0.2), { padding: [50, 50] });
-          }
-        };
-
-        const clearRouteLayer = () => {
-          if (routeLayerRef.current && mapInstanceRef.current) {
-            mapInstanceRef.current.removeLayer(routeLayerRef.current);
-            routeLayerRef.current = null;
-          }
-        };
-
-        const drawRoute = async () => {
-          clearRouteLayer();
-
-          const hasOrigin = userLocation?.lat && userLocation?.lng; // ⬅️ Change this line
-          if (!(showRoute && hasOrigin)) {
-            // ⬅️ This line is now correct
-            fitToBounds(addedCoords);
-            return;
-          }
-          let routeData = precomputedRoute;
-          const hasPolyline = routeData?.polylineCoordinates?.length;
-
-          try {
-            if (!hasPolyline) {
-              console.log("📍 Fetching route highlight...");
-              routeData = await calculateMultiPointRoute(
-                [userLocation, resolvedCoordinates],
-                "drive"
-              );
-            }
-
-            if (cancelled) return;
-
-            if (routeData?.polylineCoordinates?.length) {
-              const polyline = L.polyline(routeData.polylineCoordinates, {
-                color: "#38bdf8",
-                weight: 6,
-                opacity: 0.8,
-                lineJoin: "round",
-              }).addTo(mapRef);
-
-              routeLayerRef.current = polyline;
-
-              const bounds = L.latLngBounds(routeData.polylineCoordinates);
-              if (bounds.isValid()) {
-                mapRef.fitBounds(bounds.pad(0.2), { padding: [50, 50], maxZoom: 15 });
-              }
-
-              const distanceKm = routeData.distanceKm ?? routeData.distance / 1000;
-              const durationMinutes =
-                routeData.durationMinutes ?? Math.round((routeData.duration ?? 0) / 60);
-
-              onRouteCalculated({ distanceKm, durationMinutes });
-
-              console.log(
-                `✅ Route highlighted: ${distanceKm?.toFixed?.(2) ?? distanceKm} km, ${durationMinutes} mins`
-              );
-              setMapError("");
-            } else {
-              console.warn("⚠️ No polyline returned for route.");
-              setMapError("Route unavailable for these waypoints.");
-              fitToBounds(addedCoords);
-            }
-          } catch (err) {
-            console.error("❌ Failed to fetch route:", err);
-            setMapError(err.message || "Route calculation failed.");
-            fitToBounds(addedCoords);
-          }
-        };
-
-        await drawRoute();
-
-        if (!routeLayerRef.current) {
-          fitToBounds(addedCoords);
-        }
       } catch (err) {
         if (!cancelled) {
           console.error("Map setup failed:", err);
-          setMapError(err.message);
+          setMapError(err.message || "Failed to initialize map");
         }
       }
     };
@@ -272,17 +140,201 @@ const InteractiveMap = ({
     return () => {
       cancelled = true;
     };
-  }, [
-    resolvedCoordinates,
-    userLocation,
-    nearbyPlaces,
-    showRoute,
-    iconUrls,
-    onRouteCalculated,
-    precomputedRoute,
-    name,
-    address,
-  ]);
+  }, [resolvedCoordinates]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const L = window.L;
+    if (!map || !L || !resolvedCoordinates) return;
+
+    const createIcon = (url) =>
+      L.icon({
+        iconUrl: url,
+        shadowUrl: iconUrls.shadow,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+      });
+
+    const userIcon = createIcon(iconUrls.blue);
+    const destIcon = createIcon(iconUrls.red);
+    const nearIcon = createIcon(iconUrls.green);
+
+    if (markersRef.current.length) {
+      markersRef.current.forEach((marker) => {
+        if (marker) {
+          map.removeLayer(marker);
+        }
+      });
+      markersRef.current = [];
+    }
+
+    const addedCoords = [];
+
+    if (userLocation?.lat && userLocation?.lng) {
+      const marker = L.marker([userLocation.lat, userLocation.lng], {
+        icon: userIcon,
+        title: "Your Location",
+      }).bindPopup("<strong>You are here</strong>");
+
+      marker.addTo(map);
+      markersRef.current.push(marker);
+      addedCoords.push([userLocation.lat, userLocation.lng]);
+    }
+
+    const destLatLng = [resolvedCoordinates.lat, resolvedCoordinates.lng];
+    const destMarker = L.marker(destLatLng, {
+      icon: destIcon,
+      title: name || "Destination",
+    }).bindPopup(`<b>${name || "Destination"}</b><br>${address || ""}`);
+
+    destMarker.addTo(map);
+    markersRef.current.push(destMarker);
+    addedCoords.push(destLatLng);
+
+    for (const place of nearbyPlaces) {
+      const coords = normalizeCoordinates(place.coordinates || place.location);
+      if (!coords) continue;
+
+      const marker = L.marker([coords.lat, coords.lng], {
+        icon: nearIcon,
+        title: place.name || "Nearby place",
+      }).bindPopup(`<b>${place.name || "Nearby Place"}</b>`);
+
+      marker.addTo(map);
+      markersRef.current.push(marker);
+    }
+
+    if (!routeLayerRef.current && addedCoords.length) {
+      const bounds = L.latLngBounds(addedCoords);
+      if (bounds.isValid()) {
+        map.fitBounds(bounds.pad(0.2), { padding: [50, 50] });
+      }
+    }
+
+    addedCoordsRef.current = addedCoords;
+  }, [resolvedCoordinates, userLocation, nearbyPlaces, name, address, iconUrls]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    const L = window.L;
+    if (!map || !L || !resolvedCoordinates) return;
+
+    const clearRouteLayer = () => {
+      if (routeLayerRef.current) {
+        map.removeLayer(routeLayerRef.current);
+        routeLayerRef.current = null;
+      }
+    };
+
+    const fitFallbackBounds = () => {
+      const coords = addedCoordsRef.current || [];
+      if (coords.length) {
+        const bounds = L.latLngBounds(coords);
+        if (bounds.isValid()) {
+          map.fitBounds(bounds.pad(0.2), { padding: [50, 50] });
+        }
+      } else {
+        map.setView([resolvedCoordinates.lat, resolvedCoordinates.lng], 10);
+      }
+    };
+
+    const hasOrigin = Number.isFinite(userLocation?.lat) && Number.isFinite(userLocation?.lng);
+    if (!showRoute || !hasOrigin) {
+      clearRouteLayer();
+      fitFallbackBounds();
+      return;
+    }
+
+    const waypoints = [
+      { lat: userLocation.lat, lng: userLocation.lng },
+      { lat: resolvedCoordinates.lat, lng: resolvedCoordinates.lng },
+    ];
+
+    const requestId = routeRequestIdRef.current + 1;
+    routeRequestIdRef.current = requestId;
+    let cancelled = false;
+
+    const applyRoute = (routeData) => {
+      if (!routeData?.polylineCoordinates?.length) {
+        return false;
+      }
+
+      const signature = JSON.stringify(routeData.polylineCoordinates);
+      if (signature === lastRouteSignatureRef.current) {
+        return true;
+      }
+
+      clearRouteLayer();
+
+      const polyline = L.polyline(routeData.polylineCoordinates, {
+        color: "#38bdf8",
+        weight: 6,
+        opacity: 0.8,
+        lineJoin: "round",
+      }).addTo(map);
+
+      routeLayerRef.current = polyline;
+      lastRouteSignatureRef.current = signature;
+
+      const bounds = L.latLngBounds(routeData.polylineCoordinates);
+      if (bounds.isValid()) {
+        map.fitBounds(bounds.pad(0.2), { padding: [50, 50], maxZoom: 15 });
+      }
+
+      const distanceMeters =
+        routeData.distanceMeters ?? routeData.distance ?? routeData.properties?.distance ?? 0;
+      const durationSeconds =
+        routeData.durationSeconds ?? routeData.duration ?? routeData.properties?.time ?? 0;
+
+      const distanceKm = Number.isFinite(distanceMeters) ? distanceMeters / 1000 : 0;
+      const durationMinutes = Number.isFinite(durationSeconds)
+        ? Math.round(durationSeconds / 60)
+        : 0;
+
+      onRouteCalculatedRef.current({ distanceKm, durationMinutes });
+      setMapError((prev) => (prev ? "" : prev));
+      return true;
+    };
+
+    const handleRouteFailure = (message) => {
+      clearRouteLayer();
+      fitFallbackBounds();
+      setMapError(message || "Route unavailable for these waypoints.");
+    };
+
+    const resolveRoute = async () => {
+      try {
+        let routeData = null;
+        if (precomputedRoute?.polylineCoordinates?.length) {
+          routeData = precomputedRoute;
+        } else {
+          routeData = await calculateMultiPointRoute(waypoints, "drive");
+        }
+
+        if (cancelled || routeRequestIdRef.current !== requestId) {
+          return;
+        }
+
+        if (routeData && applyRoute(routeData)) {
+          return;
+        }
+
+        handleRouteFailure("Route unavailable for these waypoints.");
+      } catch (error) {
+        if (cancelled || routeRequestIdRef.current !== requestId) {
+          return;
+        }
+        console.error("Route calculation failed:", error);
+        handleRouteFailure(error?.message || "Route calculation failed.");
+      }
+    };
+
+    resolveRoute();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showRoute, userLocation, resolvedCoordinates, precomputedRoute]);
 
   useEffect(() => {
     return () => {
