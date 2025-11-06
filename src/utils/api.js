@@ -1,15 +1,20 @@
 // /client/src/utils/api.js
 import axios from "axios";
-import { getToken } from "./auth";
+import { getToken, getSessionKey } from "./auth";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
 // Add token to all axios requests
 axios.interceptors.request.use(
   (config) => {
+    config.headers = config.headers || {};
     const token = getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    const sessionKey = getSessionKey();
+    if (sessionKey) {
+      config.headers["X-Session-Key"] = sessionKey;
     }
     return config;
   },
@@ -35,6 +40,15 @@ export const enhancedPlacesAPI = {
       params: { location: `${location.lat},${location.lng}`, zoom, size },
     }),
   searchPlaces: async (data) => postPlaces("search", data),
+  clearSessionCache: async () => {
+    try {
+      const res = await axios.delete(`${API_BASE}/api/places/cache`);
+      return res.data;
+    } catch (error) {
+      console.error("Clear Destination Cache Error:", error.response?.data || error.message);
+      throw new Error(error.response?.data?.error || "Failed to clear destination cache");
+    }
+  },
 };
 
 export const enhancedItineraryAPI = {

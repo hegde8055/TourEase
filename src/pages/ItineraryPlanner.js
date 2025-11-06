@@ -131,6 +131,13 @@ const defaultAiForm = {
   addOns: { visa: 0, insurance: 0, buffer: 0 },
 };
 
+const SIGNAL_COLORS = {
+  alert: "#f87171",
+  warning: "#fbbf24",
+  info: "#60a5fa",
+  positive: "#34d399",
+};
+
 const filterOptions = [
   { value: "all", label: "All" },
   { value: "upcoming", label: "Upcoming" },
@@ -311,7 +318,8 @@ const ItineraryPlanner = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
   const [aiCostResult, setAiCostResult] = useState(null);
-  const [userBudgetInput, setUserBudgetInput] = useState(0); // NEW: User's entered budget
+  const [tripBudgetInput, setTripBudgetInput] = useState(""); // NEW: Unified trip budget field
+  const [hasManualTripBudget, setHasManualTripBudget] = useState(false);
 
   const [itineraryDays, setItineraryDays] = useState([{ dayNumber: 1, places: [] }]);
 
@@ -555,6 +563,145 @@ const ItineraryPlanner = () => {
       clearTimeout(timer);
     };
   }, [aiForm]);
+
+  const numericTripBudget = useMemo(() => {
+    if (tripBudgetInput === "" || tripBudgetInput == null) {
+      return null;
+    }
+    const parsed = Number(tripBudgetInput);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+  }, [tripBudgetInput]);
+
+  const fallbackTripBudget = useMemo(() => {
+    const passengerCount = Math.max(1, aiForm.passengers || 1);
+    return Math.max(0, Math.round(aiForm.basePerPerson * passengerCount));
+  }, [aiForm.basePerPerson, aiForm.passengers]);
+
+  const effectiveTripBudget = useMemo(() => {
+    if (numericTripBudget != null && numericTripBudget > 0) {
+      return numericTripBudget;
+    }
+    return fallbackTripBudget;
+  }, [numericTripBudget, fallbackTripBudget]);
+
+  const hasEnteredTripBudget = numericTripBudget != null && numericTripBudget > 0;
+
+  const perPersonTripBudget = useMemo(() => {
+    const passengerCount = Math.max(1, aiForm.passengers || 1);
+    return effectiveTripBudget / passengerCount;
+  }, [effectiveTripBudget, aiForm.passengers]);
+
+  const availabilityIntel = useMemo(() => {
+    const insights = [];
+    if (!aiForm.startDate || !aiForm.endDate) {
+      return insights;
+    }
+
+    const start = new Date(aiForm.startDate);
+    const end = new Date(aiForm.endDate);
+
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) {
+      return insights;
+    }
+
+    const today = new Date();
+    const daysUntilTrip = Math.round((start - today) / (1000 * 60 * 60 * 24));
+    const tripDuration = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
+
+    if (daysUntilTrip <= 21) {
+      insights.push({
+        level: "alert",
+        message: `Trip starts in ${Math.max(daysUntilTrip, 0)} days — expect limited last-minute availability for popular stays and activities.`,
+      });
+    } else if (daysUntilTrip <= 45) {
+      insights.push({
+        level: "warning",
+        message: `Trip begins in ${daysUntilTrip} days; lock in hotels and transport soon to avoid surge pricing.`,
+      });
+    }
+
+    if (aiForm.season === "peak") {
+      insights.push({
+        level: "warning",
+        message: "Peak season selected — book tickets and stays early to avoid sold-out dates.",
+      });
+    } else if (aiForm.season === "off") {
+      insights.push({
+        level: "positive",
+        message:
+          "Off-season travel — you may find flexible availability and better promotional rates.",
+      });
+    }
+
+    if (tripDuration >= 10) {
+      insights.push({
+        level: "info",
+        message: `Extended itinerary (${tripDuration} days) — consider splitting lodging across neighborhoods to improve availability.`,
+      });
+    }
+
+    return insights;
+  }, [aiForm.startDate, aiForm.endDate, aiForm.season]);
+
+  const budgetIntel = useMemo(() => {
+    if (!aiCostResult) {
+      return [];
+    }
+
+    const insights = [];
+    const passengers = Math.max(1, aiForm.passengers || 1);
+    const aiPerPerson = aiCostResult.total / passengers;
+    const variance =
+      perPersonTripBudget > 0
+        ? ((aiPerPerson - perPersonTripBudget) / perPersonTripBudget) * 100
+        : 0;
+    const remaining = effectiveTripBudget - aiCostResult.total;
+
+    if (hasEnteredTripBudget) {
+      if (variance > 10) {
+        insights.push({
+          level: "alert",
+          message: `AI estimate is about ${variance.toFixed(0)}% above your per-person budget. Revisit optional add-ons or reduce trip length.`,
+        });
+      } else if (variance < -10) {
+        insights.push({
+          level: "positive",
+          message: `You're trending ${Math.abs(variance).toFixed(0)}% under budget per traveler. Add experiences or upgrade stays if desired.`,
+        });
+      }
+    } else {
+      insights.push({
+        level: "info",
+        message: "Using auto-generated budget. Enter your own trip budget to activate guardrails.",
+      });
+    }
+
+    if (remaining < 0) {
+      insights.push({
+        level: "alert",
+        message: `Plan currently exceeds funding by ${formatCurrency(Math.abs(remaining))}. Trim activities or increase your budget.`,
+      });
+    } else if (remaining < effectiveTripBudget * 0.15) {
+      insights.push({
+        level: "warning",
+        message: "Less than 15% buffer left. Hold some contingency for on-trip surprises.",
+      });
+    } else if (remaining > effectiveTripBudget * 0.25) {
+      insights.push({
+        level: "positive",
+        message: "Healthy surplus detected — consider premium experiences or saving the remainder.",
+      });
+    }
+
+    return insights;
+  }, [
+    aiCostResult,
+    aiForm.passengers,
+    perPersonTripBudget,
+    hasEnteredTripBudget,
+    effectiveTripBudget,
+    formatCurrency,
+  ]);
 
   const filteredItineraries = useMemo(() => {
     if (filter === "all") return itineraries;
@@ -1145,6 +1292,7 @@ const ItineraryPlanner = () => {
       setDestinationDetails(null);
 
       // --- NEW: This will hold the potentially updated budget ---
+      const passengersCount = Math.max(1, aiForm.passengers || 1);
       let calculatedBaseBudget = aiForm.basePerPerson;
 
       try {
@@ -1208,11 +1356,17 @@ const ItineraryPlanner = () => {
 
             // Update the form state so the user sees the new budget
             setAiForm((prev) => ({ ...prev, basePerPerson: calculatedBaseBudget }));
+            if (!hasManualTripBudget) {
+              setTripBudgetInput(String(Math.round(calculatedBaseBudget * passengersCount)));
+            }
           } catch (distErr) {
             console.warn("Could not calculate distance for budget:", distErr);
             // Fail silently, use the user's provided budget
             calculatedBaseBudget = aiForm.basePerPerson;
           }
+        }
+        if (!hasManualTripBudget) {
+          setTripBudgetInput(String(Math.round(calculatedBaseBudget * passengersCount)));
         }
         // --- END OF BUDGET CALCULATION ---
 
@@ -1295,7 +1449,14 @@ const ItineraryPlanner = () => {
       }
     },
     // --- UPDATED dependencies ---
-    [aiForm, userLocation, loadSuggestedPlaces, fetchItineraries]
+    [
+      aiForm,
+      userLocation,
+      loadSuggestedPlaces,
+      fetchItineraries,
+      hasManualTripBudget,
+      setTripBudgetInput,
+    ]
   );
 
   const handlePersistItinerary = useCallback(async () => {
@@ -1771,9 +1932,22 @@ const ItineraryPlanner = () => {
                               type="number"
                               min={1}
                               value={aiForm.passengers}
-                              onChange={(e) =>
-                                setAiForm((p) => ({ ...p, passengers: Number(e.target.value) }))
-                              }
+                              onChange={(e) => {
+                                const nextPassengers = Math.max(1, Number(e.target.value) || 1);
+                                setAiForm((prev) => {
+                                  const updated = { ...prev, passengers: nextPassengers };
+                                  if (tripBudgetInput !== "") {
+                                    const numericBudget = Number(tripBudgetInput);
+                                    if (!Number.isNaN(numericBudget)) {
+                                      updated.basePerPerson =
+                                        Math.round(
+                                          (numericBudget / Math.max(1, nextPassengers)) * 100
+                                        ) / 100;
+                                    }
+                                  }
+                                  return updated;
+                                });
+                              }}
                               onFocus={() => setFocusedInput("passengers")}
                               onBlur={() => setFocusedInput(null)}
                               style={{
@@ -1861,48 +2035,52 @@ const ItineraryPlanner = () => {
                               display: "block",
                             }}
                           >
-                            Base Budget Per Person (INR)
+                            Your Trip Budget (INR)
                           </label>
                           <input
                             type="number"
                             min={0}
-                            value={aiForm.basePerPerson}
-                            onChange={(e) =>
-                              setAiForm((p) => ({ ...p, basePerPerson: Number(e.target.value) }))
-                            }
-                            onFocus={() => setFocusedInput("basePerPerson")}
+                            placeholder="e.g., 125000"
+                            value={tripBudgetInput}
+                            onChange={(e) => {
+                              const rawValue = e.target.value;
+                              if (rawValue === "") {
+                                setTripBudgetInput("");
+                                setHasManualTripBudget(false);
+                                return;
+                              }
+                              setTripBudgetInput(rawValue);
+                              setHasManualTripBudget(true);
+
+                              const numericBudget = Number(rawValue);
+                              if (!Number.isNaN(numericBudget)) {
+                                setAiForm((prev) => ({
+                                  ...prev,
+                                  basePerPerson:
+                                    Math.round(
+                                      (numericBudget / Math.max(1, prev.passengers || 1)) * 100
+                                    ) / 100,
+                                }));
+                              }
+                            }}
+                            onFocus={() => setFocusedInput("tripBudget")}
                             onBlur={() => setFocusedInput(null)}
                             style={{
                               ...baseInputStyle,
-                              ...(focusedInput === "basePerPerson" && activeInputStyle),
+                              ...(focusedInput === "tripBudget" && activeInputStyle),
                             }}
                           />
-                        </div>
-                        <div>
-                          <label
+                          <div
                             style={{
-                              color: "#fcd34d",
-                              fontSize: "0.9rem",
-                              fontWeight: 600,
-                              marginBottom: "6px",
-                              display: "block",
+                              color: "#9ca3af",
+                              fontSize: "0.8rem",
+                              marginTop: "6px",
+                              lineHeight: 1.4,
                             }}
                           >
-                            Your Total Budget (INR) - For remaining funds calculation
-                          </label>
-                          <input
-                            type="number"
-                            min={0}
-                            placeholder="e.g., 34567324"
-                            value={userBudgetInput}
-                            onChange={(e) => setUserBudgetInput(Number(e.target.value))}
-                            onFocus={() => setFocusedInput("userBudget")}
-                            onBlur={() => setFocusedInput(null)}
-                            style={{
-                              ...baseInputStyle,
-                              ...(focusedInput === "userBudget" && activeInputStyle),
-                            }}
-                          />
+                            We will auto-balance {aiForm.passengers || 1} travelers at approximately{" "}
+                            {formatCurrency(perPersonTripBudget)} per person.
+                          </div>
                         </div>
                         <div
                           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}
@@ -2904,23 +3082,27 @@ const ItineraryPlanner = () => {
                                 💰 Budget Overview
                               </h5>
 
-                              {userBudgetInput > 0 && (
+                              {hasEnteredTripBudget ? (
                                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                  <span style={{ color: "#cbd5f5" }}>Your Total Budget:</span>
+                                  <span style={{ color: "#cbd5f5" }}>Your Trip Budget:</span>
                                   <span style={{ fontWeight: 600, color: "#f8fafc" }}>
-                                    {formatCurrency(userBudgetInput)}
+                                    {formatCurrency(effectiveTripBudget)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                  <span style={{ color: "#cbd5f5" }}>Auto Estimated Budget:</span>
+                                  <span style={{ fontWeight: 600, color: "#f8fafc" }}>
+                                    {formatCurrency(fallbackTripBudget)}
                                   </span>
                                 </div>
                               )}
-
-                              {!userBudgetInput || userBudgetInput === 0 ? (
-                                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                  <span style={{ color: "#cbd5f5" }}>Default Base Budget:</span>
-                                  <span style={{ fontWeight: 600, color: "#f8fafc" }}>
-                                    {formatCurrency(aiForm.basePerPerson * aiForm.passengers)}
-                                  </span>
-                                </div>
-                              ) : null}
+                              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <span style={{ color: "#cbd5f5" }}>Per Person Allocation:</span>
+                                <span style={{ color: "#f0f9ff" }}>
+                                  {formatCurrency(perPersonTripBudget)}
+                                </span>
+                              </div>
 
                               {routeTotals.totalMeters > 0 && (
                                 <div
@@ -2986,7 +3168,7 @@ const ItineraryPlanner = () => {
                                 }}
                               />
 
-                              {userBudgetInput > 0 ? (
+                              {hasEnteredTripBudget ? (
                                 <div>
                                   <div
                                     style={{
@@ -3000,15 +3182,15 @@ const ItineraryPlanner = () => {
                                       style={{
                                         fontWeight: 700,
                                         color:
-                                          userBudgetInput - aiCostResult.total >= 0
+                                          effectiveTripBudget - aiCostResult.total >= 0
                                             ? "#34d399"
                                             : "#fca5a5",
                                       }}
                                     >
-                                      {formatCurrency(userBudgetInput - aiCostResult.total)}
+                                      {formatCurrency(effectiveTripBudget - aiCostResult.total)}
                                     </span>
                                   </div>
-                                  {userBudgetInput - aiCostResult.total < 0 && (
+                                  {effectiveTripBudget - aiCostResult.total < 0 && (
                                     <div
                                       style={{
                                         fontSize: "0.8rem",
@@ -3018,13 +3200,94 @@ const ItineraryPlanner = () => {
                                       }}
                                     >
                                       ⚠️ Budget exceeded by{" "}
-                                      {formatCurrency(aiCostResult.total - userBudgetInput)}
+                                      {formatCurrency(aiCostResult.total - effectiveTripBudget)}
                                     </div>
                                   )}
                                 </div>
                               ) : (
                                 <div style={{ color: "#9ca3af", fontSize: "0.85rem" }}>
-                                  💡 Enter your total budget above to see remaining funds
+                                  💡 Enter your trip budget above to see remaining funds
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {(availabilityIntel.length > 0 || budgetIntel.length > 0) && (
+                            <div
+                              style={{
+                                background: "rgba(15, 23, 42, 0.72)",
+                                borderRadius: "14px",
+                                padding: "16px",
+                                border: "1px solid rgba(96, 165, 250, 0.25)",
+                                color: "#e2e8f0",
+                                fontSize: "0.95rem",
+                                marginTop: "12px",
+                                display: "grid",
+                                gap: "10px",
+                              }}
+                            >
+                              <h5 style={{ color: "#60a5fa", margin: 0, fontSize: "1.05rem" }}>
+                                🧭 Trip Intelligence
+                              </h5>
+
+                              {availabilityIntel.length > 0 && (
+                                <div style={{ display: "grid", gap: "6px" }}>
+                                  <span style={{ color: "#cbd5f5", fontSize: "0.85rem" }}>
+                                    Availability Signals
+                                  </span>
+                                  {availabilityIntel.map((signal, idx) => (
+                                    <div
+                                      key={`availability-${idx}`}
+                                      style={{
+                                        display: "flex",
+                                        gap: "8px",
+                                        alignItems: "flex-start",
+                                        background: "rgba(30, 41, 59, 0.6)",
+                                        borderRadius: "10px",
+                                        padding: "8px 10px",
+                                      }}
+                                    >
+                                      <span
+                                        style={{
+                                          fontWeight: 700,
+                                          color: SIGNAL_COLORS[signal.level] || "#e2e8f0",
+                                        }}
+                                      >
+                                        •
+                                      </span>
+                                      <span style={{ lineHeight: 1.4 }}>{signal.message}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {budgetIntel.length > 0 && (
+                                <div style={{ display: "grid", gap: "6px" }}>
+                                  <span style={{ color: "#cbd5f5", fontSize: "0.85rem" }}>
+                                    Budget Guardrails
+                                  </span>
+                                  {budgetIntel.map((signal, idx) => (
+                                    <div
+                                      key={`budget-${idx}`}
+                                      style={{
+                                        display: "flex",
+                                        gap: "8px",
+                                        alignItems: "flex-start",
+                                        background: "rgba(30, 41, 59, 0.6)",
+                                        borderRadius: "10px",
+                                        padding: "8px 10px",
+                                      }}
+                                    >
+                                      <span
+                                        style={{
+                                          fontWeight: 700,
+                                          color: SIGNAL_COLORS[signal.level] || "#e2e8f0",
+                                        }}
+                                      >
+                                        •
+                                      </span>
+                                      <span style={{ lineHeight: 1.4 }}>{signal.message}</span>
+                                    </div>
+                                  ))}
                                 </div>
                               )}
                             </div>

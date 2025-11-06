@@ -4,7 +4,15 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 // eslint-disable-next-line no-unused-vars
-import { getUsername, getToken, logout as authLogout } from "./utils/auth";
+import {
+  getUsername,
+  getToken,
+  getSessionKey,
+  setSessionKey,
+  isRememberMe,
+  logout as authLogout,
+} from "./utils/auth";
+import { enhancedPlacesAPI } from "./utils/api";
 import "./App.css";
 
 const Home = lazy(() => import("./pages/Home"));
@@ -42,7 +50,15 @@ export const AuthProvider = ({ children }) => {
         const token = getToken();
         if (token) {
           const username = getUsername();
-          setUser({ username, token });
+          let sessionKey = getSessionKey();
+          if (!sessionKey) {
+            sessionKey =
+              typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+                ? crypto.randomUUID()
+                : `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            setSessionKey(sessionKey, isRememberMe());
+          }
+          setUser({ username, token, sessionKey });
         }
       } catch (err) {
         console.error("Auth check failed:", err);
@@ -55,14 +71,17 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => {
     setUser(userData);
-    if (userData.token) {
-      localStorage.setItem("token", userData.token);
-    }
   };
 
-  const logout = () => {
-    authLogout();
-    setUser(null);
+  const logout = async () => {
+    try {
+      await enhancedPlacesAPI.clearSessionCache();
+    } catch (error) {
+      console.warn("Failed to clear destination cache on logout:", error.message);
+    } finally {
+      authLogout();
+      setUser(null);
+    }
   };
 
   if (loading) return <div>Loading...</div>;

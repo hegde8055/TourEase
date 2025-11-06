@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { authAPI } from "../utils/api";
-import { setToken, setUsername } from "../utils/auth";
+import { setToken, setUsername, setSessionKey } from "../utils/auth";
 import { useAuth } from "../App";
 import "../auth.css";
 
@@ -43,7 +43,13 @@ const SignIn = () => {
         setUsername(response.data.username, rememberMe);
       }
 
-      login({ username: response.data.username, token: response.data.token });
+      const sessionKey =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      setSessionKey(sessionKey, rememberMe);
+
+      login({ username: response.data.username, token: response.data.token, sessionKey });
       const from = location.state?.from;
       if (from?.pathname) {
         navigate(

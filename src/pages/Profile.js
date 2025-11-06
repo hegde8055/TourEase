@@ -3,17 +3,19 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { profileAPI, contactAPI } from "../utils/api";
-import { isAuthenticated, logout as authLogout } from "../utils/auth";
+import { isAuthenticated } from "../utils/auth";
 import Navbar from "../components/Navbar";
 import { aboutFeatures } from "../utils/aboutContent";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+import { useAuth } from "../App";
 
 const PROFILE_TABS = ["profile", "about", "contact"];
 
 const Profile = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout: contextLogout } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -353,9 +355,12 @@ const Profile = () => {
     }
   };
 
-  const handleLogout = () => {
-    authLogout();
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await contextLogout?.();
+    } finally {
+      navigate("/");
+    }
   };
 
   const tabVariants = {

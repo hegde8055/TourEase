@@ -1,3 +1,5 @@
+import { getToken, getSessionKey } from "./auth";
+
 /**
  * routingUtils.js
  * Utilities for calculating routes and distances by calling the SECURE BACKEND
@@ -24,9 +26,14 @@ export const calculateMultiPointRoute = async (waypoints, mode = "drive") => {
 
   try {
     // 1. Get auth token
-    const token = localStorage.getItem("token");
+    const token = getToken();
     if (!token) {
       console.warn("No auth token found, route calculation will fail.");
+    }
+
+    const sessionKey = getSessionKey();
+    if (!sessionKey) {
+      console.warn("No session key found, route calculation cache may miss.");
     }
 
     // 2. Call your backend endpoint at the correct Render URL
@@ -36,12 +43,19 @@ export const calculateMultiPointRoute = async (waypoints, mode = "drive") => {
     // --- THIS IS THE FIX ---
     // The fetch URL is now absolute.
     // ==========================================================
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    if (sessionKey) {
+      headers["X-Session-Key"] = sessionKey;
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/itinerary/calculate-route`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
       body: JSON.stringify({ waypoints, mode }),
     });
 
