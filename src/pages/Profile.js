@@ -1145,12 +1145,28 @@ const Profile = () => {
                             />
                           </div>
                           <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
+                            whileHover={!contactLoading ? { scale: 1.05 } : {}}
+                            whileTap={!contactLoading ? { scale: 0.95 } : {}}
                             type="submit"
                             disabled={contactLoading}
-                            className="btn btn-primary"
-                            style={{ width: "100%", opacity: contactLoading ? 0.7 : 1 }}
+                            style={{
+                              width: "100%",
+                              background: contactLoading
+                                ? "linear-gradient(135deg, #6b7280, #4b5563)"
+                                : "linear-gradient(135deg, #d4af37, #f7ef8a)",
+                              color: "#0b0e14",
+                              fontWeight: 700,
+                              fontSize: "1.05rem",
+                              border: "none",
+                              borderRadius: "12px",
+                              padding: "14px",
+                              cursor: contactLoading ? "not-allowed" : "pointer",
+                              boxShadow: contactLoading
+                                ? "none"
+                                : "0 6px 20px rgba(212, 175, 55, 0.35)",
+                              opacity: contactLoading ? 0.85 : 1,
+                              transition: "all 0.25s ease",
+                            }}
                           >
                             {contactLoading ? "Sending..." : "Send Message"}
                           </motion.button>
