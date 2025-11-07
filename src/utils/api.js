@@ -2,6 +2,29 @@
 import axios from "axios";
 import { getToken, getSessionKey } from "./auth";
 
+export const AUTH_EXPIRED_EVENT = "tourease:auth-expired";
+
+const clearStoredAuth = () => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.removeItem("token");
+    window.localStorage.removeItem("username");
+    window.localStorage.removeItem("rememberMe");
+    window.localStorage.removeItem("sessionKey");
+  } catch (err) {
+    console.warn("Failed to clear local auth storage", err);
+  }
+  try {
+    window.sessionStorage.removeItem("token");
+    window.sessionStorage.removeItem("username");
+    window.sessionStorage.removeItem("sessionKey");
+  } catch (err) {
+    console.warn("Failed to clear session auth storage", err);
+  }
+};
+
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
 // Add token to all axios requests
@@ -313,13 +336,28 @@ export const getImageUrl = (imagePath) => {
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("username");
-      localStorage.removeItem("rememberMe");
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("username");
+    const status = error.response?.status;
+    const errorMessage = (error.response?.data?.error || "").toLowerCase();
+    const tokenError =
+      status === 401 ||
+      (status === 403 &&
+        (errorMessage.includes("invalid or expired token") ||
+          errorMessage.includes("access token required")));
+
+    if (tokenError) {
+      clearStoredAuth();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent(AUTH_EXPIRED_EVENT, {
+            detail: {
+              status,
+              message: error.response?.data?.error,
+            },
+          })
+        );
+      }
     }
+
     return Promise.reject(error);
   }
 );

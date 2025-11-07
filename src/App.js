@@ -13,7 +13,7 @@ import {
   isRememberMe,
   logout as authLogout,
 } from "./utils/auth";
-import { enhancedPlacesAPI } from "./utils/api";
+import { enhancedPlacesAPI, AUTH_EXPIRED_EVENT } from "./utils/api";
 import Footer from "./components/Footer";
 import AIChatbot from "./components/AIChatbot";
 import Navbar from "./components/Navbar";
@@ -71,6 +71,41 @@ export const AuthProvider = ({ children }) => {
       }
     };
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+    let handled = false;
+    const handleAuthExpired = (event) => {
+      if (handled) return;
+      handled = true;
+      const message = event?.detail?.message || "Session expired. Please sign in again.";
+      try {
+        if (typeof window !== "undefined" && window.sessionStorage) {
+          window.sessionStorage.setItem("authExpiredMessage", message);
+        }
+      } catch (storageError) {
+        console.warn("Unable to persist auth expired message", storageError);
+      }
+      authLogout();
+      setUser(null);
+      if (typeof window !== "undefined") {
+        const targetUrl = "/signin?session=expired";
+        if (window.location.pathname.toLowerCase() === "/signin") {
+          window.history.replaceState({}, "", targetUrl);
+        } else {
+          window.location.replace(targetUrl);
+        }
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+      }
+    };
   }, []);
 
   const login = (userData) => setUser(userData);

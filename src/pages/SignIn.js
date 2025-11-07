@@ -22,6 +22,17 @@ const SignIn = () => {
   // Clear error on page load to avoid stale messages
   useEffect(() => {
     setError("");
+    try {
+      if (typeof window !== "undefined" && window.sessionStorage) {
+        const expiredMessage = window.sessionStorage.getItem("authExpiredMessage");
+        if (expiredMessage) {
+          setError(expiredMessage);
+          window.sessionStorage.removeItem("authExpiredMessage");
+        }
+      }
+    } catch (storageError) {
+      console.warn("Unable to read auth expired message", storageError);
+    }
   }, []);
 
   const handleChange = (e) => {
