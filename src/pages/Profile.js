@@ -9,6 +9,7 @@ import Navbar from "../components/Navbar";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { useAuth } from "../App";
+import { useInView } from "react-intersection-observer";
 
 const PROFILE_TABS = ["profile", "about", "contact"];
 
@@ -36,6 +37,8 @@ const Profile = () => {
   const tabControlsRef = useRef(null);
   const aboutSectionRef = useRef(null);
   const contactSectionRef = useRef(null);
+  const [aboutInViewRef, aboutInView] = useInView({ triggerOnce: true, threshold: 0.15 });
+  const [contactInViewRef, contactInView] = useInView({ triggerOnce: true, threshold: 0.15 });
   const [contactForm, setContactForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [contactStatus, setContactStatus] = useState({ type: "", message: "" });
   const [contactLoading, setContactLoading] = useState(false);
@@ -888,12 +891,14 @@ const Profile = () => {
                 )}
                 {activeTab === "about" && (
                   <motion.div
-                    ref={aboutSectionRef}
+                    ref={(node) => {
+                      aboutSectionRef.current = node;
+                      aboutInViewRef(node); // ✅ connect in-view trigger
+                    }}
                     key="about"
-                    variants={tabVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
+                    initial={{ opacity: 0, y: 60 }}
+                    animate={aboutInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 60 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
                     style={{
                       position: "relative",
                       overflow: "hidden",
@@ -1020,12 +1025,14 @@ const Profile = () => {
 
                 {activeTab === "contact" && (
                   <motion.div
-                    ref={contactSectionRef}
+                    ref={(node) => {
+                      contactSectionRef.current = node;
+                      contactInViewRef(node); // ✅ connect in-view trigger
+                    }}
                     key="contact"
-                    variants={tabVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
+                    initial={{ opacity: 0, y: 60 }}
+                    animate={contactInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 60 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
                     style={{
                       position: "relative",
                       overflow: "hidden",
