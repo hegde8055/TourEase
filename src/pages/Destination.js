@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import InteractiveMap from "../components/InteractiveMap";
-import { destinationAPI } from "../utils/api"; // Assuming api.js exports destinationAPI correctly
+//import { destinationAPI } from "../utils/api"; // Assuming api.js exports destinationAPI correctly
 import { getDestinationHeroImage } from "../utils/imageHelpers";
-import { extractCoordinates } from "../utils/locationHelpers"; // Import coordinate extractor
+//import { extractCoordinates } from "../utils/locationHelpers"; // Import coordinate extractor
 import AIChatbot from "../components/AIChatbot";
 
 const Destination = () => {
@@ -80,36 +81,44 @@ const Destination = () => {
   };
 
   // Function to load destination details from the API
+  // Function to load destination details from the API (auto-fetching upgrade)
   const loadDestination = async () => {
     try {
       setLoading(true);
-      setError(""); // Reset error state on new load attempt
-      setDestination(null); // Reset destination data
+      setError("");
+      setDestination(null);
 
-      // Call the API function to get destination by ID/slug
-      const response = await destinationAPI.getById(id);
-
-      // Check if data was received successfully
-      if (response.data) {
-        setDestination(response.data); // Set the destination data state
-      } else {
-        // Handle case where API returns success but no data
-        setError("Destination data could not be found.");
+      // Try fetching from main destinations endpoint
+      let response = await fetch(`/api/destinations/${id}`);
+      if (!response.ok) {
+        // Fallback to trending API if not found
+        response = await fetch(`/api/trending/${id}`);
       }
+
+      const data = await response.json();
+
+      if (data.success === false || !data.destination) {
+        setError("Destination data could not be found.");
+        return;
+      }
+
+      // Normalize result
+      const normalizedData = data.destination || data;
+      setDestination(normalizedData);
     } catch (err) {
-      // Handle API call errors (network, server errors, etc.)
+      console.error("Error loading destination:", err);
       setError(
-        "Failed to load destination details. The destination might not exist or there was a server issue."
+        "Failed to load destination details. Please check your connection or try again later."
       );
-      console.error("Error loading destination:", err.response?.data || err.message || err);
     } finally {
-      setLoading(false); // Ensure loading state is turned off
+      setLoading(false);
     }
   };
 
   // --- Utility Functions ---
   // Safely extract coordinates using the helper
-  const coordinates = destination ? extractCoordinates(destination) : null;
+  const fallbackImage =
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/480px-No_image_available.svg.png";
 
   // --- Render Logic ---
 
@@ -175,6 +184,13 @@ const Destination = () => {
   // Get formatted location or fallback address
   const locationFormatted =
     destination.location?.formatted || destination.address || "Location details not available";
+  // Safe coordinate extraction (handles both formats)
+  const coordinates =
+    destination.location?.coordinates ||
+    (destination.location?.lat && destination.location?.lng
+      ? [destination.location.lng, destination.location.lat]
+      : null);
+
   // Safely slice photos array, ensuring it exists
   const photos = Array.isArray(destination.photos) ? destination.photos.slice(1, 7) : [];
   // Safely slice reviews array, ensuring it exists
@@ -193,42 +209,57 @@ const Destination = () => {
           {" "}
           {/* Added responsive padding */}
           {/* Hero Image */}
+          {/* Hero Image */}
           {heroImage && (
-            <img
-              src={heroImage}
-              // *** ALT TEXT FIX ***
-              alt={name ? `Scenic view of ${name}` : "Destination landscape"} // Descriptive, no "image"
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
               style={{
-                width: "100%",
-                height: "auto", // Responsive height
-                maxHeight: "450px", // Limit height
-                objectFit: "cover",
-                borderRadius: "16px", // Slightly less rounded corners
+                borderRadius: "20px",
+                overflow: "hidden",
                 marginBottom: "30px",
-                boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)", // Softer shadow
+                position: "relative",
               }}
-              // Robust image error handling
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src =
-                  "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=1000&auto=format&fit=crop"; // Generic but decent fallback
-                e.target.style.filter = "grayscale(50%)"; // Indicate it's a fallback
-              }}
-            />
+            >
+              <img
+                src={heroImage || fallbackImage}
+                alt={name ? `Scenic view of ${name}` : "Destination landscape"}
+                onError={(e) => (e.currentTarget.src = fallbackImage)}
+                style={{
+                  width: "100%",
+                  height: "420px",
+                  objectFit: "cover",
+                  filter: "brightness(80%)",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  width: "100%",
+                  padding: "40px 20px",
+                  background: "linear-gradient(0deg, rgba(0,0,0,0.7), rgba(0,0,0,0.1))",
+                  color: "#fff",
+                }}
+              >
+                <h1
+                  style={{
+                    fontSize: "2.8rem",
+                    fontWeight: 700,
+                    color: "#d4af37",
+                    marginBottom: "8px",
+                    textAlign: "center",
+                  }}
+                >
+                  {name}
+                </h1>
+                <p style={{ color: "#cbd5e1", fontSize: "1.1rem", textAlign: "center" }}>
+                  {locationFormatted || "Address unavailable"}
+                </p>
+              </div>
+            </motion.div>
           )}
-          {/* Title */}
-          <h1
-            style={{
-              color: "#d4af37", // Gold
-              marginBottom: "25px", // More space below title
-              fontSize: "clamp(2rem, 5vw, 2.8rem)", // Responsive title size
-              fontWeight: "800",
-              textAlign: "center",
-              lineHeight: 1.2,
-            }}
-          >
-            {name}
-          </h1>
           {/* Key Information Grid */}
           <div
             style={{
