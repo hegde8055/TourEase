@@ -254,9 +254,12 @@ const Explore = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const heroRef = useRef(null);
-  const searchInputRef = useRef(null);
-
+  const suggestionRefs = useRef([]);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [suggestionNames, setSuggestionNames] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchInputRef = useRef(null); // for outside-click handling
   const [loading, setLoading] = useState(false);
   const [dbDestinations, setDbDestinations] = useState([]);
   const [dbLoading, setDbLoading] = useState(true);
@@ -399,6 +402,27 @@ const Explore = () => {
       isMounted = false;
     };
   }, []);
+  useEffect(() => {
+    const q = (searchQuery || "").trim().toLowerCase();
+    if (!q) {
+      setSuggestionNames([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const matches = dbDestinations
+      .filter(
+        (d) =>
+          d?.name &&
+          d.name.toLowerCase().startsWith(q) &&
+          (d.category === "place" || d.type === "city" || !d.category)
+      )
+      .map((d) => d.name);
+
+    const unique = [...new Set(matches)].slice(0, 8);
+    setSuggestionNames(unique);
+    setShowSuggestions(unique.length > 0);
+  }, [searchQuery, dbDestinations]);
 
   const filteredDestinations = useMemo(() => {
     if (selectedCategory === "All") return dbDestinations;
@@ -418,6 +442,21 @@ const Explore = () => {
       setWeather(null);
     }
   };
+  useEffect(() => {
+    const onDoc = (e) => {
+      if (!searchInputRef.current?.contains(e.target)) setShowSuggestions(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+  useEffect(() => {
+    if (activeSuggestionIndex >= 0 && suggestionRefs.current[activeSuggestionIndex]) {
+      suggestionRefs.current[activeSuggestionIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [activeSuggestionIndex]);
 
   const handleNearbyPlaceClick = async (place) => {
     if (!place) return;
@@ -620,8 +659,30 @@ const Explore = () => {
   }, [selectedDestination, closeDetails]);
 
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
-      handleSearch();
+    if (!showSuggestions || suggestionNames.length === 0) {
+      if (event.key === "Enter") handleSearch();
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveSuggestionIndex((prev) => (prev < suggestionNames.length - 1 ? prev + 1 : 0));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveSuggestionIndex((prev) => (prev > 0 ? prev - 1 : suggestionNames.length - 1));
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      if (activeSuggestionIndex >= 0) {
+        const name = suggestionNames[activeSuggestionIndex];
+        setSearchQuery(name);
+        setShowSuggestions(false);
+        const found = dbDestinations.find((d) => d.name.toLowerCase() === name.toLowerCase());
+        if (found) handleCardClick(found);
+      } else {
+        handleSearch();
+      }
+    } else if (event.key === "Escape") {
+      setShowSuggestions(false);
     }
   };
 
@@ -1104,27 +1165,91 @@ const Explore = () => {
               }}
             />
           )}
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search destinations, cities, or experiences..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            style={{
-              flex: "1 1 280px",
-              minWidth: "240px",
-              padding: "14px 18px",
-              borderRadius: "12px",
-              border: "1px solid rgba(212, 175, 55, 0.3)",
-              background: "rgba(6, 9, 16, 0.9)",
-              color: "#f3f4f6",
-              fontSize: "1rem",
-              outline: "none",
-              position: "relative",
-              zIndex: 1,
-            }}
-          />
+          <div style={{ position: "relative", width: "100%", maxWidth: "420px" }}>
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search destinations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              onKeyDown={handleKeyDown}
+              style={{
+                width: "100%",
+                padding: "12px 18px",
+                borderRadius: "24px",
+                border: "1px solid rgba(212,175,55,0.4)",
+                background: "rgba(15,23,42,0.9)",
+                color: "#f3f4f6",
+                fontSize: "1rem",
+                outline: "none",
+                transition: "all 0.25s ease",
+                zIndex: 2,
+              }}
+            />
+
+            {showSuggestions && suggestionNames.length > 0 && (
+              <ul
+                style={{
+                  position: "absolute",
+                  top: "110%",
+                  left: 0,
+                  right: 0,
+                  background: "rgba(15,23,42,0.98)",
+                  borderRadius: "14px",
+                  boxShadow: "0 6px 20px rgba(0, 0, 0, 0.3)",
+                  border: "1px solid rgba(212,175,55,0.2)",
+                  listStyle: "none",
+                  padding: "6px 0",
+                  margin: 0,
+                  zIndex: 50,
+                }}
+              >
+                {suggestionNames.map((name, index) => {
+                  const query = searchQuery.trim().toLowerCase();
+                  const lowerName = name.toLowerCase();
+                  const startIndex = lowerName.indexOf(query);
+                  const endIndex = startIndex + query.length;
+
+                  const before = name.slice(0, startIndex);
+                  const match = name.slice(startIndex, endIndex);
+                  const after = name.slice(endIndex);
+
+                  const isActive = index === activeSuggestionIndex;
+
+                  return (
+                    <li
+                      key={name}
+                      ref={(el) => (suggestionRefs.current[index] = el)} // 👈 add this line
+                      onClick={() => {
+                        setSearchQuery(name);
+                        setShowSuggestions(false);
+                        const found = dbDestinations.find(
+                          (d) => d.name.toLowerCase() === name.toLowerCase()
+                        );
+                        if (found) handleCardClick(found);
+                      }}
+                      style={{
+                        padding: "10px 18px",
+                        cursor: "pointer",
+                        color: "#fef9c3",
+                        fontSize: "0.95rem",
+                        background: isActive ? "rgba(212,175,55,0.15)" : "transparent",
+                        transition: "background 0.15s ease",
+                      }}
+                      onMouseEnter={() => setActiveSuggestionIndex(index)}
+                      onMouseLeave={() => setActiveSuggestionIndex(-1)}
+                    >
+                      {before}
+                      <span style={{ color: "#d4af37", fontWeight: 700 }}>{match}</span>
+                      {after}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
           <motion.button
             type="button"
             onClick={handleSearch}

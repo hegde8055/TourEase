@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import Navbar from "../components/Navbar";
-import InteractiveMap from "../components/InteractiveMap";
-//import { destinationAPI } from "../utils/api"; // Assuming api.js exports destinationAPI correctly
+import { useParams, useNavigate } from "react-router-dom"; // ✅ Added useNavigate
+import Navbar from "../components/Navbar"; // ✅ Added Navbar
+import InteractiveMap from "../components/InteractiveMap"; // ✅ Already correct
 import { getDestinationHeroImage } from "../utils/imageHelpers";
-//import { extractCoordinates } from "../utils/locationHelpers"; // Import coordinate extractor
 import AIChatbot from "../components/AIChatbot";
 
 const Destination = () => {
