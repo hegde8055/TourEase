@@ -411,13 +411,20 @@ const Explore = () => {
     }
 
     const matches = dbDestinations
-      .filter(
-        (d) =>
-          d?.name &&
-          d.name.toLowerCase().startsWith(q) &&
-          (d.category === "place" || d.type === "city" || !d.category)
-      )
-      .map((d) => d.name);
+      .filter((d) => {
+        if (!d?.name) return false;
+        // ✅ Match only Indian locations
+        const isIndian = !d.location?.country || d.location.country.toLowerCase() === "india";
+
+        // ✅ Match name prefix and only clean names (city, district, etc.)
+        const nameMatch = d.name.toLowerCase().startsWith(q);
+        const isGeneralPlace =
+          !d.category ||
+          ["city", "place", "town", "district", "region"].includes(d.category.toLowerCase());
+
+        return isIndian && nameMatch && isGeneralPlace;
+      })
+      .map((d) => d.name.split(",")[0].trim()); // ✅ Only show the place name, no suffix
 
     const unique = [...new Set(matches)].slice(0, 8);
     setSuggestionNames(unique);
@@ -570,9 +577,12 @@ const Explore = () => {
     setLoading(true);
     setSearchError("");
     try {
+      // ✅ Restrict API lookup to India only
       const ingestResponse = await destinationsAPI.ingestFromGeoapify({
-        query: searchQuery.trim(),
+        query: `${searchQuery.trim()}, India`,
+        country: "IN",
       });
+
       const destination = ingestResponse.data?.destination;
       if (!destination) {
         setSearchError(
