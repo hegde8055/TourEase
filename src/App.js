@@ -18,6 +18,7 @@ import Footer from "./components/Footer";
 import AIChatbot from "./components/AIChatbot";
 import Navbar from "./components/Navbar";
 import "./App.css";
+import About from "./pages/About";
 
 // Lazy-loaded pages
 const Home = lazy(() => import("./pages/Home"));
@@ -189,6 +190,15 @@ function AnimatedRoutes() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/about"
+            element={
+              <ProtectedRoute>
+                <About />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/destination/:id"
             element={

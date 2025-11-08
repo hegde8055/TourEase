@@ -37,7 +37,6 @@ const Profile = () => {
   const tabControlsRef = useRef(null);
   const aboutSectionRef = useRef(null);
   const contactSectionRef = useRef(null);
-  const [aboutInViewRef, aboutInView] = useInView({ triggerOnce: true, threshold: 0.15 });
   const [contactInViewRef, contactInView] = useInView({ triggerOnce: true, threshold: 0.15 });
   const [contactForm, setContactForm] = useState({ name: "", email: "", subject: "", message: "" });
   const [contactStatus, setContactStatus] = useState({ type: "", message: "" });
@@ -46,6 +45,11 @@ const Profile = () => {
 
   const handleTabChange = useCallback(
     (tabId) => {
+      if (tabId === "about") {
+        window.location.href = "/about";
+        return;
+      }
+
       if (!PROFILE_TABS.includes(tabId)) return;
       setActiveTab(tabId);
       const search = tabId === "profile" ? "" : `?tab=${tabId}`;
@@ -891,135 +895,31 @@ const Profile = () => {
                 )}
                 {activeTab === "about" && (
                   <motion.div
-                    ref={(node) => {
-                      aboutSectionRef.current = node;
-                      aboutInViewRef(node); // ✅ connect in-view trigger
-                    }}
                     key="about"
-                    initial={{ opacity: 0, y: 60 }}
-                    animate={aboutInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 60 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
                     style={{
-                      position: "relative",
-                      overflow: "hidden",
+                      padding: "60px 20px",
+                      textAlign: "center",
                       borderRadius: "24px",
-                      padding: "40px 20px",
-                      backdropFilter: "blur(16px)",
+                      background: "var(--glass)",
+                      backdropFilter: "blur(12px)",
                     }}
                   >
-                    {/* ✨ Shimmer background */}
-                    <motion.div
-                      animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
-                      transition={{ duration: 25, repeat: Infinity, repeatType: "reverse" }}
+                    <h2
                       style={{
-                        position: "absolute",
-                        inset: 0,
-                        background:
-                          "linear-gradient(45deg, rgba(212,175,55,0.05) 0%, rgba(59,130,246,0.05) 100%)",
-                        backgroundSize: "200% 200%",
-                        pointerEvents: "none",
-                        zIndex: 0,
+                        fontSize: "2.5rem",
+                        fontWeight: "700",
+                        color: "#d4af37",
+                        marginBottom: "16px",
                       }}
-                    />
-
-                    {/* 🪩 Fade-in inner container */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 40 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.7, ease: "easeOut" }}
-                      style={{ position: "relative", zIndex: 1 }}
                     >
-                      <h2
-                        style={{
-                          fontSize: "3rem",
-                          fontWeight: "700",
-                          marginBottom: "25px",
-                          background: "linear-gradient(135deg, #d4af37, #3b82f6)",
-                          WebkitBackgroundClip: "text",
-                          WebkitTextFillColor: "transparent",
-                          textAlign: "center",
-                        }}
-                      >
-                        About TourEase
-                      </h2>
-
-                      <p
-                        style={{
-                          color: "#cbd5e1",
-                          lineHeight: "1.8",
-                          fontSize: "1.1rem",
-                          marginBottom: "25px",
-                          textAlign: "center",
-                          maxWidth: "800px",
-                          marginLeft: "auto",
-                          marginRight: "auto",
-                        }}
-                      >
-                        TourEase is a luxury travel companion designed to craft immersive,
-                        hyper-personalized journeys across India. We merge technology with
-                        hospitality to bring travelers an effortless planning experience — whether
-                        it’s an offbeat adventure, a weekend getaway, or a cultural escape.
-                      </p>
-
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-                          gap: "25px",
-                          marginTop: "30px",
-                        }}
-                      >
-                        {[
-                          {
-                            icon: "💡",
-                            title: "Our Vision",
-                            desc: "To redefine how travelers explore India — through personalization, ease, and discovery.",
-                            color: "#d4af37",
-                          },
-                          {
-                            icon: "🚀",
-                            title: "Our Mission",
-                            desc: "Empower explorers with AI-driven planning and real-time concierge support.",
-                            color: "#3b82f6",
-                          },
-                          {
-                            icon: "🤝",
-                            title: "Our Promise",
-                            desc: "Every trip curated with attention, detail, and trust — for memories that last a lifetime.",
-                            color: "#10b981",
-                          },
-                        ].map((info, idx) => (
-                          <motion.div
-                            key={idx}
-                            variants={cardVariants}
-                            whileHover={{ scale: 1.03, y: -3 }}
-                            style={{
-                              background: "var(--glass)",
-                              backdropFilter: "blur(12px)",
-                              padding: "25px",
-                              borderRadius: "16px",
-                              border: "1px solid rgba(255,255,255,0.1)",
-                              textAlign: "center",
-                            }}
-                          >
-                            <div style={{ fontSize: "2.2rem", marginBottom: "12px" }}>
-                              {info.icon}
-                            </div>
-                            <h4
-                              style={{
-                                color: info.color,
-                                marginBottom: "8px",
-                                fontSize: "1.2rem",
-                                fontWeight: 600,
-                              }}
-                            >
-                              {info.title}
-                            </h4>
-                            <p style={{ color: "#cbd5e1", lineHeight: "1.6" }}>{info.desc}</p>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </motion.div>
+                      Redirecting to About Page...
+                    </h2>
+                    <p style={{ color: "#e5e7eb", fontSize: "1.1rem" }}>
+                      Taking you to TourEase’s story.
+                    </p>
                   </motion.div>
                 )}
 

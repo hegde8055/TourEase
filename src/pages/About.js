@@ -1,198 +1,280 @@
-import React, { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import React from "react";
+import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
-import { aboutFeatures, aboutTimeline } from "../utils/aboutContent";
 
 const About = () => {
-  const featureGridRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: featureGridRef,
-    offset: ["start 80%", "end start"],
-  });
-  const parallaxY = useTransform(scrollYProgress, [0, 1], [40, -40]);
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 32 },
-    visible: (index = 0) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.55,
-        delay: index * 0.12,
-        ease: "easeOut",
-      },
-    }),
-  };
-
-  const ambientGlow = [
-    "0 0 0 rgba(212, 175, 55, 0)",
-    "0 0 28px rgba(212, 175, 55, 0.18)",
-    "0 0 0 rgba(212, 175, 55, 0)",
-  ];
-
   return (
     <div className="main-content">
       <Navbar />
-      <main className="page-container" style={{ paddingTop: "140px", paddingBottom: "120px" }}>
-        <section className="page-hero" style={{ textAlign: "center", marginBottom: "70px" }}>
+
+      {/* ✨ Animated Gold Gradient Background */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5 }}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background:
+            "radial-gradient(800px 400px at 20% 20%, rgba(212,175,55,0.15), transparent 70%), radial-gradient(800px 500px at 80% 80%, rgba(244,229,161,0.12), transparent 70%), #0b0e14",
+          zIndex: -1,
+          overflow: "hidden",
+        }}
+      >
+        <motion.div
+          animate={{
+            backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "radial-gradient(1000px 600px at 30% 70%, rgba(212,175,55,0.15), transparent 80%), radial-gradient(900px 700px at 70% 30%, rgba(244,229,161,0.08), transparent 70%)",
+            backgroundSize: "200% 200%",
+            filter: "blur(120px)",
+          }}
+        ></motion.div>
+      </motion.div>
+
+      {/* ✨ Main Page Content */}
+      <main
+        style={{
+          color: "#e5e7eb",
+          padding: "140px 0 120px 0",
+          fontFamily: "'Poppins', sans-serif",
+        }}
+      >
+        {/* ===== HERO ===== */}
+        <section style={{ textAlign: "center", marginBottom: "100px", padding: "0 24px" }}>
           <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            style={{
-              fontSize: "3.2rem",
-              fontWeight: 800,
-              background: "linear-gradient(135deg, #d4af37, #3b82f6)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              marginBottom: "22px",
-            }}
-          >
-            Curating Stories Beyond Travel
-          </motion.h1>
-          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.7 }}
+            transition={{ duration: 0.8 }}
             style={{
-              maxWidth: "780px",
+              fontSize: "3rem",
+              fontWeight: 800,
+              background: "linear-gradient(135deg, #d4af37, #f4e5a1)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              marginBottom: "24px",
+            }}
+          >
+            Curating Journeys. <br /> Elevating Experiences.
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            style={{
+              maxWidth: "820px",
               margin: "0 auto",
-              color: "rgba(226, 232, 240, 0.82)",
+              color: "rgba(226,232,240,0.82)",
               fontSize: "1.15rem",
               lineHeight: 1.8,
             }}
           >
-            TourEase is powered by travel artists, data scientists, and a concierge crew that
-            understands the soul of India. We stitch together rare access, meaningful encounters,
-            and perfectly-timed experiences so every escape feels like a private narrative written
-            just for you.
+            TourEase transforms ordinary travel into an extraordinary narrative — powered by
+            intelligent automation and human warmth. Every itinerary we craft is a personalized
+            story, merging technology, culture, and the traveler’s own rhythm.
           </motion.p>
         </section>
 
-        <section style={{ marginBottom: "80px" }}>
+        {/* ===== OUR STORY ===== */}
+        <section
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "60px",
+            alignItems: "center",
+            maxWidth: "1150px",
+            margin: "0 auto 120px",
+            padding: "0 24px",
+          }}
+        >
           <motion.div
-            ref={featureGridRef}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.6 }}
-            className="glass-grid"
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <h3
+              style={{
+                color: "#f4e5a1",
+                fontSize: "0.9rem",
+                textTransform: "uppercase",
+                letterSpacing: "0.1em",
+                fontWeight: 700,
+                marginBottom: "12px",
+              }}
+            >
+              Our Story
+            </h3>
+            <h2
+              style={{
+                fontSize: "2rem",
+                fontWeight: 700,
+                color: "#d4af37",
+                marginBottom: "16px",
+              }}
+            >
+              Designed for Travelers, Crafted by Innovators
+            </h2>
+            <p style={{ color: "rgba(226,232,240,0.85)", lineHeight: 1.8 }}>
+              Founded in 2024, TourEase was born from the belief that travel should be seamless,
+              soulful, and intelligent. We’ve built an AI-powered ecosystem that bridges technology
+              and exploration — where every moment feels curated, not automated.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: "28px",
-              maxWidth: "1100px",
-              margin: "0 auto",
-              y: parallaxY,
+              borderRadius: "20px",
+              background: "rgba(255,255,255,0.04)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(244,229,161,0.15)",
+              boxShadow: "0 0 24px rgba(212,175,55,0.1)",
+              padding: "40px 24px",
+              display: "flex",
+              justifyContent: "space-around",
             }}
           >
-            {aboutFeatures.map((item, index) => (
-              <motion.article
-                key={item.title}
-                custom={index}
-                variants={cardVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.35 }}
-                whileHover={{ y: -8, scale: 1.02 }}
-                animate={{ boxShadow: ambientGlow }}
-                transition={{
-                  boxShadow: {
-                    duration: 6,
-                    repeat: Infinity,
-                    repeatType: "mirror",
-                    delay: index * 0.25,
-                    ease: "easeInOut",
-                  },
-                }}
-                className="glass-card"
-                style={{
-                  padding: "32px",
-                  borderRadius: "20px",
-                  background: "var(--glass)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  backdropFilter: "blur(12px)",
-                  minHeight: "220px",
-                }}
-              >
-                <motion.div
-                  style={{ fontSize: "2.4rem", marginBottom: "18px" }}
-                  initial={{ rotateX: 35, opacity: 0 }}
-                  whileInView={{ rotateX: 0, opacity: 1 }}
-                  viewport={{ once: true, amount: 0.45 }}
-                  transition={{ duration: 0.5, delay: 0.1 + index * 0.08, ease: "easeOut" }}
+            {[
+              { label: "Founded", value: "2024" },
+              { label: "Users", value: "2.5K+" },
+              { label: "Trips", value: "12K+" },
+            ].map((stat, i) => (
+              <div key={i} style={{ textAlign: "center" }}>
+                <h3
+                  style={{
+                    fontSize: "2rem",
+                    color: "#d4af37",
+                    fontWeight: 700,
+                    marginBottom: "6px",
+                  }}
                 >
-                  {item.icon}
-                </motion.div>
-                <h3 style={{ color: "#d4af37", fontSize: "1.25rem", marginBottom: "12px" }}>
-                  {item.title}
+                  {stat.value}
                 </h3>
-                <p style={{ color: "rgba(226, 232, 240, 0.82)", lineHeight: 1.7 }}>
-                  {item.description}
-                </p>
-              </motion.article>
+                <p style={{ color: "rgba(226,232,240,0.8)", fontSize: "0.95rem" }}>{stat.label}</p>
+              </div>
             ))}
           </motion.div>
         </section>
 
-        <section style={{ maxWidth: "960px", margin: "0 auto" }}>
+        {/* ===== TRUST BACKED BY NUMBERS ===== */}
+        <section style={{ textAlign: "center", marginBottom: "140px", padding: "0 20px" }}>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
             style={{
               fontSize: "2.4rem",
-              marginBottom: "36px",
               fontWeight: 700,
               color: "#d4af37",
-              textAlign: "center",
+              marginBottom: "20px",
             }}
           >
-            Our Journey So Far
+            Trust Backed by Numbers
           </motion.h2>
+          <p
+            style={{
+              maxWidth: "740px",
+              margin: "0 auto 60px",
+              color: "rgba(226,232,240,0.8)",
+              fontSize: "1.1rem",
+              lineHeight: 1.7,
+            }}
+          >
+            From real-time recommendations to curated experiences — TourEase continues to redefine
+            how modern travelers explore, plan, and connect with destinations across India.
+          </p>
+
           <div
             style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
-              gap: "26px",
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: "24px",
             }}
           >
-            {aboutTimeline.map((milestone) => (
+            {[
+              { value: "50+", label: "Destinations Curated" },
+              { value: "98%", label: "Traveler Satisfaction" },
+              { value: "24/7", label: "Smart Assistance" },
+            ].map((stat, idx) => (
               <motion.div
-                key={milestone.year}
+                key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.4 }}
-                transition={{ duration: 0.5 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: idx * 0.15 }}
                 style={{
-                  background: "rgba(15, 23, 42, 0.6)",
+                  background: "rgba(255,255,255,0.03)",
                   borderRadius: "18px",
-                  padding: "28px",
-                  border: "1px solid rgba(59, 130, 246, 0.18)",
-                  boxShadow: "0 20px 45px rgba(15, 23, 42, 0.35)",
+                  padding: "32px 48px",
+                  border: "1px solid rgba(212,175,55,0.2)",
+                  boxShadow: "0 0 32px rgba(212,175,55,0.08)",
                 }}
               >
-                <div
+                <h3
                   style={{
-                    fontSize: "2.2rem",
-                    color: "#3b82f6",
+                    fontSize: "2rem",
+                    color: "#f4e5a1",
                     fontWeight: 700,
-                    marginBottom: "12px",
+                    marginBottom: "8px",
                   }}
                 >
-                  {milestone.year}
-                </div>
-                <h4 style={{ color: "#e2e8f0", marginBottom: "10px", fontSize: "1.15rem" }}>
-                  {milestone.title}
-                </h4>
-                <p style={{ color: "rgba(226, 232, 240, 0.78)", lineHeight: 1.7 }}>
-                  {milestone.detail}
-                </p>
+                  {stat.value}
+                </h3>
+                <p style={{ color: "rgba(226,232,240,0.85)" }}>{stat.label}</p>
               </motion.div>
             ))}
           </div>
+        </section>
+
+        {/* ===== CTA ===== */}
+        <section style={{ textAlign: "center", marginTop: "140px" }}>
+          <motion.h2
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            style={{
+              color: "#f4e5a1",
+              fontWeight: 600,
+              fontSize: "1.6rem",
+              marginBottom: "28px",
+            }}
+          >
+            Begin your next journey, effortlessly.
+          </motion.h2>
+          <motion.a
+            href="/explore"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ duration: 0.2 }}
+            style={{
+              display: "inline-block",
+              padding: "14px 38px",
+              borderRadius: "999px",
+              background: "linear-gradient(135deg, #d4af37, #f4e5a1)",
+              color: "#0b0e14",
+              fontWeight: 700,
+              textDecoration: "none",
+              boxShadow: "0 0 22px rgba(212,175,55,0.4)",
+            }}
+          >
+            Explore with TourEase
+          </motion.a>
         </section>
       </main>
     </div>
