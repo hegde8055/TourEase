@@ -41,16 +41,20 @@ const Navbar = () => {
   const handleLogout = () => setIsModalOpen(true);
 
   const handleConfirmLogout = async () => {
-    try {
+    setMenuActive(false);
+    if (!contextLogout) {
       setIsModalOpen(false);
-      setMenuActive(false);
-      await new Promise((res) => setTimeout(res, 150));
-      await Promise.resolve(contextLogout?.());
+      return;
+    }
+    try {
+      await Promise.resolve(contextLogout());
       setAuthenticated(false);
       setUsername("");
-      navigate("/", { replace: true });
+      navigate("/signin", { replace: true });
     } catch (err) {
       console.error("Logout error:", err);
+    } finally {
+      setIsModalOpen(false);
     }
   };
 

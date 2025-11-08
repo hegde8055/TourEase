@@ -20,6 +20,7 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
 
   const handleConfirm = async (e) => {
     if (e && typeof e.preventDefault === "function") e.preventDefault();
+    if (isProcessing) return;
     try {
       setIsProcessing(true);
       const audio = new Audio(confirmSound);
