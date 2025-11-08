@@ -124,7 +124,7 @@ const defaultAiForm = {
   passengers: 2,
   travelStyle: "standard",
   interests: "",
-  basePerPerson: 3500, // This will now be updated automatically
+  basePerPerson: 3500,
   travelClass: "economy",
   season: "standard",
   taxesPct: 0.18,
@@ -137,6 +137,8 @@ const SIGNAL_COLORS = {
   info: "#60a5fa",
   positive: "#34d399",
 };
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const filterOptions = [
   { value: "all", label: "All" },
@@ -591,33 +593,103 @@ const ItineraryPlanner = () => {
     return effectiveTripBudget / passengerCount;
   }, [effectiveTripBudget, aiForm.passengers]);
 
+  const tripMetrics = useMemo(() => {
+    const passengers = Math.max(1, Number(aiForm.passengers) || 1);
+    const basePerPerson = Math.max(0, Number(aiForm.basePerPerson) || 0);
+
+    const startCandidate = aiForm.startDate ? new Date(aiForm.startDate) : null;
+    const endCandidate = aiForm.endDate ? new Date(aiForm.endDate) : null;
+    const start =
+      startCandidate && Number.isFinite(startCandidate.getTime()) ? startCandidate : null;
+    const end =
+      start && endCandidate && Number.isFinite(endCandidate.getTime()) && endCandidate >= start
+        ? endCandidate
+        : null;
+
+    let nights = 0;
+    if (start && end) {
+      const diff = end.getTime() - start.getTime();
+      if (diff >= 0) {
+        nights = Math.max(1, Math.round(diff / MS_PER_DAY));
+      }
+    }
+    const hasValidDates = Boolean(start && end && nights > 0);
+    if (!hasValidDates) {
+      nights = 0;
+    }
+
+    const addOns = aiForm.addOns || {};
+    const addOnsTotal = Object.values(addOns).reduce((sum, value) => {
+      const numeric = Number(value);
+      return sum + (Number.isFinite(numeric) ? numeric : 0);
+    }, 0);
+
+    const taxesPct = Number(aiForm.taxesPct);
+    const safeTaxesPct = Number.isFinite(taxesPct) && taxesPct > 0 ? taxesPct : 0;
+    const baseSpend = basePerPerson * passengers * nights;
+    const taxEstimate = baseSpend * safeTaxesPct;
+    const manualEstimate = nights > 0 ? baseSpend + taxEstimate + addOnsTotal : addOnsTotal;
+
+    let daysUntilTrip = null;
+    if (start) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      daysUntilTrip = Math.round((start.getTime() - today.getTime()) / MS_PER_DAY);
+    }
+
+    return {
+      passengers,
+      basePerPerson,
+      start,
+      end,
+      nights,
+      hasValidDates,
+      daysUntilTrip,
+      addOnsTotal,
+      baseSpend,
+      taxEstimate,
+      manualEstimate,
+    };
+  }, [
+    aiForm.startDate,
+    aiForm.endDate,
+    aiForm.passengers,
+    aiForm.basePerPerson,
+    aiForm.addOns,
+    aiForm.taxesPct,
+  ]);
+
   const availabilityIntel = useMemo(() => {
     const insights = [];
-    if (!aiForm.startDate || !aiForm.endDate) {
-      return insights;
-    }
 
-    const start = new Date(aiForm.startDate);
-    const end = new Date(aiForm.endDate);
-
-    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) {
-      return insights;
-    }
-
-    const today = new Date();
-    const daysUntilTrip = Math.round((start - today) / (1000 * 60 * 60 * 24));
-    const tripDuration = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
-
-    if (daysUntilTrip <= 21) {
+    if (!tripMetrics.hasValidDates) {
       insights.push({
-        level: "alert",
-        message: `Trip starts in ${Math.max(daysUntilTrip, 0)} days — expect limited last-minute availability for popular stays and activities.`,
+        level: "info",
+        message:
+          "Add travel dates to unlock stay and activity availability tips tailored to your window.",
       });
-    } else if (daysUntilTrip <= 45) {
-      insights.push({
-        level: "warning",
-        message: `Trip begins in ${daysUntilTrip} days; lock in hotels and transport soon to avoid surge pricing.`,
-      });
+    } else {
+      const daysUntilTrip = tripMetrics.daysUntilTrip;
+      if (daysUntilTrip != null) {
+        if (daysUntilTrip <= 21) {
+          insights.push({
+            level: "alert",
+            message: `Trip starts in ${Math.max(daysUntilTrip, 0)} days — expect limited last-minute availability for popular stays and activities.`,
+          });
+        } else if (daysUntilTrip <= 45) {
+          insights.push({
+            level: "warning",
+            message: `Trip begins in ${daysUntilTrip} days; lock in hotels and transport soon to avoid surge pricing.`,
+          });
+        }
+      }
+
+      if (tripMetrics.nights >= 10) {
+        insights.push({
+          level: "info",
+          message: `Extended itinerary (${tripMetrics.nights} nights) — consider splitting lodging across neighborhoods to improve availability.`,
+        });
+      }
     }
 
     if (aiForm.season === "peak") {
@@ -633,35 +705,69 @@ const ItineraryPlanner = () => {
       });
     }
 
-    if (tripDuration >= 10) {
+    if (tripMetrics.passengers >= 4) {
       insights.push({
         level: "info",
-        message: `Extended itinerary (${tripDuration} days) — consider splitting lodging across neighborhoods to improve availability.`,
+        message: `Group of ${tripMetrics.passengers} travelers — coordinate room blocks or larger transfers in advance for smoother logistics.`,
+      });
+    }
+
+    const premiumStyles = new Set(["business", "royal", "heritage", "wellness"]);
+    if (premiumStyles.has(aiForm.travelStyle) || premiumStyles.has(aiForm.travelClass)) {
+      insights.push({
+        level: "warning",
+        message:
+          "Premium travel preferences — reserve signature experiences early to secure limited slots.",
+      });
+    }
+
+    const interestText = (aiForm.interests || "").toLowerCase();
+    if (
+      interestText.includes("hike") ||
+      interestText.includes("trek") ||
+      interestText.includes("trail") ||
+      interestText.includes("camp")
+    ) {
+      insights.push({
+        level: "info",
+        message:
+          "Adventure interests noted — review permit rules and safety advisories before finalizing activities.",
       });
     }
 
     return insights;
-  }, [aiForm.startDate, aiForm.endDate, aiForm.season]);
+  }, [tripMetrics, aiForm.season, aiForm.travelStyle, aiForm.travelClass, aiForm.interests]);
 
   const budgetIntel = useMemo(() => {
-    if (!aiCostResult) {
-      return [];
+    const insights = [];
+    const passengers = tripMetrics.passengers || 1;
+
+    const estimatedTotal = Number.isFinite(aiCostResult?.total)
+      ? aiCostResult.total
+      : tripMetrics.manualEstimate;
+
+    if (!Number.isFinite(estimatedTotal) || estimatedTotal <= 0) {
+      if (!hasEnteredTripBudget) {
+        insights.push({
+          level: "info",
+          message: "Enter your trip budget to enable personalized guardrails and surplus alerts.",
+        });
+      }
+      return insights;
     }
 
-    const insights = [];
-    const passengers = Math.max(1, aiForm.passengers || 1);
-    const aiPerPerson = aiCostResult.total / passengers;
+    const perPersonEstimate = estimatedTotal / Math.max(1, passengers);
     const variance =
-      perPersonTripBudget > 0
-        ? ((aiPerPerson - perPersonTripBudget) / perPersonTripBudget) * 100
+      hasEnteredTripBudget && perPersonTripBudget > 0
+        ? ((perPersonEstimate - perPersonTripBudget) / perPersonTripBudget) * 100
         : 0;
-    const remaining = effectiveTripBudget - aiCostResult.total;
+    const remaining = effectiveTripBudget - estimatedTotal;
 
     if (hasEnteredTripBudget) {
       if (variance > 10) {
         insights.push({
           level: "alert",
-          message: `AI estimate is about ${variance.toFixed(0)}% above your per-person budget. Revisit optional add-ons or reduce trip length.`,
+          message: `Estimated spend is about ${variance.toFixed(0)}% above your per-person budget. Revisit optional add-ons or reduce trip length.`,
         });
       } else if (variance < -10) {
         insights.push({
@@ -693,14 +799,54 @@ const ItineraryPlanner = () => {
       });
     }
 
+    const bufferValue = Number(aiForm.addOns?.buffer ?? 0);
+    if (bufferValue > 0 && bufferValue >= estimatedTotal * 0.2) {
+      insights.push({
+        level: "positive",
+        message:
+          "Emergency buffer is generous — you can redirect part of it to paid experiences if needed.",
+      });
+    } else if (bufferValue > 0 && bufferValue < estimatedTotal * 0.05) {
+      insights.push({
+        level: "warning",
+        message:
+          "Buffer add-on is quite small. Consider reserving at least 5% of the trip budget for contingencies.",
+      });
+    }
+
+    const insuranceValue = Number(aiForm.addOns?.insurance ?? 0);
+    if (!insuranceValue && aiForm.travelStyle === "adventure") {
+      insights.push({
+        level: "warning",
+        message:
+          "Adventure style selected without travel insurance — add coverage for high-activity plans.",
+      });
+    }
+
+    const premiumStyles = new Set(["business", "royal", "heritage", "wellness"]);
+    if (
+      (premiumStyles.has(aiForm.travelStyle) || premiumStyles.has(aiForm.travelClass)) &&
+      perPersonTripBudget > 0 &&
+      perPersonTripBudget < tripMetrics.basePerPerson * 1.1
+    ) {
+      insights.push({
+        level: "warning",
+        message:
+          "Luxury preferences detected — raise the per-person budget to reflect premium stays and transfers.",
+      });
+    }
+
     return insights;
   }, [
     aiCostResult,
-    aiForm.passengers,
+    tripMetrics,
     perPersonTripBudget,
     hasEnteredTripBudget,
     effectiveTripBudget,
     formatCurrency,
+    aiForm.addOns,
+    aiForm.travelStyle,
+    aiForm.travelClass,
   ]);
 
   const filteredItineraries = useMemo(() => {
