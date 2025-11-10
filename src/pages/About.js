@@ -7,6 +7,9 @@ const aboutStyles = `
 	body.about-page-active .main-content {
 		padding-top: 0;
 	}
+	body.about-page-active header {
+		top: 0;
+	}
 
 	.about-page {
 		min-height: 100vh;
@@ -41,7 +44,6 @@ const aboutStyles = `
 		height: 100%;
 		object-fit: cover;
 		filter: saturate(115%) contrast(105%);
-		padding:120px;
 	}
 
 	.hero-overlay {
@@ -58,11 +60,12 @@ const aboutStyles = `
 		width: 100%;
 		max-width: 1200px;
 		margin: 0 auto;
-    /* This padding-top is larger to avoid the fixed navbar */
-		padding: clamp(20px, 18vh, 160px) clamp(24px, 6vw, 108px) clamp(56px, 12vh, 104px);
+		/* Generous top padding keeps content clear of the floating navbar */
+		padding: clamp(120px, 20vh, 180px) clamp(24px, 6vw, 108px) clamp(64px, 12vh, 120px);
 		display: grid;
 		gap: 24px;
-		margin: -90px;
+		justify-items: center;
+		text-align: center;
 	}
 
 
@@ -72,6 +75,7 @@ const aboutStyles = `
 		line-height: 1.05;
 		letter-spacing: -0.02em;
 		max-width: 760px;
+		margin: 0 auto;
 		background: linear-gradient(120deg, #fef3c7 0%, #facc15 40%, #38bdf8 85%);
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
@@ -82,6 +86,7 @@ const aboutStyles = `
 		color: rgba(226,232,240,0.9);
 		font-size: 1.1rem;
 		line-height: 1.8;
+		margin: 0 auto;
 	}
 
 	.hero-cta {
@@ -89,6 +94,7 @@ const aboutStyles = `
 		flex-wrap: wrap;
 		gap: 16px;
 		margin-top: 12px;
+		justify-content: center;
 	}
 
 	.btn-primary,
@@ -138,15 +144,17 @@ const aboutStyles = `
 		font-weight: 700;
 		letter-spacing: -0.01em;
 		margin-bottom: 16px;
+		text-align: center;
 	}
 
 	.section-intro {
 		max-width: 960px;
-		margin: 0;
+		margin: 0 auto;
 		padding: 0;
 		color: rgba(203,213,225,0.85);
 		font-size: 1.05rem;
 		line-height: 1.8;
+		text-align: center;
 	}
 
 	.essentials-grid {
@@ -263,6 +271,7 @@ const aboutStyles = `
 		padding: 36px 32px 48px;
 		display: grid;
 		gap: 18px;
+		text-align: left;
 	}
 
 	.story-copy h3 {
@@ -340,7 +349,7 @@ const aboutStyles = `
 		position: relative;
 		width: 100%;
 		margin: clamp(48px, 10vh, 96px) 0 0;
-		min-height: calc(100vh - 110px); /* fill viewport below navbar */
+		min-height: min(calc(100vh - 110px), 720px);
 		display: flex;
 		align-items: stretch;
 		justify-content: center;
@@ -372,7 +381,7 @@ const aboutStyles = `
 			min-height: 82vh;
 		}
 		.hero-content {
-			padding-top: 80px;
+			padding: 80px 20px 64px;
 		}
 		.btn-primary,
 		.btn-secondary {
@@ -650,7 +659,7 @@ const About = () => {
               Share your dream destination, travel crew, and vibe. We will translate it into a
               flexible itinerary, secure your bookings, and stay close while you explore.
             </p>
-            <div className="hero-cta" style={{ justifyContent: "center" }}>
+            <div className="hero-cta">
               <motion.a
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.96 }}
