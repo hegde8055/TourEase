@@ -2,12 +2,31 @@ import React from "react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 
+// ✅ NEW: Added a style tag for the responsive grid.
+// Inline styles can't handle media queries, so this is the cleanest way.
+const gridStyles = `
+  .about-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 900px) {
+    .about-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+`;
+
 const About = () => {
   return (
     <div className="main-content">
       <Navbar />
+      <style>{gridStyles}</style>
 
-      {/* ✨ Animated Gold Gradient Background */}
+      {/* ✨ Animated Gold Gradient Background (Unchanged) */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -43,14 +62,22 @@ const About = () => {
 
       {/* ✨ Main Page Content */}
       <main
+        className="about-grid" // ✅ CHANGED: Using the responsive grid class
         style={{
           color: "#e5e7eb",
-          padding: "140px 0 120px 0",
+          padding: "140px 24px 120px 24px", // Added horizontal padding
           fontFamily: "'Poppins', sans-serif",
         }}
       >
-        {/* ===== HERO ===== */}
-        <section style={{ textAlign: "center", marginBottom: "100px", padding: "0 24px" }}>
+        {/* ===== HERO (Grid Cell 1: Top-Left) ===== */}
+        <section
+          style={{
+            // ✅ CHANGED: Aligned left, not center
+            textAlign: "left",
+            marginBottom: "60px",
+            // Spans 1 column
+          }}
+        >
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -71,8 +98,7 @@ const About = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
             style={{
-              maxWidth: "820px",
-              margin: "0 auto",
+              // ✅ CHANGED: Removed max-width and margin: auto
               color: "rgba(226,232,240,0.82)",
               fontSize: "1.15rem",
               lineHeight: 1.8,
@@ -84,16 +110,75 @@ const About = () => {
           </motion.p>
         </section>
 
-        {/* ===== OUR STORY ===== */}
+        {/* ===== ✨ NEW: TEAM SECTION (Grid Cell 2: Top-Right) ===== */}
+        <section style={{ marginBottom: "60px" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <h3
+              style={{
+                color: "#f4e5a1",
+                fontSize: "0.9rem",
+                textTransform: "uppercase",
+                letterSpacing: "0.1em",
+                fontWeight: 700,
+                marginBottom: "12px",
+              }}
+            >
+              Our Team
+            </h3>
+            <h2
+              style={{
+                fontSize: "2rem",
+                fontWeight: 700,
+                color: "#d4af37",
+                marginBottom: "16px",
+              }}
+            >
+              We care deeply about the quality of our work
+            </h2>
+            {/* 📸 YOUR IMAGE GOES HERE 📸 */}
+            <div
+              style={{
+                width: "100%",
+                aspectRatio: "16 / 10", // Keeps a consistent shape
+                borderRadius: "16px",
+                border: "1px solid rgba(244,229,161,0.15)",
+                background: "rgba(255,255,255,0.04)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "rgba(244,229,161,0.4)",
+                fontSize: "1.2rem",
+                // ✅ ADD YOUR IMAGE HERE as a background image or <img> tag
+                // Example:
+                // backgroundImage: "url('/path/to/your-team-photo.jpg')",
+                // backgroundSize: "cover",
+                // backgroundPosition: "center",
+              }}
+            >
+              Add your team photo here
+            </div>
+            <p
+              style={{
+                color: "rgba(226,232,240,0.8)",
+                fontSize: "0.9rem",
+                marginTop: "12px",
+              }}
+            >
+              The founders & innovators behind TourEase
+            </p>
+          </motion.div>
+        </section>
+
+        {/* ===== OUR STORY (Grid Cell 3: Mid-Left) ===== */}
         <section
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "60px",
-            alignItems: "center",
-            maxWidth: "1150px",
-            margin: "0 auto 120px",
-            padding: "0 24px",
+            // ✅ CHANGED: Removed grid styles from this section
+            marginBottom: "60px",
           }}
         >
           <motion.div
@@ -124,53 +209,54 @@ const About = () => {
             >
               Designed for Travelers, Crafted by Innovators
             </h2>
-            <p style={{ color: "rgba(226,232,240,0.85)", lineHeight: 1.8 }}>
+            <p style={{ color: "rgba(226,232,240,0.85)", lineHeight: 1.8, marginBottom: "32px" }}>
               Founded in 2024, TourEase was born from the belief that travel should be seamless,
               soulful, and intelligent. We’ve built an AI-powered ecosystem that bridges technology
               and exploration — where every moment feels curated, not automated.
             </p>
-          </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-            style={{
-              borderRadius: "20px",
-              background: "rgba(255,255,255,0.04)",
-              backdropFilter: "blur(20px)",
-              border: "1px solid rgba(244,229,161,0.15)",
-              boxShadow: "0 0 24px rgba(212,175,55,0.1)",
-              padding: "40px 24px",
-              display: "flex",
-              justifyContent: "space-around",
-            }}
-          >
-            {[
-              { label: "Founded", value: "2024" },
-              { label: "Users", value: "2.5K+" },
-              { label: "Trips", value: "12K+" },
-            ].map((stat, i) => (
-              <div key={i} style={{ textAlign: "center" }}>
-                <h3
-                  style={{
-                    fontSize: "2rem",
-                    color: "#d4af37",
-                    fontWeight: 700,
-                    marginBottom: "6px",
-                  }}
-                >
-                  {stat.value}
-                </h3>
-                <p style={{ color: "rgba(226,232,240,0.8)", fontSize: "0.95rem" }}>{stat.label}</p>
-              </div>
-            ))}
+            {/* ✅ CHANGED: Stats are now *below* the text, not beside it */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              style={{
+                borderRadius: "20px",
+                background: "rgba(255,255,255,0.04)",
+                backdropFilter: "blur(20px)",
+                border: "1px solid rgba(244,229,161,0.15)",
+                boxShadow: "0 0 24px rgba(212,175,55,0.1)",
+                padding: "40px 24px",
+                display: "flex",
+                justifyContent: "space-around",
+              }}
+            >
+              {[
+                { label: "Founded", value: "2024" },
+                { label: "Users", value: "2.5K+" },
+                { label: "Trips", value: "12K+" },
+              ].map((stat, i) => (
+                <div key={i} style={{ textAlign: "center" }}>
+                  <h3
+                    style={{
+                      fontSize: "2rem",
+                      color: "#d4af37",
+                      fontWeight: 700,
+                      marginBottom: "6px",
+                    }}
+                  >
+                    {stat.value}
+                  </h3>
+                  <p style={{ color: "rgba(226,232,240,0.8)", fontSize: "0.95rem" }}>{stat.label}</p>
+                </div>
+              ))}
+            </motion.div>
           </motion.div>
         </section>
 
-        {/* ===== TRUST BACKED BY NUMBERS ===== */}
-        <section style={{ textAlign: "center", marginBottom: "140px", padding: "0 20px" }}>
+        {/* ===== TRUST BACKED BY NUMBERS (Grid Cell 4: Mid-Right) ===== */}
+        <section style={{ textAlign: "center", marginBottom: "60px" }}>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -187,21 +273,22 @@ const About = () => {
           </motion.h2>
           <p
             style={{
-              maxWidth: "740px",
-              margin: "0 auto 60px",
+              // ✅ CHANGED: Removed max-width and margin: auto
+              margin: "0 auto 40px",
               color: "rgba(226,232,240,0.8)",
               fontSize: "1.1rem",
               lineHeight: 1.7,
             }}
           >
             From real-time recommendations to curated experiences — TourEase continues to redefine
-            how modern travelers explore, plan, and connect with destinations across India.
+            how modern travelers explore.
           </p>
 
           <div
             style={{
               display: "flex",
-              flexWrap: "wrap",
+              // ✅ CHANGED: Stacked vertically
+              flexDirection: "column",
               justifyContent: "center",
               gap: "24px",
             }}
@@ -241,8 +328,15 @@ const About = () => {
           </div>
         </section>
 
-        {/* ===== CTA ===== */}
-        <section style={{ textAlign: "center", marginTop: "140px" }}>
+        {/* ===== CTA (Grid Cell 5: Full-Width Bottom) ===== */}
+        <section
+          style={{
+            textAlign: "center",
+            marginTop: "60px",
+            // ✅ CHANGED: Spans both columns
+            gridColumn: "1 / -1",
+          }}
+        >
           <motion.h2
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
