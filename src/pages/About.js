@@ -62,7 +62,9 @@ const aboutStyles = `
 		padding: clamp(120px, 18vh, 160px) clamp(24px, 6vw, 108px) clamp(56px, 12vh, 104px);
 		display: grid;
 		gap: 24px;
+		margin: -100px;
 	}
+
 
 	.hero-title {
 		font-size: clamp(2.8rem, 6vw, 4.6rem);
