@@ -491,8 +491,8 @@ const About = () => {
                 fontSize: "0.8rem",
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                marginLeft: "0px",
-                marginRight: "0px",
+                //marginLeft: "-1200px",
+                margin: "-120px",
               }}
             >
               Guided journeys · Seamless support · Real stories
