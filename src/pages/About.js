@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import Navbar from "../components/Navbar";
 
 const heroVideoSrc = "/assets/intro.mkv";
 
 const aboutStyles = `
+	body.about-page-active .main-content {
+		padding-top: 0;
+	}
+
 	.about-page {
 		min-height: 100vh;
 		background: #020617;
@@ -15,16 +18,11 @@ const aboutStyles = `
 		margin: 0;
 		padding: 0;
 	}
-	.navbar-container {
-		position: fixed; /* Makes the navbar "float" on top */
-		top: 0;
-		left: 0;
-		width: 100%;
-		z-index: 10; /* Ensures it's above the video */
-	  }
 	.about-shell {
 		position: relative;
 		width: 100%;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.hero-section {
@@ -33,6 +31,7 @@ const aboutStyles = `
 		display: grid;
 		place-items: center;
 		overflow: hidden;
+		width: 100%;
 	}
 
 	.hero-video {
@@ -42,7 +41,7 @@ const aboutStyles = `
 		height: 100%;
 		object-fit: cover;
 		filter: saturate(115%) contrast(105%);
-		margin:-120px;
+		padding:120px;
 	}
 
 	.hero-overlay {
@@ -63,7 +62,7 @@ const aboutStyles = `
 		padding: clamp(20px, 18vh, 160px) clamp(24px, 6vw, 108px) clamp(56px, 12vh, 104px);
 		display: grid;
 		gap: 24px;
-		margin: -100px;
+		margin: -90px;
 	}
 
 
@@ -447,11 +446,17 @@ const travelerVoices = [
 ];
 
 const About = () => {
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const { classList } = document.body;
+    classList.add("about-page-active");
+    return () => {
+      classList.remove("about-page-active");
+    };
+  }, []);
+
   return (
     <div className="about-page">
-      <div className="navbar-container">
-        <Navbar />
-      </div>
       <style>{aboutStyles}</style>
 
       <div className="about-shell">
