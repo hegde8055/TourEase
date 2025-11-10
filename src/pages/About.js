@@ -2,461 +2,401 @@ import React from "react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 
+const heroVideoSrc =
+  "https://cdn.coverr.co/videos/coverr-aerial-view-of-tropical-island-5118/1080p.mp4";
+
 const aboutStyles = `
-  .about-page {
-    min-height: 100vh;
-    background: #02060f;
-    color: #e2e8f0;
-    font-family: "Poppins", sans-serif;
-    position: relative;
-    overflow: hidden;
-  }
+	.about-page {
+		min-height: 100vh;
+		background: #020617;
+		color: #e2e8f0;
+		font-family: "Poppins", sans-serif;
+		position: relative;
+		overflow-x: hidden;
+	}
 
-  .about-gradient {
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    background: radial-gradient(1200px 900px at 15% 15%, rgba(212,175,55,0.18), transparent 70%),
-      radial-gradient(1400px 900px at 85% 80%, rgba(56,189,248,0.14), transparent 73%),
-      linear-gradient(135deg, #030711, #060b1b 55%, #030711);
-  }
+	.about-shell {
+		position: relative;
+		width: 100%;
+	}
 
-  .about-parallax {
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: radial-gradient(900px 600px at 30% 70%, rgba(15,118,213,0.12), transparent 70%),
-      radial-gradient(1100px 700px at 70% 25%, rgba(244,229,161,0.1), transparent 72%);
-    background-size: 180% 180%;
-    filter: blur(90px);
-    opacity: 0.9;
-  }
+	.hero-section {
+		position: relative;
+		min-height: 90vh;
+		display: grid;
+		place-items: center;
+		overflow: hidden;
+	}
 
-  .about-content {
-    width: 100%;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 140px 28px 120px;
-    display: grid;
-    gap: 80px;
-  }
+	.hero-video {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		filter: saturate(115%) contrast(105%);
+	}
 
-  .hero-grid {
-    display: grid;
-    gap: 32px;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    align-items: center;
-  }
+	.hero-overlay {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(180deg, rgba(3,7,18,0.35) 0%, rgba(3,7,18,0.92) 100%),
+			radial-gradient(900px 540px at 18% 18%, rgba(14,116,144,0.35), transparent 70%);
+		mix-blend-mode: multiply;
+	}
 
-  .hero-copy {
-    grid-column: span 7;
-  }
+	.hero-content {
+		position: relative;
+		z-index: 2;
+		width: 100%;
+		max-width: 1180px;
+		padding: 140px 32px 120px;
+		display: grid;
+		gap: 32px;
+	}
 
-  .hero-visual {
-    grid-column: span 5;
-    display: grid;
-    gap: 20px;
-    perspective: 1600px;
-  }
+	.hero-title {
+		font-size: clamp(2.8rem, 6vw, 4.6rem);
+		font-weight: 800;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+		max-width: 760px;
+		background: linear-gradient(120deg, #fef3c7 0%, #facc15 40%, #38bdf8 85%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
 
-  .hero-title {
-    font-size: clamp(2.8rem, 4vw, 4.2rem);
-    font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: -0.02em;
-    background: linear-gradient(120deg, #fef3c7 0%, #facc15 33%, #38bdf8 72%, #bae6fd 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 24px;
-  }
+	.hero-blurb {
+		max-width: 640px;
+		color: rgba(226,232,240,0.9);
+		font-size: 1.1rem;
+		line-height: 1.8;
+	}
 
-  .hero-subtitle {
-    font-size: 1.1rem;
-    color: rgba(148,163,184,0.9);
-    line-height: 1.8;
-    max-width: 560px;
-    margin-bottom: 32px;
-  }
+	.hero-cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px;
+		margin-top: 12px;
+	}
 
-  .hero-cta {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
+	.btn-primary,
+	.btn-secondary {
+		padding: 14px 34px;
+		border-radius: 999px;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		font-size: 0.82rem;
+		transition: transform 0.25s ease, box-shadow 0.3s ease;
+	}
 
-  .cta-primary,
-  .cta-secondary {
-    padding: 14px 30px;
-    border-radius: 999px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    letter-spacing: 0.02em;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-  }
+	.btn-primary {
+		background: linear-gradient(130deg, #facc15, #f97316 55%, #facc15 100%);
+		color: #041120;
+		box-shadow: 0 25px 45px rgba(250,204,21,0.25);
+	}
 
-  .cta-primary {
-    background: linear-gradient(130deg, #facc15, #f97316 48%, #facc15 100%);
-    color: #040611;
-    box-shadow: 0 20px 50px rgba(250, 204, 21, 0.25);
-  }
+	.btn-secondary {
+		background: rgba(15,23,42,0.72);
+		border: 1px solid rgba(148,163,184,0.35);
+		color: #e2e8f0;
+	}
 
-  .cta-secondary {
-    background: rgba(15,23,42,0.7);
-    border: 1px solid rgba(148, 163, 184, 0.32);
-    color: #e2e8f0;
-  }
+	.btn-primary:hover,
+	.btn-secondary:hover {
+		transform: translateY(-4px);
+	}
 
-  .cta-primary:hover,
-  .cta-secondary:hover {
-    transform: translateY(-4px);
-  }
+	.content-wrapper {
+		width: 100%;
+		max-width: 1180px;
+		margin: 0 auto;
+		padding: 0 32px 120px;
+		display: grid;
+		gap: 100px;
+	}
 
-  .tilt-layer {
-    position: relative;
-    background: linear-gradient(140deg, rgba(17,24,39,0.92), rgba(8,11,26,0.9));
-    border-radius: 20px;
-    padding: 28px;
-    border: 1px solid rgba(255,255,255,0.06);
-    box-shadow: 0 20px 45px rgba(15,23,42,0.35);
-    transform-style: preserve-3d;
-    overflow: hidden;
-  }
+	.section-title {
+		font-size: clamp(2rem, 4vw, 3rem);
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		margin-bottom: 16px;
+	}
 
-  .tilt-layer::after {
-    content: "";
-    position: absolute;
-    inset: -40%;
-    background: radial-gradient(circle at top left, rgba(250, 204, 21, 0.23), transparent 55%);
-    transform: translateZ(-40px);
-  }
+	.section-intro {
+		max-width: 720px;
+		color: rgba(203,213,225,0.85);
+		font-size: 1.05rem;
+		line-height: 1.8;
+	}
 
-  .tilt-layer:hover {
-    transform: rotateX(-6deg) rotateY(7deg) translateY(-8px);
-  }
+	.essentials-grid {
+		display: grid;
+		gap: 26px;
+		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	}
 
-  .capabilities-grid {
-    display: grid;
-    gap: 24px;
-    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-  }
+	.essential-card {
+		position: relative;
+		padding: 28px 24px;
+		border-radius: 20px;
+		background: linear-gradient(150deg, rgba(15,23,42,0.92), rgba(8,11,26,0.92));
+		border: 1px solid rgba(148,163,184,0.22);
+		box-shadow: 0 24px 48px rgba(2,6,23,0.45);
+		overflow: hidden;
+	}
 
-  .capability-card {
-    position: relative;
-    padding: 28px 26px;
-    border-radius: 18px;
-    background: linear-gradient(160deg, rgba(15,23,42,0.88), rgba(8,11,26,0.88));
-    border: 1px solid rgba(148,163,184,0.22);
-    box-shadow: 0 20px 38px rgba(15,23,42,0.4);
-    overflow: hidden;
-    transform-style: preserve-3d;
-  }
+	.essential-card::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(140deg, rgba(56,189,248,0.24), transparent 68%);
+		opacity: 0;
+		transition: opacity 0.3s ease;
+	}
 
-  .capability-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(140deg, rgba(59,130,246,0.25), transparent 65%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
+	.essential-card:hover::after {
+		opacity: 1;
+	}
 
-  .capability-card:hover::before {
-    opacity: 1;
-  }
+	.essential-card h3 {
+		font-size: 1.15rem;
+		font-weight: 600;
+		margin-bottom: 12px;
+		color: #fef3c7;
+	}
 
-  .capability-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    margin-bottom: 12px;
-  }
+	.essential-card p {
+		color: rgba(203,213,225,0.8);
+		line-height: 1.7;
+		font-size: 0.95rem;
+	}
 
-  .capability-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: 10px;
-    color: rgba(203,213,225,0.82);
-  }
+	.timeline {
+		position: relative;
+		border-left: 1px solid rgba(148,163,184,0.35);
+		margin-left: 16px;
+		padding-left: 28px;
+		display: grid;
+		gap: 42px;
+	}
 
-  .metrics-row {
-    display: grid;
-    gap: 20px;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  }
+	.timeline-point {
+		position: relative;
+	}
 
-  .metric-tile {
-    position: relative;
-    padding: 30px;
-    border-radius: 20px;
-    background: radial-gradient(circle at top, rgba(226,232,240,0.12), transparent 58%),
-      rgba(15,23,42,0.88);
-    border: 1px solid rgba(226,232,240,0.12);
-    box-shadow: inset 0 0 0 1px rgba(148,163,184,0.12);
-    text-align: center;
-  }
+	.timeline-point::before {
+		content: "";
+		position: absolute;
+		left: -39px;
+		top: 6px;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		border: 3px solid rgba(56,189,248,0.8);
+		background: #0f172a;
+		box-shadow: 0 0 18px rgba(56,189,248,0.55);
+	}
 
-  .metric-value {
-    font-size: 2.4rem;
-    font-weight: 700;
-    background: linear-gradient(120deg, #facc15, #fef08a, #bae6fd);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 6px;
-  }
+	.timeline-point h4 {
+		font-size: 1.2rem;
+		font-weight: 600;
+		margin-bottom: 8px;
+	}
 
-  .metric-label {
-    font-size: 0.92rem;
-    color: rgba(148,163,184,0.86);
-  }
+	.timeline-point p {
+		color: rgba(203,213,225,0.8);
+		line-height: 1.7;
+	}
 
-  .showreel-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-    gap: 26px;
-  }
+	.story-canvas {
+		position: relative;
+		border-radius: 28px;
+		overflow: hidden;
+		background: linear-gradient(180deg, rgba(15,23,42,0.9), rgba(2,6,23,0.95));
+		border: 1px solid rgba(226,232,240,0.12);
+		box-shadow: 0 28px 50px rgba(2,6,23,0.6);
+	}
 
-  .showreel-card {
-    border-radius: 18px;
-    overflow: hidden;
-    border: 1px solid rgba(59,130,246,0.35);
-    background: linear-gradient(180deg, rgba(15,23,42,0.92), rgba(2,6,23,0.92));
-    box-shadow: 0 28px 42px rgba(14, 23, 42, 0.45);
-    position: relative;
-    transform-style: preserve-3d;
-  }
+	.story-media {
+		position: relative;
+		padding-bottom: 56.25%;
+	}
 
-  .showreel-card:hover {
-    transform: translateY(-10px) rotateX(-4deg);
-  }
+	.story-media video {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		filter: saturate(115%);
+	}
 
-  .showreel-cover {
-    height: 200px;
-    background: linear-gradient(135deg, rgba(59,130,246,0.28), rgba(248,191,22,0.32));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(226,232,240,0.9);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-  }
+	.story-overlay {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(180deg, rgba(15,23,42,0.25), rgba(15,23,42,0.95));
+	}
 
-  .stack-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 18px;
-  }
+	.story-copy {
+		position: relative;
+		padding: 36px 32px 48px;
+		display: grid;
+		gap: 18px;
+	}
 
-  .stack-chip {
-    padding: 6px 14px;
-    border-radius: 999px;
-    background: rgba(15,118,213,0.12);
-    border: 1px solid rgba(37,99,235,0.25);
-    color: #93c5fd;
-    font-size: 0.78rem;
-    letter-spacing: 0.05em;
-  }
+	.story-copy h3 {
+		font-size: 1.55rem;
+		font-weight: 600;
+		color: #fef3c7;
+	}
 
-  .testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
-  }
+	.story-copy p {
+		color: rgba(203,213,225,0.85);
+		line-height: 1.8;
+	}
 
-  .testimonial-card {
-    position: relative;
-    padding: 28px;
-    border-radius: 18px;
-    background: rgba(15,23,42,0.92);
-    border: 1px solid rgba(244,229,161,0.16);
-    box-shadow: 0 20px 38px rgba(8,11,26,0.45);
-  }
+	.testimonials-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 24px;
+	}
 
-  .testimonial-quote {
-    font-size: 1rem;
-    line-height: 1.75;
-    color: rgba(226,232,240,0.85);
-    margin-bottom: 22px;
-  }
+	.testimonial-card {
+		position: relative;
+		padding: 28px 26px;
+		border-radius: 20px;
+		background: rgba(15,23,42,0.92);
+		border: 1px solid rgba(244,229,161,0.18);
+		box-shadow: 0 24px 45px rgba(2,6,23,0.55);
+	}
 
-  .testimonial-author {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
+	.testimonial-card p {
+		color: rgba(226,232,240,0.85);
+		line-height: 1.7;
+		margin-bottom: 18px;
+	}
 
-  .author-pill {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    background: linear-gradient(140deg, #facc15, #f97316);
-    display: grid;
-    place-items: center;
-    color: #020617;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-  }
+	.testimonial-meta {
+		display: flex;
+		align-items: center;
+		gap: 14px;
+	}
 
-  .cta-panel {
-    position: relative;
-    border-radius: 26px;
-    padding: 56px 42px;
-    text-align: center;
-    overflow: hidden;
-    background: linear-gradient(130deg, rgba(15,23,42,0.92), rgba(8,11,26,0.92));
-    border: 1px solid rgba(148,163,184,0.24);
-    box-shadow: 0 30px 60px rgba(2,6,23,0.6);
-  }
+	.testimonial-meta span {
+		font-size: 0.86rem;
+		color: rgba(148,163,184,0.78);
+	}
 
-  .cta-panel::after {
-    content: "";
-    position: absolute;
-    inset: -30%;
-    background: radial-gradient(circle at center, rgba(250,204,21,0.2), transparent 70%);
-    opacity: 0.6;
-  }
+	.cta-panel {
+		position: relative;
+		border-radius: 26px;
+		padding: 52px 42px;
+		text-align: center;
+		background: linear-gradient(140deg, rgba(15,23,42,0.92), rgba(9,12,30,0.94));
+		border: 1px solid rgba(148,163,184,0.25);
+		box-shadow: 0 30px 60px rgba(2,6,23,0.65);
+		overflow: hidden;
+	}
 
-  .cta-panel > * {
-    position: relative;
-    z-index: 1;
-  }
+	.cta-panel::after {
+		content: "";
+		position: absolute;
+		inset: -20%;
+		background: radial-gradient(circle, rgba(250,204,21,0.18), transparent 70%);
+	}
 
-  .floating {
-    animation: float 6s ease-in-out infinite;
-  }
+	.cta-panel > * {
+		position: relative;
+		z-index: 1;
+	}
 
-  .glow {
-    animation: pulseGlow 4.5s ease-in-out infinite;
-  }
+	@media (max-width: 960px) {
+		.hero-content {
+			padding: 120px 24px 100px;
+		}
+		.content-wrapper {
+			padding: 0 24px 100px;
+		}
+		.timeline {
+			margin-left: 12px;
+			padding-left: 22px;
+		}
+	}
 
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px) rotateX(0deg) rotateY(0deg);
-    }
-    50% {
-      transform: translateY(-10px) rotateX(2deg) rotateY(-2deg);
-    }
-  }
-
-  @keyframes pulseGlow {
-    0%, 100% {
-      opacity: 0.45;
-      box-shadow: 0 0 30px rgba(250, 204, 21, 0.15);
-    }
-    50% {
-      opacity: 0.7;
-      box-shadow: 0 0 60px rgba(250, 204, 21, 0.28);
-    }
-  }
-
-  @media (max-width: 1024px) {
-    .hero-grid {
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-    }
-    .hero-copy,
-    .hero-visual {
-      grid-column: span 1;
-    }
-  }
-
-  @media (max-width: 720px) {
-    .about-content {
-      padding: 120px 18px 96px;
-    }
-    .hero-title {
-      font-size: clamp(2.4rem, 8vw, 3.4rem);
-    }
-    .cta-panel {
-      padding: 48px 28px;
-    }
-    .showreel-cover {
-      height: 170px;
-    }
-  }
+	@media (max-width: 640px) {
+		.hero-section {
+			min-height: 80vh;
+		}
+		.hero-content {
+			padding-top: 100px;
+		}
+		.btn-primary,
+		.btn-secondary {
+			width: 100%;
+			justify-content: center;
+			text-align: center;
+		}
+	}
 `;
 
-const capabilities = [
+const essentials = [
   {
-    title: "End-to-End Trip Crafting",
-    code: "01",
-    points: [
-      "Destination matchmaking that learns your vibe",
-      "Adaptive itineraries that breathe with live events",
-      "Door-to-door logistics handled in one dashboard",
-      "Seamless syncing with your calendar and travel docs",
-    ],
+    title: "We translate your travel pulse",
+    copy: "Tell us your pace, dietary needs, and must-feel moments. Our planners stitch that into a living itinerary that evolves with you.",
   },
   {
-    title: "Traveler Care Platform",
-    code: "02",
-    points: [
-      "24/7 local expert chat for on-the-ground help",
-      "Real-time alerts for weather, strikes, and delays",
-      "Emergency rerouting handled before you ask",
-      "Inclusive planning that respects every traveler",
-    ],
+    title: "Human experts on standby",
+    copy: "From lost luggage to sudden storms, our travel concierges and local fixers smooth out surprises before they derail your day.",
   },
   {
-    title: "Intelligent Budgeting",
-    code: "03",
-    points: [
-      "Smart spend tracking across flights, stays, and food",
-      "Group cost splitting with instant approvals",
-      "Vendor deals surfaced when they match your taste",
-      "Sustainability insights baked into every plan",
-    ],
+    title: "Tech that watches the horizon",
+    copy: "Real-time flight intel, strike alerts, and weather pivots are baked in. We adjust bookings and notify you instantly.",
+  },
+  {
+    title: "Group harmony tools",
+    copy: "Shared boards, split payments, and mood-based suggestions keep everyone excited—no endless message threads required.",
   },
 ];
 
-const metrics = [
-  { label: "Trips Planned", value: "18K" },
-  { label: "Traveler Uplift", value: "94% relieved" },
-  { label: "Support Response", value: "< 2 min" },
-  { label: "Itinerary Updates", value: "11K real-time" },
-];
-
-const signatureWork = [
+const serviceStages = [
   {
-    title: "Backpacker's Calm",
-    body: "A stress-free Europe loop for first-time solo travelers with smart hostel hopping, midnight safety check-ins, and local ride prompts.",
-    stack: ["Live safety feed", "Transit sync", "Budget guardrails"],
+    heading: "Dream Mapping",
+    body: "We co-create your travel DNA through a guided discovery. Mood boards, past favorites, accessibility needs, and hidden hopes are captured here.",
   },
   {
-    title: "Family Harmony Planner",
-    body: "Seven cities, two toddlers, zero meltdowns. We stitched together nap-friendly pacing, stroller-ready attractions, and allergy-aware dining.",
-    stack: ["Family pulse", "Crowd heatmap", "Allergy concierge"],
+    heading: "Adaptive Blueprint",
+    body: "Our AI blends local expertise with live data to propose a cinematic itinerary. You edit with clicks, we refine until it feels like you.",
   },
   {
-    title: "Workcation Flow",
-    body: "Remote team retreat balancing deep work and deep rest. Hybrid schedules, bandwidth-tested stays, and guided restorative excursions.",
-    stack: ["Focus zoning", "Hybrid stays", "Wellness curation"],
+    heading: "Launch & Companion",
+    body: "The TourEase app becomes your co-pilot—tickets stored, directions guided, and concierge chat ready for on-the-ground requests.",
+  },
+  {
+    heading: "Moments That Linger",
+    body: "We capture highlights, polaroids, and journal prompts so the story of your trip lives on. Rebook favorite spots in a single tap.",
   },
 ];
 
-const testimonials = [
+const travelerVoices = [
   {
-    name: "Riya Kapoor",
-    role: "Solo traveler, Delhi → Scandinavia",
-    quote:
-      "TourEase listened to my nervousness about night trains and planned a route that felt like a hand to hold. The app whispered reminders before I could worry.",
+    name: "Hannah & Omar",
+    role: "Newlyweds, Marrakech escape",
+    words:
+      "We handed TourEase a Pinterest board and they gave us lantern-lit dinners, quiet riads, and sunrise desert guides who felt like friends.",
   },
   {
-    name: "Miguel Torres",
-    role: "Parent of three, Mexico City",
-    quote:
-      "They transformed our family chaos into joy. Dietary flags, stroller-friendly paths, and buffer days saved our sanity.",
+    name: "Arjun",
+    role: "Solo climber, Patagonia",
+    words:
+      "Weather turned, buses stopped, and somehow I still summited. They rerouted me mid-hike and had a warm lodge waiting that night.",
   },
   {
-    name: "Jessie O'Neil",
-    role: "Remote team lead, Dublin",
-    quote:
-      "Our workcation had zero drop-offs. Meeting blocks, local SIM pickups, and surprise hikes kept morale sky-high.",
+    name: "Nguyen family",
+    role: "Three generations, Japan",
+    words:
+      "Wheelchair-ready routes, toddler nap windows, and tea ceremonies my parents still talk about. We just showed up and soaked it in.",
   },
 ];
 
@@ -466,421 +406,217 @@ const About = () => {
       <Navbar />
       <style>{aboutStyles}</style>
 
-      <motion.div
-        className="about-gradient"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1.2 }}
-      />
-      <motion.div
-        className="about-parallax"
-        initial={{ backgroundPosition: "0% 0%" }}
-        animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}
-        transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
-      />
+      <div className="about-shell">
+        <section className="hero-section">
+          <motion.video
+            className="hero-video"
+            src={heroVideoSrc}
+            autoPlay
+            muted
+            loop
+            playsInline
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.2 }}
+          />
+          <motion.div
+            className="hero-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+          />
 
-      <main className="about-content">
-        <motion.section
-          className="hero-grid"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, ease: "easeOut" }}
-        >
-          <div className="hero-copy">
+          <motion.div
+            className="hero-content"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
+          >
             <motion.span
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 10,
-                padding: "10px 18px",
+                padding: "10px 20px",
                 borderRadius: 999,
                 background: "rgba(15,23,42,0.65)",
-                border: "1px solid rgba(246,189,96,0.35)",
+                border: "1px solid rgba(148,163,184,0.4)",
                 color: "#fef3c7",
                 fontSize: "0.8rem",
-                letterSpacing: "0.1em",
+                letterSpacing: "0.12em",
                 textTransform: "uppercase",
               }}
             >
-              Your calmest trip starts here
+              Guided journeys · Seamless support · Real stories
             </motion.span>
             <h1 className="hero-title">
-              We plan journeys that feel like someone already walked them for you.
+              We ease the weight of planning so you can feel every moment of your trip.
             </h1>
-            <p className="hero-subtitle">
-              TourEase blends seasoned travel humans with adaptive AI so every route, stay, and
-              local moment feels effortless. We research, schedule, and adjust in real time—so you
-              only focus on feeling the place you are in.
+            <p className="hero-blurb">
+              TourEase is the travel companion for explorers who crave depth without the logistics
+              grind. We merge human travel designers with adaptive intelligence to choreograph
+              itineraries that flex with you—sunrise to midnight.
             </p>
             <div className="hero-cta">
               <motion.a
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                href="/contact"
-                className="cta-primary"
-              >
-                Build with TourEase
-              </motion.a>
-              <motion.a
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                href="/explore"
-                className="cta-secondary"
-              >
-                View Case Studies
-              </motion.a>
-            </div>
-          </div>
-
-          <div className="hero-visual">
-            <motion.div
-              className="tilt-layer floating"
-              initial={{ rotateX: -6, rotateY: 8, opacity: 0 }}
-              animate={{ rotateX: 0, rotateY: 0, opacity: 1 }}
-              transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
-            >
-              <motion.h3
-                style={{
-                  fontSize: "1.05rem",
-                  fontWeight: 600,
-                  marginBottom: 12,
-                  color: "#fef9c3",
-                  letterSpacing: "0.05em",
-                }}
-                animate={{ letterSpacing: ["0.04em", "0.08em", "0.04em"] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              >
-                How we lighten the load
-              </motion.h3>
-              <div style={{ display: "grid", gap: 16 }}>
-                {[
-                  "Pre-verified stays and rides that meet your comfort",
-                  "Adaptive itineraries that reshape around surprise weather",
-                  "Pocket guides stitched with locals’ voice notes",
-                  "Instant document vault for visas, passes, and tickets",
-                ].map((item) => (
-                  <motion.div
-                    key={item}
-                    whileHover={{ x: 6 }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      color: "rgba(226,232,240,0.86)",
-                      fontSize: "0.94rem",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: "50%",
-                        background: "linear-gradient(135deg, #facc15, #38bdf8)",
-                        boxShadow: "0 0 12px rgba(56,189,248,0.45)",
-                      }}
-                    />
-                    {item}
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div
-              className="tilt-layer glow"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.5, duration: 0.9 }}
-            >
-              <h3
-                style={{
-                  fontSize: "0.95rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.2em",
-                  color: "rgba(226,232,240,0.72)",
-                  marginBottom: 18,
-                }}
-              >
-                Care signals
-              </h3>
-              <div
-                style={{
-                  display: "grid",
-                  gap: 14,
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                }}
-              >
-                {[
-                  "Local fixers on five continents",
-                  "Insured emergency reroutes",
-                  "Verified wheelchair routes",
-                  "Storm and strike monitoring",
-                  "Carbon-aware options",
-                  "Wellness-first pacing",
-                ].map((signal) => (
-                  <div
-                    key={signal}
-                    style={{
-                      padding: "14px 18px",
-                      borderRadius: 14,
-                      background: "rgba(6,12,27,0.85)",
-                      border: "1px solid rgba(148,163,184,0.18)",
-                      fontSize: "0.85rem",
-                      color: "rgba(226,232,240,0.75)",
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                    }}
-                  >
-                    {signal}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: 24,
-              marginBottom: 24,
-            }}
-          >
-            <div>
-              <h2 style={{ fontSize: "2.2rem", fontWeight: 700, marginBottom: 14 }}>
-                Built to ease every traveler
-              </h2>
-              <p style={{ color: "rgba(148,163,184,0.9)", maxWidth: 560, lineHeight: 1.7 }}>
-                Whether you are backpacking, parenting, or wrangling a remote team, TourEase keeps
-                your journey grounded. We pair living itineraries with human experts so surprises
-                turn into stories, not stress.
-              </p>
-            </div>
-            <motion.div
-              whileHover={{ scale: 1.03 }}
-              style={{
-                alignSelf: "flex-start",
-                padding: "12px 20px",
-                borderRadius: 999,
-                background: "rgba(15,23,42,0.6)",
-                border: "1px solid rgba(59,130,246,0.35)",
-                color: "#bfdbfe",
-                fontSize: "0.85rem",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
-            >
-              Travel companions · Humans + Adaptive AI
-            </motion.div>
-          </div>
-          <div className="capabilities-grid">
-            {capabilities.map((cap) => (
-              <motion.div
-                key={cap.code}
-                className="capability-card"
-                whileHover={{ translateY: -8 }}
-              >
-                <div className="capability-title">
-                  <span style={{ color: "#fef9c3", letterSpacing: "0.08em", fontSize: "0.78rem" }}>
-                    Capability {cap.code}
-                  </span>
-                  <span style={{ fontSize: "1.05rem", fontWeight: 600 }}>{cap.title}</span>
-                </div>
-                <ul className="capability-list">
-                  {cap.points.map((point) => (
-                    <li key={point}>{point}</li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          <div style={{ marginBottom: 24 }}>
-            <h2 style={{ fontSize: "2.1rem", fontWeight: 700, marginBottom: 10 }}>
-              Journeys we steady every day
-            </h2>
-            <p style={{ color: "rgba(148,163,184,0.88)", maxWidth: 520 }}>
-              Proof that travelers feel lighter when TourEase co-pilots their plans and stays by
-              their side along the way.
-            </p>
-          </div>
-          <div className="metrics-row">
-            {metrics.map((metric) => (
-              <motion.div key={metric.label} className="metric-tile" whileHover={{ scale: 1.03 }}>
-                <div className="metric-value">{metric.value}</div>
-                <div className="metric-label">{metric.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          <div
-            style={{
-              marginBottom: 30,
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 20,
-              flexWrap: "wrap",
-            }}
-          >
-            <div>
-              <h2 style={{ fontSize: "2.1rem", fontWeight: 700, marginBottom: 12 }}>
-                Signature journeys we shaped
-              </h2>
-              <p style={{ color: "rgba(148,163,184,0.88)", maxWidth: 560 }}>
-                A peek into traveller stories we choreographed—each itinerary breathing with
-                check-ins, cultural depth, and rapid support when plans flex.
-              </p>
-            </div>
-            <a
-              href="/portfolio"
-              style={{ color: "#93c5fd", fontSize: "0.9rem", textDecoration: "none" }}
-            >
-              Explore planning playbook →
-            </a>
-          </div>
-          <div className="showreel-grid">
-            {signatureWork.map((work) => (
-              <motion.div key={work.title} className="showreel-card" whileHover={{ rotateY: 6 }}>
-                <div className="showreel-cover">Concept Preview</div>
-                <div style={{ padding: "26px 24px" }}>
-                  <h3 style={{ fontSize: "1.15rem", fontWeight: 600, marginBottom: 12 }}>
-                    {work.title}
-                  </h3>
-                  <p
-                    style={{
-                      color: "rgba(203,213,225,0.84)",
-                      fontSize: "0.95rem",
-                      lineHeight: 1.7,
-                    }}
-                  >
-                    {work.body}
-                  </p>
-                  <div className="stack-chips">
-                    {work.stack.map((item) => (
-                      <span key={item} className="stack-chip">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          <div style={{ marginBottom: 26 }}>
-            <h2 style={{ fontSize: "2.1rem", fontWeight: 700, marginBottom: 10 }}>
-              Travelers who breathe easier with us
-            </h2>
-            <p style={{ color: "rgba(148,163,184,0.88)", maxWidth: 540 }}>
-              Everyday travelers share how TourEase softened the edges of their plans, shared hidden
-              gems, and never left them on read.
-            </p>
-          </div>
-          <div className="testimonials-grid">
-            {testimonials.map((item) => (
-              <motion.div key={item.name} className="testimonial-card" whileHover={{ y: -6 }}>
-                <p className="testimonial-quote">“{item.quote}”</p>
-                <div className="testimonial-author">
-                  <span className="author-pill">
-                    {item.name
-                      .split(" ")
-                      .map((word) => word[0])
-                      .join("")}
-                  </span>
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{item.name}</div>
-                    <div style={{ fontSize: "0.85rem", color: "rgba(148,163,184,0.78)" }}>
-                      {item.role}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-        >
-          <div className="cta-panel">
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              style={{ fontSize: "2.2rem", fontWeight: 700, marginBottom: 16 }}
-            >
-              Ready to feel excited—not exhausted—about your next trip?
-            </motion.h2>
-            <p
-              style={{
-                color: "rgba(203,213,225,0.85)",
-                fontSize: "1.05rem",
-                maxWidth: 620,
-                margin: "0 auto 32px",
-                lineHeight: 1.7,
-              }}
-            >
-              Share the trip you are dreaming of. We will surface smarter routes, handle the tiny
-              details, and stay on standby when the journey shifts.
-            </p>
-            <div style={{ display: "flex", justifyContent: "center", gap: 18, flexWrap: "wrap" }}>
-              <motion.a
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                href="mailto:studio@tourease.com"
-                className="cta-primary"
+                whileTap={{ scale: 0.96 }}
+                href="/planner"
+                className="btn-primary"
               >
-                Start planning with TourEase
+                Craft my itinerary
               </motion.a>
               <motion.a
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                href="/portfolio"
-                className="cta-secondary"
+                whileTap={{ scale: 0.96 }}
+                href="/stories"
+                className="btn-secondary"
               >
-                See real traveler stories
+                Watch traveler stories
               </motion.a>
             </div>
-          </div>
-        </motion.section>
-      </main>
+          </motion.div>
+        </section>
+
+        <main className="content-wrapper">
+          <motion.section
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <h2 className="section-title">Why TourEase exists</h2>
+            <p className="section-intro">
+              We are travelers who lost weekends to spreadsheets and sleepless nights refreshing
+              airline tabs. TourEase began to rewrite that experience—giving adventurers cinematic
+              stories without the stress sweat.
+            </p>
+            <div className="essentials-grid">
+              {essentials.map((item) => (
+                <motion.div
+                  key={item.title}
+                  className="essential-card"
+                  whileHover={{ translateY: -6 }}
+                >
+                  <h3>{item.title}</h3>
+                  <p>{item.copy}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+
+          <motion.section
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <h2 className="section-title">How we choreograph your adventure</h2>
+            <p className="section-intro">
+              Our service weaves technology, empathetic planners, and a global caretaker network.
+              Every stage keeps you relaxed yet ready for whatever the road reveals.
+            </p>
+            <div className="timeline">
+              {serviceStages.map((stage) => (
+                <div key={stage.heading} className="timeline-point">
+                  <h4>{stage.heading}</h4>
+                  <p>{stage.body}</p>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+
+          <motion.section
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="story-canvas">
+              <div className="story-media">
+                <video src={heroVideoSrc} autoPlay muted loop playsInline />
+                <div className="story-overlay" />
+              </div>
+              <div className="story-copy">
+                <h3>From idea to immersive escape</h3>
+                <p>
+                  The film you see is where TourEase travelers have stood—dawn flights over coral
+                  reefs, markets humming with colour, and cliffside sunsets captured only after we
+                  cleared their schedules. Every journey is guarded by our concierge team, adapting
+                  the plan when tides shift.
+                </p>
+                <p>
+                  Whether you crave hidden trails or a resort cocoon, our planners collaborate with
+                  local hosts, sustainable vendors, and safety scouts so the experience stays
+                  magical and mindful.
+                </p>
+              </div>
+            </div>
+          </motion.section>
+
+          <motion.section
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <h2 className="section-title">Travelers who trusted us with their time</h2>
+            <p className="section-intro">
+              Real voices from journeys we shepherded—from deserts to glaciers, families to
+              soloists. They handed us the heavy lifting and reclaimed awe.
+            </p>
+            <div className="testimonials-grid">
+              {travelerVoices.map((voice) => (
+                <motion.div key={voice.name} className="testimonial-card" whileHover={{ y: -6 }}>
+                  <p>“{voice.words}”</p>
+                  <div className="testimonial-meta">
+                    <strong>{voice.name}</strong>
+                    <span>{voice.role}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+
+          <motion.section
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="cta-panel">
+              <h2 className="section-title" style={{ marginBottom: 20 }}>
+                Ready to feel excited—not exhausted—about planning?
+              </h2>
+              <p className="section-intro" style={{ margin: "0 auto 32px" }}>
+                Share your dream destination, travel crew, and vibe. We will translate it into a
+                flexible itinerary, secure your bookings, and stay close while you explore.
+              </p>
+              <div className="hero-cta" style={{ justifyContent: "center" }}>
+                <motion.a
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.96 }}
+                  href="/get-started"
+                  className="btn-primary"
+                >
+                  Start my travel brief
+                </motion.a>
+                <motion.a
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.96 }}
+                  href="mailto:care@tourease.com"
+                  className="btn-secondary"
+                >
+                  Talk to a planner
+                </motion.a>
+              </div>
+            </div>
+          </motion.section>
+        </main>
+      </div>
     </div>
   );
 };
