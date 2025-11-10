@@ -268,8 +268,7 @@ const PageMetaUpdater = () => {
     else if (pathname === "/about") {
       title = "TourEase – About Us";
       favicon = "/favicons/gold.ico";
-    }
-    else if (pathname === "/explore") {
+    } else if (pathname === "/explore") {
       title = "TourEase – Explore";
       favicon = "/favicons/blue.ico";
     } else if (pathname === "/trending") {

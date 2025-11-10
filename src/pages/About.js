@@ -112,7 +112,7 @@ const aboutStyles = `
 		width: 100%;
 		max-width: 1180px;
 		margin: 0 auto;
-		padding: 0 32px 120px;
+		padding: 0 32px 0;
 		display: grid;
 		gap: 100px;
 	}
@@ -291,20 +291,20 @@ const aboutStyles = `
 
 	.cta-panel {
 		position: relative;
-		border-radius: 26px;
-		padding: 52px 42px;
+		border-radius: 0;
+		padding: clamp(56px, 8vw, 108px) clamp(24px, 7vw, 96px);
 		text-align: center;
-		background: linear-gradient(140deg, rgba(15,23,42,0.92), rgba(9,12,30,0.94));
-		border: 1px solid rgba(148,163,184,0.25);
-		box-shadow: 0 30px 60px rgba(2,6,23,0.65);
+		background: linear-gradient(140deg, rgba(15,23,42,0.95), rgba(9,12,30,0.95));
+		border: none;
+		box-shadow: none;
 		overflow: hidden;
 	}
 
 	.cta-panel::after {
 		content: "";
 		position: absolute;
-		inset: -20%;
-		background: radial-gradient(circle, rgba(250,204,21,0.18), transparent 70%);
+		inset: -15%;
+		background: radial-gradient(circle, rgba(250,204,21,0.2), transparent 70%);
 	}
 
 	.cta-panel > * {
@@ -312,16 +312,27 @@ const aboutStyles = `
 		z-index: 1;
 	}
 
+	.cta-bleed {
+		position: relative;
+		width: 100vw;
+		margin: 0;
+		left: 50%;
+		transform: translateX(-50%);
+	}
+
 	@media (max-width: 960px) {
 		.hero-content {
 			padding: 120px 24px 100px;
 		}
 		.content-wrapper {
-			padding: 0 24px 100px;
+			padding: 0 24px 0;
 		}
 		.timeline {
 			margin-left: 12px;
 			padding-left: 22px;
+		}
+		.cta-panel {
+			padding: 64px 28px;
 		}
 	}
 
@@ -337,6 +348,9 @@ const aboutStyles = `
 			width: 100%;
 			justify-content: center;
 			text-align: center;
+		}
+		.cta-panel {
+			padding: 56px 20px;
 		}
 	}
 `;
@@ -580,42 +594,43 @@ const About = () => {
               ))}
             </div>
           </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-          >
-            <div className="cta-panel">
-              <h2 className="section-title" style={{ marginBottom: 20 }}>
-                Ready to feel excited—not exhausted—about planning?
-              </h2>
-              <p className="section-intro" style={{ margin: "0 auto 32px" }}>
-                Share your dream destination, travel crew, and vibe. We will translate it into a
-                flexible itinerary, secure your bookings, and stay close while you explore.
-              </p>
-              <div className="hero-cta" style={{ justifyContent: "center" }}>
-                <motion.a
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.96 }}
-                  href="/get-started"
-                  className="btn-primary"
-                >
-                  Start my travel brief
-                </motion.a>
-                <motion.a
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.96 }}
-                  href="mailto:care@tourease.com"
-                  className="btn-secondary"
-                >
-                  Talk to a planner
-                </motion.a>
-              </div>
-            </div>
-          </motion.section>
         </main>
+
+        <motion.section
+          className="cta-bleed"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
+          <div className="cta-panel">
+            <h2 className="section-title" style={{ marginBottom: 20 }}>
+              Ready to feel excited—not exhausted—about planning?
+            </h2>
+            <p className="section-intro" style={{ margin: "0 auto 32px" }}>
+              Share your dream destination, travel crew, and vibe. We will translate it into a
+              flexible itinerary, secure your bookings, and stay close while you explore.
+            </p>
+            <div className="hero-cta" style={{ justifyContent: "center" }}>
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.96 }}
+                href="/get-started"
+                className="btn-primary"
+              >
+                Start my travel brief
+              </motion.a>
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.96 }}
+                href="mailto:care@tourease.com"
+                className="btn-secondary"
+              >
+                Talk to a planner
+              </motion.a>
+            </div>
+          </div>
+        </motion.section>
       </div>
     </div>
   );
