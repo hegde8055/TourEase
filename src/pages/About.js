@@ -13,7 +13,13 @@ const aboutStyles = `
 		position: relative;
 		overflow-x: hidden;
 	}
-
+	.navbar-container {
+		position: fixed; /* Makes the navbar "float" on top */
+		top: 0;
+		left: 0;
+		width: 100%;
+		z-index: 10; /* Ensures it's above the video */
+	  }
 	.about-shell {
 		position: relative;
 		width: 100%;
@@ -50,7 +56,8 @@ const aboutStyles = `
 		width: 100%;
 		max-width: 1200px;
 		margin: 0 auto;
-		padding: clamp(96px, 15vh, 140px) clamp(24px, 6vw, 108px) clamp(56px, 12vh, 104px);
+    /* This padding-top is larger to avoid the fixed navbar */
+		padding: clamp(120px, 18vh, 160px) clamp(24px, 6vw, 108px) clamp(56px, 12vh, 104px);
 		display: grid;
 		gap: 24px;
 	}
@@ -437,7 +444,9 @@ const travelerVoices = [
 const About = () => {
   return (
     <div className="about-page">
-      <Navbar />
+      <div className="navbar-container">
+        <Navbar />
+      </div>
       <style>{aboutStyles}</style>
 
       <div className="about-shell">
