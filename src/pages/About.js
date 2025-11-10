@@ -65,7 +65,7 @@ const aboutStyles = `
     font-weight: 800;
     line-height: 1.05;
     letter-spacing: -0.02em;
-    background: linear-gradient(120deg, #fef9c3 0%, #facc15 33%, #38bdf8 72%, #fef3c7 100%);
+    background: linear-gradient(120deg, #fef3c7 0%, #facc15 33%, #38bdf8 72%, #bae6fd 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 24px;
@@ -237,7 +237,7 @@ const aboutStyles = `
 
   .showreel-cover {
     height: 200px;
-    background: linear-gradient(135deg, rgba(59,130,246,0.35), rgba(14,116,144,0.55));
+    background: linear-gradient(135deg, rgba(59,130,246,0.28), rgba(248,191,22,0.32));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -383,80 +383,80 @@ const aboutStyles = `
 
 const capabilities = [
   {
-    title: "Full-stack Experience",
+    title: "End-to-End Trip Crafting",
     code: "01",
     points: [
-      "Strategy & UX blueprints",
-      "Responsive product engineering",
-      "API-first architectures",
-      "Accessibility by design",
+      "Destination matchmaking that learns your vibe",
+      "Adaptive itineraries that breathe with live events",
+      "Door-to-door logistics handled in one dashboard",
+      "Seamless syncing with your calendar and travel docs",
     ],
   },
   {
-    title: "Immersive UI Systems",
+    title: "Traveler Care Platform",
     code: "02",
     points: [
-      "Cinematic web animations",
-      "Micro-interaction libraries",
-      "Design system governance",
-      "Brand motion playbooks",
+      "24/7 local expert chat for on-the-ground help",
+      "Real-time alerts for weather, strikes, and delays",
+      "Emergency rerouting handled before you ask",
+      "Inclusive planning that respects every traveler",
     ],
   },
   {
-    title: "AI-Forward Delivery",
+    title: "Intelligent Budgeting",
     code: "03",
     points: [
-      "Predictive personalization",
-      "Generative content tooling",
-      "MLOps readiness",
-      "Insight dashboards",
+      "Smart spend tracking across flights, stays, and food",
+      "Group cost splitting with instant approvals",
+      "Vendor deals surfaced when they match your taste",
+      "Sustainability insights baked into every plan",
     ],
   },
 ];
 
 const metrics = [
-  { label: "Award Nominations", value: "14" },
-  { label: "Launch Velocity", value: "6 wk avg" },
-  { label: "Client Retention", value: "92%" },
-  { label: "NPS", value: "78" },
+  { label: "Trips Planned", value: "18K" },
+  { label: "Traveler Uplift", value: "94% relieved" },
+  { label: "Support Response", value: "< 2 min" },
+  { label: "Itinerary Updates", value: "11K real-time" },
 ];
 
 const signatureWork = [
   {
-    title: "NeoCruise Concierge",
-    body: "A luxury cruise marketplace reimagined with AI concierges, real-time cabin visualization, and volumetric ambient soundscapes.",
-    stack: ["React", "Three.js", "GraphQL", "AWS"],
+    title: "Backpacker's Calm",
+    body: "A stress-free Europe loop for first-time solo travelers with smart hostel hopping, midnight safety check-ins, and local ride prompts.",
+    stack: ["Live safety feed", "Transit sync", "Budget guardrails"],
   },
   {
-    title: "Aurora Atlas VR Portal",
-    body: "Multi-device travel planning using stitched 360° narratives, procedural lighting, and adaptive scene streaming for frictionless booking.",
-    stack: ["Next.js", "WebXR", "Prisma", "Edge Functions"],
+    title: "Family Harmony Planner",
+    body: "Seven cities, two toddlers, zero meltdowns. We stitched together nap-friendly pacing, stroller-ready attractions, and allergy-aware dining.",
+    stack: ["Family pulse", "Crowd heatmap", "Allergy concierge"],
   },
   {
-    title: "Stride.Labs Enterprise",
-    body: "A B2B mobility platform combining predictive routing, contract automation, and governance dashboards tuned for global ops teams.",
-    stack: ["Vue", "D3.js", "Python", "Kubernetes"],
+    title: "Workcation Flow",
+    body: "Remote team retreat balancing deep work and deep rest. Hybrid schedules, bandwidth-tested stays, and guided restorative excursions.",
+    stack: ["Focus zoning", "Hybrid stays", "Wellness curation"],
   },
 ];
 
 const testimonials = [
   {
-    name: "Isha Menon",
-    role: "Founder, Horizon Retreats",
+    name: "Riya Kapoor",
+    role: "Solo traveler, Delhi → Scandinavia",
     quote:
-      "We engaged TourEase to redesign our digital presence; they choreographed a cinematic customer journey that doubled bookings in 90 days.",
+      "TourEase listened to my nervousness about night trains and planned a route that felt like a hand to hold. The app whispered reminders before I could worry.",
   },
   {
-    name: "Daniel Ruiz",
-    role: "VP Product, MetroFly",
+    name: "Miguel Torres",
+    role: "Parent of three, Mexico City",
     quote:
-      "Their team speaks the language of product, engineering, and brand simultaneously. Velocity without compromise.",
+      "They transformed our family chaos into joy. Dietary flags, stroller-friendly paths, and buffer days saved our sanity.",
   },
   {
-    name: "Meera Chand",
-    role: "Innovation Lead, Helios Ventures",
+    name: "Jessie O'Neil",
+    role: "Remote team lead, Dublin",
     quote:
-      "If you want teams that merge art direction with ruthless technical execution, TourEase is the benchmark.",
+      "Our workcation had zero drop-offs. Meeting blocks, local SIM pickups, and surprise hikes kept morale sky-high.",
   },
 ];
 
@@ -499,21 +499,21 @@ const About = () => {
                 borderRadius: 999,
                 background: "rgba(15,23,42,0.65)",
                 border: "1px solid rgba(246,189,96,0.35)",
-                color: "#fde68a",
+                color: "#fef3c7",
                 fontSize: "0.8rem",
                 letterSpacing: "0.1em",
                 textTransform: "uppercase",
               }}
             >
-              Studio Reel 2025 · Immersive Webcraft
+              Your calmest trip starts here
             </motion.span>
             <h1 className="hero-title">
-              We design cinematic digital worlds where brands earn lifetime advocates.
+              We plan journeys that feel like someone already walked them for you.
             </h1>
             <p className="hero-subtitle">
-              From strategic discovery to shippable product, TourEase fuses cinematic interaction
-              design, disciplined engineering, and AI-native thinking. We operate as a strike team
-              that can concept, prototype, and launch experiential platforms in weeks—not quarters.
+              TourEase blends seasoned travel humans with adaptive AI so every route, stay, and
+              local moment feels effortless. We research, schedule, and adjust in real time—so you
+              only focus on feeling the place you are in.
             </p>
             <div className="hero-cta">
               <motion.a
@@ -553,14 +553,14 @@ const About = () => {
                 animate={{ letterSpacing: ["0.04em", "0.08em", "0.04em"] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               >
-                Signature Moves
+                How we lighten the load
               </motion.h3>
               <div style={{ display: "grid", gap: 16 }}>
                 {[
-                  "Narrative-driven product strategy",
-                  "3D compositing & volumetric UI",
-                  "AI-assisted design sprints",
-                  "Cloud-native delivery playbooks",
+                  "Pre-verified stays and rides that meet your comfort",
+                  "Adaptive itineraries that reshape around surprise weather",
+                  "Pocket guides stitched with locals’ voice notes",
+                  "Instant document vault for visas, passes, and tickets",
                 ].map((item) => (
                   <motion.div
                     key={item}
@@ -604,7 +604,7 @@ const About = () => {
                   marginBottom: 18,
                 }}
               >
-                Trusted By
+                Care signals
               </h3>
               <div
                 style={{
@@ -613,26 +613,31 @@ const About = () => {
                   gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
                 }}
               >
-                {["VisaDirect", "Nimbus Air", "Helios", "Stride", "Aurora", "Monad Labs"].map(
-                  (brand) => (
-                    <div
-                      key={brand}
-                      style={{
-                        padding: "14px 18px",
-                        borderRadius: 14,
-                        background: "rgba(6,12,27,0.85)",
-                        border: "1px solid rgba(148,163,184,0.18)",
-                        fontSize: "0.85rem",
-                        color: "rgba(226,232,240,0.75)",
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                        textAlign: "center",
-                      }}
-                    >
-                      {brand}
-                    </div>
-                  )
-                )}
+                {[
+                  "Local fixers on five continents",
+                  "Insured emergency reroutes",
+                  "Verified wheelchair routes",
+                  "Storm and strike monitoring",
+                  "Carbon-aware options",
+                  "Wellness-first pacing",
+                ].map((signal) => (
+                  <div
+                    key={signal}
+                    style={{
+                      padding: "14px 18px",
+                      borderRadius: 14,
+                      background: "rgba(6,12,27,0.85)",
+                      border: "1px solid rgba(148,163,184,0.18)",
+                      fontSize: "0.85rem",
+                      color: "rgba(226,232,240,0.75)",
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      textAlign: "center",
+                    }}
+                  >
+                    {signal}
+                  </div>
+                ))}
               </div>
             </motion.div>
           </div>
@@ -655,12 +660,12 @@ const About = () => {
           >
             <div>
               <h2 style={{ fontSize: "2.2rem", fontWeight: 700, marginBottom: 14 }}>
-                Why brands hire TourEase
+                Built to ease every traveler
               </h2>
               <p style={{ color: "rgba(148,163,184,0.9)", maxWidth: 560, lineHeight: 1.7 }}>
-                We orchestrate vision from the first whiteboard to production hardening. Every
-                engagement blends cinematic craft with rigorous delivery so your product feels like
-                a premiere, not a release.
+                Whether you are backpacking, parenting, or wrangling a remote team, TourEase keeps
+                your journey grounded. We pair living itineraries with human experts so surprises
+                turn into stories, not stress.
               </p>
             </div>
             <motion.div
@@ -677,7 +682,7 @@ const About = () => {
                 textTransform: "uppercase",
               }}
             >
-              Studio Model · Strategy + Design + Engineering
+              Travel companions · Humans + Adaptive AI
             </motion.div>
           </div>
           <div className="capabilities-grid">
@@ -711,10 +716,11 @@ const About = () => {
         >
           <div style={{ marginBottom: 24 }}>
             <h2 style={{ fontSize: "2.1rem", fontWeight: 700, marginBottom: 10 }}>
-              Signal and proof
+              Journeys we steady every day
             </h2>
             <p style={{ color: "rgba(148,163,184,0.88)", maxWidth: 520 }}>
-              Performance metrics from the last twelve launches our core team delivered end-to-end.
+              Proof that travelers feel lighter when TourEase co-pilots their plans and stays by
+              their side along the way.
             </p>
           </div>
           <div className="metrics-row">
@@ -745,18 +751,18 @@ const About = () => {
           >
             <div>
               <h2 style={{ fontSize: "2.1rem", fontWeight: 700, marginBottom: 12 }}>
-                Recent cinematic builds
+                Signature journeys we shaped
               </h2>
               <p style={{ color: "rgba(148,163,184,0.88)", maxWidth: 560 }}>
-                A snapshot of platform stories we have sculpted with layered motion, 3D surfacing,
-                and outcome-focused product thinking.
+                A peek into traveller stories we choreographed—each itinerary breathing with
+                check-ins, cultural depth, and rapid support when plans flex.
               </p>
             </div>
             <a
               href="/portfolio"
               style={{ color: "#93c5fd", fontSize: "0.9rem", textDecoration: "none" }}
             >
-              View full portfolio →
+              Explore planning playbook →
             </a>
           </div>
           <div className="showreel-grid">
@@ -797,11 +803,11 @@ const About = () => {
         >
           <div style={{ marginBottom: 26 }}>
             <h2 style={{ fontSize: "2.1rem", fontWeight: 700, marginBottom: 10 }}>
-              Leaders speaking about TourEase
+              Travelers who breathe easier with us
             </h2>
             <p style={{ color: "rgba(148,163,184,0.88)", maxWidth: 540 }}>
-              Product, brand, and venture leaders trust our studio to transform complex ideas into
-              living, breathing digital experiences.
+              Everyday travelers share how TourEase softened the edges of their plans, shared hidden
+              gems, and never left them on read.
             </p>
           </div>
           <div className="testimonials-grid">
@@ -840,7 +846,7 @@ const About = () => {
               transition={{ duration: 0.6 }}
               style={{ fontSize: "2.2rem", fontWeight: 700, marginBottom: 16 }}
             >
-              Ready to premiere your next digital flagship?
+              Ready to feel excited—not exhausted—about your next trip?
             </motion.h2>
             <p
               style={{
@@ -851,8 +857,8 @@ const About = () => {
                 lineHeight: 1.7,
               }}
             >
-              We embed with your team, co-author the product vision, and deliver in cinematic
-              chapters. Let’s storyboard your roadmap together.
+              Share the trip you are dreaming of. We will surface smarter routes, handle the tiny
+              details, and stay on standby when the journey shifts.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 18, flexWrap: "wrap" }}>
               <motion.a
@@ -861,7 +867,7 @@ const About = () => {
                 href="mailto:studio@tourease.com"
                 className="cta-primary"
               >
-                Book a discovery call
+                Start planning with TourEase
               </motion.a>
               <motion.a
                 whileHover={{ scale: 1.05 }}
@@ -869,7 +875,7 @@ const About = () => {
                 href="/portfolio"
                 className="cta-secondary"
               >
-                Download capabilities deck
+                See real traveler stories
               </motion.a>
             </div>
           </div>
