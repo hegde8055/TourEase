@@ -22,7 +22,7 @@ const aboutStyles = `
 
 	.hero-section {
 		position: relative;
-		min-height: 90vh;
+		min-height: 82vh;
 		display: grid;
 		place-items: center;
 		overflow: hidden;
@@ -50,9 +50,9 @@ const aboutStyles = `
 		z-index: 2;
 		width: 100%;
 		max-width: 1180px;
-		padding: 140px 32px 120px;
+		padding: 110px 32px 96px;
 		display: grid;
-		gap: 32px;
+		gap: 28px;
 	}
 
 	.hero-title {
@@ -322,7 +322,7 @@ const aboutStyles = `
 
 	@media (max-width: 960px) {
 		.hero-content {
-			padding: 120px 24px 100px;
+			padding: 96px 24px 88px;
 		}
 		.content-wrapper {
 			padding: 0 24px 0;
@@ -338,10 +338,10 @@ const aboutStyles = `
 
 	@media (max-width: 640px) {
 		.hero-section {
-			min-height: 80vh;
+			min-height: 76vh;
 		}
 		.hero-content {
-			padding-top: 100px;
+			padding-top: 88px;
 		}
 		.btn-primary,
 		.btn-secondary {
