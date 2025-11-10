@@ -2,8 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 
-const heroVideoSrc =
-  "https://cdn.coverr.co/videos/coverr-aerial-view-of-tropical-island-5118/1080p.mp4";
+const heroVideoSrc = "/assets/intro.mkv";
 
 const aboutStyles = `
 	.about-page {
@@ -49,10 +48,9 @@ const aboutStyles = `
 		position: relative;
 		z-index: 2;
 		width: 100%;
-		max-width: 1180px;
-		padding: 110px 32px 96px;
+		padding: 96px clamp(24px, 6vw, 108px) 64px;
 		display: grid;
-		gap: 28px;
+		gap: 24px;
 	}
 
 	.hero-title {
@@ -110,9 +108,8 @@ const aboutStyles = `
 
 	.content-wrapper {
 		width: 100%;
-		max-width: 1180px;
-		margin: 0 auto;
-		padding: 0 32px 0;
+		margin: 0;
+		padding: 0 clamp(24px, 6vw, 108px);
 		display: grid;
 		gap: 100px;
 	}
@@ -125,7 +122,9 @@ const aboutStyles = `
 	}
 
 	.section-intro {
-		max-width: 720px;
+		max-width: 960px;
+		margin: 0;
+		padding: 0;
 		color: rgba(203,213,225,0.85);
 		font-size: 1.05rem;
 		line-height: 1.8;
@@ -139,7 +138,7 @@ const aboutStyles = `
 
 	.essential-card {
 		position: relative;
-		padding: 28px 24px;
+		padding: 28px 32px;
 		border-radius: 20px;
 		background: linear-gradient(150deg, rgba(15,23,42,0.92), rgba(8,11,26,0.92));
 		border: 1px solid rgba(148,163,184,0.22);
@@ -314,18 +313,16 @@ const aboutStyles = `
 
 	.cta-bleed {
 		position: relative;
-		width: 100vw;
+		width: 100%;
 		margin: 0;
-		left: 50%;
-		transform: translateX(-50%);
 	}
 
 	@media (max-width: 960px) {
 		.hero-content {
-			padding: 96px 24px 88px;
+			padding: 88px 24px 72px;
 		}
 		.content-wrapper {
-			padding: 0 24px 0;
+			padding: 0 24px;
 		}
 		.timeline {
 			margin-left: 12px;
