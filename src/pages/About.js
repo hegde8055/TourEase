@@ -7,8 +7,9 @@ const aboutStyles = `
 	body.about-page-active .main-content {
 		padding-top: 0;
 	}
+
 	body.about-page-active header {
-		top: 0;
+		top: 10px;
 	}
 
 	.about-page {
@@ -34,7 +35,8 @@ const aboutStyles = `
 		display: grid;
 		place-items: center;
 		overflow: hidden;
-		width: 100%;
+		width: 100vw;
+		margin: 0 calc(50% - 50vw);
 	}
 
 	.hero-video {
@@ -43,15 +45,16 @@ const aboutStyles = `
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		filter: saturate(115%) contrast(105%);
+		filter: saturate(110%) contrast(95%) brightness(0.6);
 	}
 
 	.hero-overlay {
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(180deg, rgba(3,7,18,0.35) 0%, rgba(3,7,18,0.92) 100%),
-			radial-gradient(900px 540px at 18% 18%, rgba(14,116,144,0.35), transparent 70%);
-		mix-blend-mode: multiply;
+		background:
+			linear-gradient(180deg, rgba(5,10,25,0.75) 0%, rgba(2,6,23,0.94) 75%),
+			radial-gradient(900px 540px at 18% 18%, rgba(14,116,144,0.28), transparent 70%);
+		mix-blend-mode: normal;
 	}
 
 	.hero-content {
@@ -60,8 +63,7 @@ const aboutStyles = `
 		width: 100%;
 		max-width: 1200px;
 		margin: 0 auto;
-		/* Generous top padding keeps content clear of the floating navbar */
-		padding: clamp(120px, 20vh, 180px) clamp(24px, 6vw, 108px) clamp(64px, 12vh, 120px);
+		padding: clamp(150px, 26vh, 240px) clamp(24px, 6vw, 108px) clamp(72px, 12vh, 140px);
 		display: grid;
 		gap: 24px;
 		justify-items: center;
@@ -357,7 +359,7 @@ const aboutStyles = `
 
 	@media (max-width: 960px) {
 		.hero-content {
-			padding: 88px 24px 72px;
+			padding: 120px 24px 72px;
 		}
 		.content-wrapper {
 			margin: 64px auto 0;
@@ -377,11 +379,8 @@ const aboutStyles = `
 	}
 
 	@media (max-width: 640px) {
-		.hero-section {
-			min-height: 82vh;
-		}
 		.hero-content {
-			padding: 80px 20px 64px;
+			padding: 96px 20px 56px;
 		}
 		.btn-primary,
 		.btn-secondary {
