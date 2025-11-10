@@ -21,7 +21,7 @@ const aboutStyles = `
 
 	.hero-section {
 		position: relative;
-		min-height: 82vh;
+		min-height: 100vh;
 		display: grid;
 		place-items: center;
 		overflow: hidden;
@@ -48,7 +48,9 @@ const aboutStyles = `
 		position: relative;
 		z-index: 2;
 		width: 100%;
-		padding: 96px clamp(24px, 6vw, 108px) 64px;
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: clamp(96px, 15vh, 140px) clamp(24px, 6vw, 108px) clamp(56px, 12vh, 104px);
 		display: grid;
 		gap: 24px;
 	}
@@ -108,10 +110,16 @@ const aboutStyles = `
 
 	.content-wrapper {
 		width: 100%;
-		margin: 0;
+		max-width: 1200px;
+		margin: clamp(48px, 9vh, 108px) auto 0;
 		padding: 0 clamp(24px, 6vw, 108px);
 		display: grid;
-		gap: 100px;
+		gap: clamp(80px, 10vw, 128px);
+		justify-items: center;
+	}
+
+	.content-wrapper > * {
+		width: 100%;
 	}
 
 	.section-title {
@@ -216,6 +224,7 @@ const aboutStyles = `
 		background: linear-gradient(180deg, rgba(15,23,42,0.9), rgba(2,6,23,0.95));
 		border: 1px solid rgba(226,232,240,0.12);
 		box-shadow: 0 28px 50px rgba(2,6,23,0.6);
+		margin: 0 auto;
 	}
 
 	.story-media {
@@ -291,7 +300,7 @@ const aboutStyles = `
 	.cta-panel {
 		position: relative;
 		border-radius: 0;
-		padding: clamp(56px, 8vw, 108px) clamp(24px, 7vw, 96px);
+		padding: clamp(64px, 11vw, 136px) clamp(24px, 7vw, 120px);
 		text-align: center;
 		background: linear-gradient(140deg, rgba(15,23,42,0.95), rgba(9,12,30,0.95));
 		border: none;
@@ -319,7 +328,7 @@ const aboutStyles = `
 	.cta-bleed {
 		position: relative;
 		width: 100%;
-		margin: 0;
+		margin: clamp(48px, 10vh, 96px) 0 0;
 		min-height: calc(100vh - 110px); /* fill viewport below navbar */
 		display: flex;
 		align-items: stretch;
@@ -331,11 +340,16 @@ const aboutStyles = `
 			padding: 88px 24px 72px;
 		}
 		.content-wrapper {
+			margin: 64px auto 0;
 			padding: 0 24px;
+			gap: 80px;
 		}
 		.timeline {
 			margin-left: 12px;
 			padding-left: 22px;
+		}
+		.cta-bleed {
+			margin-top: 96px;
 		}
 		.cta-panel {
 			padding: 64px 28px;
@@ -344,10 +358,10 @@ const aboutStyles = `
 
 	@media (max-width: 640px) {
 		.hero-section {
-			min-height: 76vh;
+			min-height: 82vh;
 		}
 		.hero-content {
-			padding-top: 88px;
+			padding-top: 80px;
 		}
 		.btn-primary,
 		.btn-secondary {
