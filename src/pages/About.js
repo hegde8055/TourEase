@@ -480,7 +480,7 @@ const About = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               style={{
-                display: "inline-flex",
+                display: "flex",
                 alignItems: "center",
                 gap: 10,
                 padding: "10px 10px",
