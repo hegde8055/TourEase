@@ -480,10 +480,10 @@ const About = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               style={{
-                display: "flex",
+                display: "inline-flex",
                 alignItems: "center",
                 gap: 10,
-                padding: "10px 10px",
+                padding: "10px 20px",
                 borderRadius: 999,
                 background: "rgba(15,23,42,0.65)",
                 border: "1px solid rgba(148,163,184,0.4)",
@@ -491,8 +491,6 @@ const About = () => {
                 fontSize: "0.8rem",
                 letterSpacing: "0.12em",
                 textTransform: "uppercase",
-                //marginLeft: "-1200px",
-                margin: "-120px",
               }}
             >
               Guided journeys · Seamless support · Real stories
