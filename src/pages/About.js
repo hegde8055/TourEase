@@ -297,6 +297,11 @@ const aboutStyles = `
 		border: none;
 		box-shadow: none;
 		overflow: hidden;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.cta-panel::after {
@@ -315,6 +320,10 @@ const aboutStyles = `
 		position: relative;
 		width: 100%;
 		margin: 0;
+		min-height: calc(100vh - 110px); /* fill viewport below navbar */
+		display: flex;
+		align-items: stretch;
+		justify-content: center;
 	}
 
 	@media (max-width: 960px) {
