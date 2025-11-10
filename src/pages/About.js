@@ -42,6 +42,7 @@ const aboutStyles = `
 		height: 100%;
 		object-fit: cover;
 		filter: saturate(115%) contrast(105%);
+		margin:-120px;
 	}
 
 	.hero-overlay {
@@ -59,7 +60,7 @@ const aboutStyles = `
 		max-width: 1200px;
 		margin: 0 auto;
     /* This padding-top is larger to avoid the fixed navbar */
-		padding: clamp(120px, 18vh, 160px) clamp(24px, 6vw, 108px) clamp(56px, 12vh, 104px);
+		padding: clamp(20px, 18vh, 160px) clamp(24px, 6vw, 108px) clamp(56px, 12vh, 104px);
 		display: grid;
 		gap: 24px;
 		margin: -100px;
