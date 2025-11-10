@@ -36,7 +36,7 @@ const Footer = () => {
     {
       eyebrow: "Wanna know about us?",
       heading: "Discover the story, vision, and people who craft TourEase's signature journeys.",
-      to: "/profile?tab=about",
+      to: "/about",
       label: "About TourEase",
       align: "center",
     },
