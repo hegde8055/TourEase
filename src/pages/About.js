@@ -12,6 +12,8 @@ const aboutStyles = `
 		font-family: "Poppins", sans-serif;
 		position: relative;
 		overflow-x: hidden;
+		margin: 0;
+		padding: 0;
 	}
 	.navbar-container {
 		position: fixed; /* Makes the navbar "float" on top */
