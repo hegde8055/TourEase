@@ -17,7 +17,12 @@ const aboutStyles = `
     height: auto;
     overflow-y: auto;
   }
-
+  html {
+	scroll-behavior: smooth;
+	backface-visibility: hidden;
+	-webkit-font-smoothing: antialiased;
+  }
+  
   .about-page {
     position: relative;
     min-height: 100%;
@@ -88,6 +93,7 @@ const aboutStyles = `
 	}
 	
 	.hero-overlay {
+		will-change: transform, opacity;
 			position: absolute;
 			top: 0;
 			left: 50%;
@@ -627,8 +633,8 @@ const About = () => {
           <motion.section
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+            viewport={{ once: true, amount: 0.25 }} // 👈 small but powerful upgrade
+            transition={{ duration: 0.7, ease: "easeOut" }} // smoother animation
           >
             <h2 className="section-title">Why TourEase exists</h2>
             <p className="section-intro">
@@ -653,8 +659,8 @@ const About = () => {
           <motion.section
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
           >
             <h2 className="section-title">How we choreograph your adventure</h2>
             <p className="section-intro">
@@ -674,8 +680,8 @@ const About = () => {
           <motion.section
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
           >
             <div className="story-canvas">
               <div className="story-media">
@@ -702,8 +708,8 @@ const About = () => {
           <motion.section
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
           >
             <h2 className="section-title">Travelers who trusted us with their time</h2>
             <p className="section-intro">
@@ -725,11 +731,10 @@ const About = () => {
         </main>
 
         <motion.section
-          className="cta-bleed"
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
         >
           <div className="cta-panel">
             <h2 className="section-title" style={{ marginBottom: 20 }}>
