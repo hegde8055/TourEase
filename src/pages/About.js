@@ -11,7 +11,20 @@ const aboutStyles = `
 	body.about-page-active header {
 		top: 10px;
 	}
-
+	/* Global video overlay for readability */
+	body.about-page-active::before {
+	  content: "";
+	  position: fixed;
+	  inset: 0;
+	  background: linear-gradient(
+		to bottom,
+		rgba(0, 0, 0, 0.2) 0%,
+		rgba(0, 0, 0, 0.45) 100%
+	  );
+	  z-index: -1;
+	  pointer-events: none;
+	}
+	
 	.about-page {
 		min-height: 100vh;
 		background: #020617;
@@ -38,18 +51,27 @@ const aboutStyles = `
 			overflow: hidden;
 			width: 100%;
 	}
-
+	/* Ensures video stays visible behind all content */
+	.about-page,
+	body.about-page-active .main-content,
+	header,
+	footer {
+	  position: relative;
+	  z-index: 1;
+	}
+	
+	/* Keeps video layered correctly and visible site-wide */
 	.hero-video {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		z-index: -1;
-		filter: saturate(110%) contrast(95%) brightness(0.75);
-	  }
-	  
+	  position: fixed;
+	  top: 0;
+	  left: 0;
+	  width: 100%;
+	  height: 100%;
+	  object-fit: cover;
+	  z-index: 0;
+	  filter: saturate(110%) contrast(95%) brightness(0.75);
+	}
+	
 	.hero-overlay {
 			position: absolute;
 			top: 0;
@@ -462,11 +484,49 @@ const travelerVoices = [
 const About = () => {
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
+
     const { classList } = document.body;
     classList.add("about-page-active");
+
+    // 🎬 Select the hero video for visibility control
+    const video = document.querySelector(".hero-video");
+
+    // ⚡ Pause the video when the tab isn't active (saves CPU/GPU)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        video?.pause();
+      } else {
+        video?.play();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // 🧹 Cleanup on component unmount
     return () => {
       classList.remove("about-page-active");
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
+  }, []);
+  useEffect(() => {
+    // 💤 Lazy-load background video for better performance
+    const video = document.querySelector(".hero-video");
+
+    const loadVideo = () => {
+      if (!video) return;
+      const src = video.getAttribute("data-src");
+      if (src) {
+        video.src = src;
+        video.load();
+        video.play().catch(() => {});
+      }
+    };
+
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(loadVideo, { timeout: 2000 });
+    } else {
+      setTimeout(loadVideo, 1000);
+    }
   }, []);
 
   return (
@@ -477,7 +537,7 @@ const About = () => {
         <section className="hero-section">
           <motion.video
             className="hero-video"
-            src={heroVideoSrc}
+            data-src={heroVideoSrc}
             autoPlay
             muted
             loop
