@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
+import Navbar from "../components/Navbar"; // 🧭 adjust path if needed
 
 const heroVideoSrc = "/assets/intro.mkv";
 
@@ -553,6 +554,9 @@ const About = () => {
   return (
     <div className="about-page">
       <style>{aboutStyles}</style>
+
+      {/* 🧭 Navbar placed directly after styles */}
+      <Navbar />
 
       <div className="about-shell">
         <section className="hero-section">
