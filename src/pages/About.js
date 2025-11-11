@@ -40,16 +40,16 @@ const aboutStyles = `
 	}
 
 	.hero-video {
-			position: absolute;
-			top: 0;
-			left: 50%;
-			width: 100vw;
-			height: 100%;
-			transform: translateX(-50%);
-			object-fit: cover;
-			filter: saturate(110%) contrast(95%) brightness(0.75);
-	}
-
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		z-index: -1;
+		filter: saturate(110%) contrast(95%) brightness(0.75);
+	  }
+	  
 	.hero-overlay {
 			position: absolute;
 			top: 0;

@@ -21,12 +21,19 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
   const handleConfirm = async (e) => {
     if (e && typeof e.preventDefault === "function") e.preventDefault();
     if (isProcessing) return;
+    setIsProcessing(true);
     try {
-      setIsProcessing(true);
       const audio = new Audio(confirmSound);
       audio.volume = 0.5;
       audio.play().catch(() => {});
-      await Promise.resolve(onConfirm && onConfirm());
+
+      if (typeof onConfirm === "function") {
+        await onConfirm();
+      }
+
+      if (typeof onCancel === "function") {
+        onCancel();
+      }
     } catch (err) {
       console.error("[ConfirmModal] onConfirm error:", err);
     } finally {
@@ -45,7 +52,7 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onCancel}>
+      <Dialog as="div" className="relative" onClose={onCancel} style={{ zIndex: 2000 }}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-400"
