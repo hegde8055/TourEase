@@ -4,26 +4,41 @@ import { motion } from "framer-motion";
 const heroVideoSrc = "/assets/intro.mkv";
 
 const aboutStyles = `
-	body.about-page-active .main-content {
-		padding-top: 20px;
-	}
+  body.about-page-active .main-content {
+    padding-top: 20px;
+  }
 
-	body.about-page-active header {
-		top: 10px;
-	}
-	/* Global video overlay for readability */
-	body.about-page-active::before {
-	  content: "";
-	  position: fixed;
-	  inset: 0;
-	  background: linear-gradient(
-		to bottom,
-		rgba(0, 0, 0, 0.2) 0%,
-		rgba(0, 0, 0, 0.45) 100%
-	  );
-	  z-index: -1;
-	  pointer-events: none;
-	}
+  body.about-page-active header {
+    top: 10px;
+  }
+
+  /* 🧭 Scroll & background fix */
+  html, body {
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .about-page {
+    position: relative;
+    min-height: 100%;
+    background: transparent;
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  /* Global video overlay for readability */
+  body.about-page-active::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.2) 0%,
+      rgba(0, 0, 0, 0.45) 100%
+    );
+    z-index: 0;
+    pointer-events: none;
+  }
 	
 	.about-page {
 		min-height: 100vh;
