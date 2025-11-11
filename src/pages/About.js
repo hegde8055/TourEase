@@ -5,7 +5,7 @@ const heroVideoSrc = "/assets/intro.mkv";
 
 const aboutStyles = `
 	body.about-page-active .main-content {
-		padding-top: 0;
+		padding-top: 20px;
 	}
 
 	body.about-page-active header {
@@ -22,39 +22,45 @@ const aboutStyles = `
 		margin: 0;
 		padding: 0;
 	}
-	.about-shell {
-		position: relative;
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-	}
+		.about-shell {
+			position: relative;
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
 
 	.hero-section {
-		position: relative;
-		min-height: 100vh;
-		display: grid;
-		place-items: center;
-		overflow: hidden;
-		width: 100vw;
-		margin: 0 calc(50% - 50vw);
+			position: relative;
+			min-height: 100vh;
+			display: grid;
+			place-items: center;
+			overflow: hidden;
+			width: 100%;
 	}
 
 	.hero-video {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		filter: saturate(110%) contrast(95%) brightness(0.6);
+			position: absolute;
+			top: 0;
+			left: 50%;
+			width: 100vw;
+			height: 100%;
+			transform: translateX(-50%);
+			object-fit: cover;
+			filter: saturate(110%) contrast(95%) brightness(0.75);
 	}
 
 	.hero-overlay {
-		position: absolute;
-		inset: 0;
-		background:
-			linear-gradient(180deg, rgba(5,10,25,0.75) 0%, rgba(2,6,23,0.94) 75%),
-			radial-gradient(900px 540px at 18% 18%, rgba(14,116,144,0.28), transparent 70%);
-		mix-blend-mode: normal;
+			position: absolute;
+			top: 0;
+			left: 50%;
+			width: 100vw;
+			height: 100%;
+			transform: translateX(-50%);
+			background:
+				linear-gradient(180deg, rgba(5,10,25,0.68) 0%, rgba(2,6,23,0.9) 80%),
+				radial-gradient(900px 540px at 18% 18%, rgba(14,116,144,0.22), transparent 70%);
+			mix-blend-mode: normal;
 	}
 
 	.hero-content {
@@ -63,7 +69,7 @@ const aboutStyles = `
 		width: 100%;
 		max-width: 1200px;
 		margin: 0 auto;
-		padding: clamp(150px, 26vh, 240px) clamp(24px, 6vw, 108px) clamp(72px, 12vh, 140px);
+			padding: clamp(140px, 24vh, 220px) clamp(24px, 6vw, 108px) clamp(72px, 12vh, 140px);
 		display: grid;
 		gap: 24px;
 		justify-items: center;
