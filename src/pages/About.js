@@ -135,7 +135,7 @@ header, .navbar {
 		width: 100%;
 		max-width: 1200px;
 		margin: 0 auto;
-		padding: clamp(40px, 8vh, 100px) clamp(10px, 4vw, 60px) clamp(32px, 6vh, 80px);
+		padding: clamp(10px, 8vh, 100px) clamp(10px, 4vw, 60px) clamp(32px, 6vh, 80px);
 		display: grid;
 		gap: 18px;
 		justify-items: center;
