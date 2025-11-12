@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import Navbar from "../components/Navbar"; // 🧭 adjust path if needed
+//import Navbar from "../components/Navbar"; // 🧭 adjust path if needed
 
 const heroVideoSrc = "/assets/intro.mkv";
 
