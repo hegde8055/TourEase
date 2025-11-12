@@ -18,14 +18,15 @@ const aboutStyles = `
 	padding: 0;
   }
   
-  header, .navbar {
-	position: fixed;
-	top: -150px;
-	left: 50%;
-	transform: translateX(-50%);
-	width: fit-content;
-	z-index: 10;
-  }  
+  /* 🧭 Ensure global Navbar always stays on top */
+header, .navbar {
+  z-index: 9999 !important;
+  position: fixed;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+  
   header {
 	width: 100%;
 	margin: 0 auto;
