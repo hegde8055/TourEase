@@ -1,7 +1,4 @@
 import React, { useEffect } from "react";
-//import { motion } from "framer-motion";
-//import Navbar from "../components/Navbar"; // 🧭 adjust path if needed
-import { useRef } from "react";
 import { useScroll, useTransform, motion } from "framer-motion";
 
 const aboutStyles = `
@@ -45,6 +42,15 @@ header, .navbar {
 	backface-visibility: hidden;
 	-webkit-font-smoothing: antialiased;
   }
+  html, body {
+    scroll-behavior: smooth;
+    perspective: 1000px;
+  }
+  
+  motion.section, motion.div {
+    will-change: transform, opacity;
+  }
+  
   
   .about-page {
     position: relative;
@@ -212,36 +218,6 @@ header, .navbar {
 	.content-wrapper > * {
 		width: 100%;
 	}
-  .event-series {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-    gap: 64px;
-    align-items: start;
-    justify-items: center;
-  }
-  
-  .event {
-    max-width: 500px;
-    padding: 20px;
-  }
-  
-  .event-timeline .timeline {
-    border-left: none;
-    padding-left: 0;
-  }
-  
-  .event-story .story-canvas {
-    background: transparent;
-    box-shadow: none;
-  }
-  
-  .event-story .story-copy {
-    background: none;
-    color: #e2e8f0;
-    text-align: center;
-    padding: 0;
-    margin-top: 16px;
-  }
   
 	.section-title {
 		font-size: clamp(2rem, 4vw, 3rem);
@@ -260,125 +236,6 @@ header, .navbar {
 		line-height: 1.8;
 		text-align: center;
 	}
-  .essentials-grid {
-    display: grid;
-    gap: 32px;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    padding: 0 20px;
-    text-align: center;
-  }
-  
-  .feature-block {
-    background: transparent; /* removes dark box */
-    border: none;
-    color: #f8fafc; /* brighter and readable */
-    padding: 20px 10px;
-    line-height: 1.8;
-    transition: transform 0.3s ease, opacity 0.4s ease;
-  }
-  
-  .feature-block:hover {
-    transform: translateY(-6px);
-  }
-  
-  .feature-block h3 {
-    color: #fde68a; /* warm gold tone */
-    font-weight: 600;
-    font-size: 1.3rem;
-    margin-bottom: 8px;
-  }
-  
-  .feature-block p {
-    color: #e0e7ff; /* cool light blue */
-    font-size: 1rem;
-    opacity: 0.9;
-    max-width: 500px;
-    margin: 0 auto;
-  }
-  
-	.timeline {
-		position: relative;
-		border-left: 1px solid rgba(148,163,184,0.35);
-		margin-left: 16px;
-		padding-left: 28px;
-		display: grid;
-		gap: 42px;
-	}
-
-	.timeline-point {
-		position: relative;
-	}
-
-	.timeline-point::before {
-		content: "";
-		position: absolute;
-		left: -39px;
-		top: 6px;
-		width: 18px;
-		height: 18px;
-		border-radius: 50%;
-		border: 3px solid rgba(56,189,248,0.8);
-		background: #0f172a;
-		box-shadow: 0 0 18px rgba(56,189,248,0.55);
-	}
-
-	.timeline-point h4 {
-		font-size: 1.2rem;
-		font-weight: 600;
-		margin-bottom: 8px;
-	}
-
-	.timeline-point p {
-		color: rgba(203,213,225,0.8);
-		line-height: 1.7;
-	}
-	.story-image {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
-		filter: brightness(0.9) contrast(1.1) saturate(1.05);
-		transform: translateZ(0);
-		will-change: transform;
-	  }
-	  
-	  .story-media {
-  position: relative;
-  height: 500px;
-  overflow: hidden;
-  border-radius: 24px;
-  background: #000;
-}
-
-.story-media img,
-.story-media video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: brightness(0.9) contrast(1.1);
-  will-change: transform;
-}
-
-	  .story-canvas {
-		overflow: hidden;
-		scroll-behavior: smooth;
-	  }
-	  .story-copy {
-  position: relative;
-  z-index: 2;
-  color: var(--text-primary);
-  text-align: left;
-  line-height: 1.8;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
-  padding: 32px;
-  border-radius: 24px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-}
-
 	  .cta-panel {
 		overflow: visible;
 	  }
@@ -505,58 +362,8 @@ header, .navbar {
 	}
 `;
 
-const essentials = [
-  {
-    title: "We translate your travel pulse",
-    copy: "Tell us your pace, dietary needs, and must-feel moments. Our planners stitch that into a living itinerary that evolves with you.",
-  },
-  {
-    title: "Human experts on standby",
-    copy: "From lost luggage to sudden storms, our travel concierges and local fixers smooth out surprises before they derail your day.",
-  },
-  {
-    title: "Tech that watches the horizon",
-    copy: "Real-time flight intel, strike alerts, and weather pivots are baked in. We adjust bookings and notify you instantly.",
-  },
-  {
-    title: "Group harmony tools",
-    copy: "Shared boards, split payments, and mood-based suggestions keep everyone excited—no endless message threads required.",
-  },
-];
-
-const serviceStages = [
-  {
-    heading: "Dream Mapping",
-    body: "We co-create your travel DNA through a guided discovery. Mood boards, past favorites, accessibility needs, and hidden hopes are captured here.",
-  },
-  {
-    heading: "Adaptive Blueprint",
-    body: "Our AI blends local expertise with live data to propose a cinematic itinerary. You edit with clicks, we refine until it feels like you.",
-  },
-  {
-    heading: "Launch & Companion",
-    body: "The TourEase app becomes your co-pilot—tickets stored, directions guided, and concierge chat ready for on-the-ground requests.",
-  },
-  {
-    heading: "Moments That Linger",
-    body: "We capture highlights, polaroids, and journal prompts so the story of your trip lives on. Rebook favorite spots in a single tap.",
-  },
-];
 const About = () => {
   const heroVideoSrc = "/assets/intro.mkv";
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  // 🔧 Shared animation variant for smoother unified motion
-  const fadeVariant = {
-    hidden: { opacity: 0, y: 80 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.8, ease: "easeOut" },
-    },
-  };
-
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
 
@@ -603,12 +410,37 @@ const About = () => {
       setTimeout(loadVideo, 1000);
     }
   }, []);
+  // 🌀 Scroll motion setup
+  const { scrollYProgress } = useScroll();
+
+  // Parallax movement on scroll
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
+
+  // Shared fade variant for all scroll reveals
+  const fadeVariant = {
+    hidden: { opacity: 0, y: 80 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
+  };
+  // Slight depth motion for hero background video
+  const videoY = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
 
   return (
     <div className="about-page">
       <style>{aboutStyles}</style>
       <div className="about-shell">
-        <section className="hero-section">
+        <motion.section
+          className="hero-section"
+          style={{ y }} // 🌊 Parallax motion tied to scroll
+          variants={fadeVariant}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+        >
+          {/* 🎥 Background Video */}
           <motion.video
             className="hero-video"
             data-src={heroVideoSrc}
@@ -616,10 +448,13 @@ const About = () => {
             muted
             loop
             playsInline
+            style={{ y: videoY }} // 🌌 Depth parallax
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.2 }}
           />
+
+          {/* 🌒 Overlay */}
           <motion.div
             className="hero-overlay"
             initial={{ opacity: 0 }}
@@ -627,11 +462,15 @@ const About = () => {
             transition={{ duration: 1 }}
           />
 
+          {/* ✨ Hero Content (parallax + scroll fade) */}
           <motion.div
             className="hero-content"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
+            variants={fadeVariant}
+            initial="hidden"
+            whileInView="visible"
+            style={{ y }}
             transition={{ duration: 0.9, ease: "easeOut" }}
+            viewport={{ once: true, amount: 0.5 }}
           >
             <motion.span
               initial={{ opacity: 0, y: 12 }}
@@ -653,14 +492,17 @@ const About = () => {
             >
               Guided journeys · Seamless support · Real stories
             </motion.span>
+
             <h1 className="hero-title">
               We ease the weight of planning so you can feel every moment of your trip.
             </h1>
+
             <p className="hero-blurb">
               TourEase is the travel companion for explorers who crave depth without the logistics
               grind. We merge human travel designers with adaptive intelligence to choreograph
               itineraries that flex with you—sunrise to midnight.
             </p>
+
             <div className="hero-cta">
               <motion.a
                 whileHover={{ scale: 1.05 }}
@@ -680,142 +522,93 @@ const About = () => {
               </motion.a>
             </div>
           </motion.div>
-        </section>
+        </motion.section>
 
-        <main className="content-wrapper event-series">
+        <main className="event-sequence">
+          {/* Content 1 */}
           <motion.div
-            className="event event-essentials"
-            variants={fadeVariant}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-          >
-            <h2 className="section-title">Why TourEase Exists</h2>
-            <p className="section-intro">
-              We are travelers who lost weekends to spreadsheets and sleepless nights refreshing
-              airline tabs. TourEase began to rewrite that experience—giving adventurers cinematic
-              stories without the stress sweat.
-            </p>
-            <div className="essentials-grid">
-              {essentials.map((item, index) => (
-                <motion.div
-                  key={item.title}
-                  className="feature-block"
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: index * 0.2 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                >
-                  <h3>{item.title}</h3>
-                  <p>{item.copy}</p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="event event-timeline"
+            className="event-block-centered"
             initial={{ opacity: 0, y: 80 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
-            viewport={{ once: true, amount: 0.3 }}
+            exit={{ opacity: 0, y: -80 }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            viewport={{ once: false, amount: 0.6 }}
           >
-            <h2 className="section-title">How We Choreograph Your Adventure</h2>
-            <p className="section-intro">
-              Our service weaves technology, empathetic planners, and a global caretaker network.
-              Every stage keeps you relaxed yet ready for whatever the road reveals.
+            <h2 className="event-title">CHASE THE HORIZON</h2>
+            <p className="event-desc">
+              Feel the wind bite as you ascend Himalayan trails, or the golden sand slip through
+              your fingers in Goa’s twilight. TourEase designs journeys that blur the line between
+              dream and reality — so every sunrise feels like your first.
             </p>
-            <div className="timeline">
-              {serviceStages.map((stage, index) => (
-                <motion.div
-                  key={stage.heading}
-                  className="timeline-point"
-                  initial={{ opacity: 0, x: index % 2 === 0 ? -60 : 60 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.8, delay: index * 0.1 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                >
-                  <h4>{stage.heading}</h4>
-                  <p>{stage.body}</p>
-                </motion.div>
-              ))}
-            </div>
           </motion.div>
 
+          {/* Content 2 */}
           <motion.div
-            className="event event-story"
-            initial={{ opacity: 0, y: 80 }}
+            className="event-block-centered"
+            initial={{ opacity: 0, y: 100 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-            viewport={{ once: true, amount: 0.3 }}
+            exit={{ opacity: 0, y: -100 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            viewport={{ once: false, amount: 0.6 }}
           >
-            <div className="story-canvas">
-              <motion.div
-                className="story-media"
-                initial={{ scale: 1.1 }}
-                whileInView={{ scale: 1 }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-              >
-                <motion.img
-                  src="/assets/4.jpg"
-                  alt="Cinematic Gladiator Field"
-                  className="story-image"
-                  style={{ y }}
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  transition={{ duration: 1.2, ease: "easeOut" }}
-                />
-              </motion.div>
-              <div className="story-copy">
-                <h3>From Idea to Immersive Escape</h3>
-                <p>
-                  The film you see is where TourEase travelers have stood—dawn flights over coral
-                  reefs, markets humming with colour, and cliffside sunsets captured only after we
-                  cleared their schedules. Every journey is guarded by our concierge team, adapting
-                  the plan when tides shift.
-                </p>
-                <p>
-                  Whether you crave hidden trails or a resort cocoon, our planners collaborate with
-                  local hosts, sustainable vendors, and safety scouts so the experience stays
-                  magical and mindful.
-                </p>
-              </div>
-            </div>
+            <h2 className="event-title">BEYOND THE MAP</h2>
+            <p className="event-desc">
+              From city skylines lit like constellations to mountain ridges kissed by mist — we
+              guide you to places that don’t exist on ordinary maps. Every turn, every trail, every
+              tide — sculpted by your own rhythm. Adventure doesn’t start with a booking. It starts
+              with a heartbeat.
+            </p>
+          </motion.div>
+
+          {/* Content 3 */}
+          <motion.div
+            className="event-block-centered"
+            initial={{ opacity: 0, y: 120 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -120 }}
+            transition={{ duration: 1.1, ease: "easeOut" }}
+            viewport={{ once: false, amount: 0.6 }}
+          >
+            <h2 className="event-title">WHERE STORIES BEGIN</h2>
+            <p className="event-desc">
+              Whether it’s sharing laughter with locals under Bali’s lantern-lit skies, or tracing
+              footprints across Iceland’s icy silence — we turn your travels into living stories.
+              Not just destinations, but memories carved into time.
+            </p>
           </motion.div>
         </main>
-
         <motion.section
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.25 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="cta-panel"
+          style={{ y }}
+          variants={fadeVariant}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.4 }}
         >
-          <div className="cta-panel">
-            <h2 className="section-title" style={{ marginBottom: 20 }}>
-              Ready to feel excited—not exhausted—about planning?
-            </h2>
-            <p className="section-intro" style={{ margin: "0 auto 32px" }}>
-              Share your dream destination, travel crew, and vibe. We will translate it into a
-              flexible itinerary, secure your bookings, and stay close while you explore.
-            </p>
-            <div className="hero-cta">
-              <motion.a
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.96 }}
-                href="/get-started"
-                className="btn-primary"
-              >
-                Start my travel brief
-              </motion.a>
-              <motion.a
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.96 }}
-                href="mailto:care@tourease.com"
-                className="btn-secondary"
-              >
-                Talk to a planner
-              </motion.a>
-            </div>
+          <h2 className="section-title" style={{ marginBottom: 20 }}>
+            Ready to feel excited—not exhausted—about planning?
+          </h2>
+          <p className="section-intro" style={{ margin: "0 auto 32px" }}>
+            Share your dream destination, travel crew, and vibe. We will translate it into a
+            flexible itinerary, secure your bookings, and stay close while you explore.
+          </p>
+          <div className="hero-cta">
+            <motion.a
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.96 }}
+              href="/get-started"
+              className="btn-primary"
+            >
+              Start my travel brief
+            </motion.a>
+            <motion.a
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.96 }}
+              href="mailto:care@tourease.com"
+              className="btn-secondary"
+            >
+              Talk to a planner
+            </motion.a>
           </div>
         </motion.section>
       </div>
