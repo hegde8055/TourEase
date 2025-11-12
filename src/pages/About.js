@@ -10,7 +10,7 @@ const aboutStyles = `
   }
 
   body.about-page-active header {
-    top: 10px;
+    top: -10px;
   }
   /* 🧭 Tighten navbar position to exactly 10px from the top */
   body, html {
