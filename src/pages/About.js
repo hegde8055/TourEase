@@ -20,7 +20,7 @@ const aboutStyles = `
   
   header, .navbar {
 	position: fixed;
-	top: -50px;
+	top: -150px;
 	left: 50%;
 	transform: translateX(-50%);
 	width: fit-content;
@@ -575,10 +575,6 @@ const About = () => {
   return (
     <div className="about-page">
       <style>{aboutStyles}</style>
-
-      {/* 🧭 Navbar placed directly after styles */}
-      <Navbar />
-
       <div className="about-shell">
         <section className="hero-section">
           <motion.video
