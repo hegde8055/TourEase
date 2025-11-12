@@ -712,7 +712,7 @@ const About = () => {
                 transition={{ duration: 1.2, ease: "easeOut" }}
               >
                 <motion.img
-                  src="/assets/gladiator-field.jpg"
+                  src="/assets/4.jpg"
                   alt="Cinematic Gladiator Field"
                   className="story-image"
                   style={{ y }}
