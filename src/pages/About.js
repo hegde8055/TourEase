@@ -320,18 +320,41 @@ header, .navbar {
 	  }
 	  
 	  .story-media {
-		position: relative;
-		height: 480px;
-		overflow: hidden;
-		border-radius: 24px;
-		background: #000;
-	  }
-	  
+  position: relative;
+  height: 500px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #000;
+}
+
+.story-media img,
+.story-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.9) contrast(1.1);
+  will-change: transform;
+}
+
 	  .story-canvas {
 		overflow: hidden;
 		scroll-behavior: smooth;
 	  }
-	  
+	  .story-copy {
+  position: relative;
+  z-index: 2;
+  color: var(--text-primary);
+  text-align: left;
+  line-height: 1.8;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+
 	  .cta-panel {
 		overflow: visible;
 	  }
@@ -378,21 +401,26 @@ header, .navbar {
   pointer-events: none;
 }
 
-	.cta-panel {
+.cta-panel {
   position: relative;
-  border-radius: 0;
-  padding: clamp(32px, 4vw, 60px) clamp(16px, 4vw, 60px);
+  width: 100%;
   text-align: center;
   background: linear-gradient(140deg, rgba(15,23,42,0.95), rgba(9,12,30,0.95));
   border: none;
   box-shadow: none;
-  overflow: visible;
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 32px 20px; /* Reduced padding */
+  overflow: visible; /* Ensures no inner scroll */
+  max-height: unset; /* Removes height restrictions */
 }
+
+.cta-panel > * {
+  margin: 12px 0;
+}
+
   
 	.cta-panel::after {
 		content: "";
