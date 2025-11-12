@@ -30,14 +30,13 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
       if (typeof onConfirm === "function") {
         await onConfirm();
       }
-
-      if (typeof onCancel === "function") {
-        onCancel();
-      }
     } catch (err) {
       console.error("[ConfirmModal] onConfirm error:", err);
     } finally {
       setIsProcessing(false);
+      if (typeof onCancel === "function") {
+        onCancel();
+      }
     }
   };
 

@@ -111,11 +111,16 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => setUser(userData);
 
-  const logout = async () => {
+  const logout = () => {
     try {
-      await enhancedPlacesAPI.clearSessionCache();
+      const clearCache = enhancedPlacesAPI.clearSessionCache();
+      if (clearCache && typeof clearCache.catch === "function") {
+        clearCache.catch((error) => {
+          console.warn("Failed to clear destination cache on logout:", error.message);
+        });
+      }
     } catch (error) {
-      console.warn("Failed to clear destination cache on logout:", error.message);
+      console.warn("Failed to trigger cache clear on logout:", error.message);
     } finally {
       authLogout();
       setUser(null);
