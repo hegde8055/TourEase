@@ -135,12 +135,13 @@ header, .navbar {
 		width: 100%;
 		max-width: 1200px;
 		margin: 0 auto;
-		padding: clamp(100px, 12vh, 160px) clamp(24px, 5vw, 80px) clamp(48px, 8vh, 100px);
+		padding: clamp(60px, 8vh, 100px) clamp(20px, 4vw, 60px) clamp(32px, 6vh, 80px);
 		display: grid;
-		gap: 20px;
+		gap: 18px;
 		justify-items: center;
 		text-align: center;
 	  }
+	  
 	.hero-title {
 		font-size: clamp(2.8rem, 6vw, 4.6rem);
 		font-weight: 800;
