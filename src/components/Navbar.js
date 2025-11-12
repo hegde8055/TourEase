@@ -40,29 +40,40 @@ const Navbar = () => {
 
   const handleLogout = () => setIsModalOpen(true);
 
-  const handleConfirmLogout = async () => {
-    setMenuActive(false);
-    setIsModalOpen(false);
-    if (!contextLogout) {
-      return;
-    }
+  const redirectToSignin = () => {
     try {
-      await Promise.resolve(contextLogout());
-      setAuthenticated(false);
-      setUsername("");
-      try {
-        navigate("/signin", { replace: true });
-      } catch (navError) {
-        console.warn("Navigation to /signin failed, falling back to hard redirect.", navError);
-        if (typeof window !== "undefined") {
-          window.location.replace("/signin");
-        }
-      }
-    } catch (err) {
-      console.error("Logout error:", err);
+      navigate("/signin", { replace: true });
+    } catch (navError) {
+      console.warn("Navigation to /signin failed, falling back to hard redirect.", navError);
       if (typeof window !== "undefined") {
         window.location.replace("/signin");
       }
+      return;
+    }
+
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => {
+        if (window.location.pathname !== "/signin") {
+          window.location.replace("/signin");
+        }
+      }, 150);
+    }
+  };
+
+  const handleConfirmLogout = async () => {
+    setMenuActive(false);
+    setIsModalOpen(false);
+
+    try {
+      if (typeof contextLogout === "function") {
+        await Promise.resolve(contextLogout());
+      }
+      setAuthenticated(false);
+      setUsername("");
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      redirectToSignin();
     }
   };
 
