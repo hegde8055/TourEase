@@ -42,19 +42,27 @@ const Navbar = () => {
 
   const handleConfirmLogout = async () => {
     setMenuActive(false);
+    setIsModalOpen(false);
     if (!contextLogout) {
-      setIsModalOpen(false);
       return;
     }
     try {
       await Promise.resolve(contextLogout());
       setAuthenticated(false);
       setUsername("");
-      navigate("/signin", { replace: true });
+      try {
+        navigate("/signin", { replace: true });
+      } catch (navError) {
+        console.warn("Navigation to /signin failed, falling back to hard redirect.", navError);
+        if (typeof window !== "undefined") {
+          window.location.replace("/signin");
+        }
+      }
     } catch (err) {
       console.error("Logout error:", err);
-    } finally {
-      setIsModalOpen(false);
+      if (typeof window !== "undefined") {
+        window.location.replace("/signin");
+      }
     }
   };
 

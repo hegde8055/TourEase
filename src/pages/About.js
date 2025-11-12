@@ -230,49 +230,42 @@ header, .navbar {
 		line-height: 1.8;
 		text-align: center;
 	}
-
-	.essentials-grid {
-		display: grid;
-		gap: 26px;
-		grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-	}
-
-	.essential-card {
-		position: relative;
-		padding: 28px 32px;
-		border-radius: 20px;
-		background: linear-gradient(150deg, rgba(15,23,42,0.92), rgba(8,11,26,0.92));
-		border: 1px solid rgba(148,163,184,0.22);
-		box-shadow: 0 24px 48px rgba(2,6,23,0.45);
-		overflow: hidden;
-	}
-
-	.essential-card::after {
-		content: "";
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(140deg, rgba(56,189,248,0.24), transparent 68%);
-		opacity: 0;
-		transition: opacity 0.3s ease;
-	}
-
-	.essential-card:hover::after {
-		opacity: 1;
-	}
-
-	.essential-card h3 {
-		font-size: 1.15rem;
-		font-weight: 600;
-		margin-bottom: 12px;
-		color: #fef3c7;
-	}
-
-	.essential-card p {
-		color: rgba(203,213,225,0.8);
-		line-height: 1.7;
-		font-size: 0.95rem;
-	}
-
+  .essentials-grid {
+    display: grid;
+    gap: 32px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    padding: 0 20px;
+    text-align: center;
+  }
+  
+  .feature-block {
+    background: transparent; /* removes dark box */
+    border: none;
+    color: #f8fafc; /* brighter and readable */
+    padding: 20px 10px;
+    line-height: 1.8;
+    transition: transform 0.3s ease, opacity 0.4s ease;
+  }
+  
+  .feature-block:hover {
+    transform: translateY(-6px);
+  }
+  
+  .feature-block h3 {
+    color: #fde68a; /* warm gold tone */
+    font-weight: 600;
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+  }
+  
+  .feature-block p {
+    color: #e0e7ff; /* cool light blue */
+    font-size: 1rem;
+    opacity: 0.9;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
 	.timeline {
 		position: relative;
 		border-left: 1px solid rgba(148,163,184,0.35);
@@ -664,11 +657,14 @@ const About = () => {
               stories without the stress sweat.
             </p>
             <div className="essentials-grid">
-              {essentials.map((item) => (
+              {essentials.map((item, index) => (
                 <motion.div
                   key={item.title}
-                  className="essential-card"
-                  whileHover={{ translateY: -6 }}
+                  className="feature-block"
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.2 }}
+                  viewport={{ once: true, amount: 0.3 }}
                 >
                   <h3>{item.title}</h3>
                   <p>{item.copy}</p>
