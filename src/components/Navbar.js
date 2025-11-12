@@ -1,13 +1,12 @@
 // /client/src/components/Navbar.js
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../App";
-import { isAuthenticated, getUsername } from "../utils/auth";
+import { isAuthenticated, getUsername, logout as clearStoredAuth } from "../utils/auth";
 import { FaHome, FaCompass, FaFireAlt, FaRoute, FaUserCircle } from "react-icons/fa";
 import ConfirmModal from "./ConfirmModal";
 
 const Navbar = () => {
-  const navigate = useNavigate();
   const { pathname } = useLocation();
   const { user, logout: contextLogout } = useAuth();
 
@@ -40,27 +39,8 @@ const Navbar = () => {
 
   const handleLogout = () => setIsModalOpen(true);
 
-  const redirectToSignin = () => {
-    try {
-      navigate("/signin", { replace: true });
-    } catch (navError) {
-      console.warn("Navigation to /signin failed, falling back to hard redirect.", navError);
-      if (typeof window !== "undefined") {
-        window.location.replace("/signin");
-      }
-      return;
-    }
-
-    if (typeof window !== "undefined") {
-      window.setTimeout(() => {
-        if (window.location.pathname !== "/signin") {
-          window.location.replace("/signin");
-        }
-      }, 150);
-    }
-  };
-
   const handleConfirmLogout = async () => {
+    console.info("[Navbar] Sign out confirmed");
     setMenuActive(false);
     setIsModalOpen(false);
 
@@ -68,12 +48,16 @@ const Navbar = () => {
       if (typeof contextLogout === "function") {
         await Promise.resolve(contextLogout());
       }
+      clearStoredAuth();
       setAuthenticated(false);
       setUsername("");
     } catch (err) {
-      console.error("Logout error:", err);
+      console.error("[Navbar] Logout error:", err);
+      clearStoredAuth();
     } finally {
-      redirectToSignin();
+      if (typeof window !== "undefined") {
+        window.location.replace("/signin");
+      }
     }
   };
 
