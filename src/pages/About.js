@@ -12,7 +12,28 @@ const aboutStyles = `
   body.about-page-active header {
     top: 10px;
   }
-
+  /* 🧭 Tighten navbar position to exactly 10px from the top */
+  body, html {
+	margin: 0;
+	padding: 0;
+  }
+  
+  header, .navbar {
+	position: fixed;
+	top: 10px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: fit-content;
+	z-index: 10;
+  }  
+  header {
+	width: 100%;
+	margin: 0 auto;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+  }
+  
   /* 🧭 Scroll & background fix */
   html, body {
     height: auto;
