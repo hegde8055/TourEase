@@ -135,14 +135,12 @@ header, .navbar {
 		width: 100%;
 		max-width: 1200px;
 		margin: 0 auto;
-			padding: clamp(140px, 24vh, 220px) clamp(24px, 6vw, 108px) clamp(72px, 12vh, 140px);
+		padding: clamp(100px, 12vh, 160px) clamp(24px, 5vw, 80px) clamp(48px, 8vh, 100px);
 		display: grid;
-		gap: 24px;
+		gap: 20px;
 		justify-items: center;
 		text-align: center;
-	}
-
-
+	  }
 	.hero-title {
 		font-size: clamp(2.8rem, 6vw, 4.6rem);
 		font-weight: 800;
@@ -394,7 +392,7 @@ header, .navbar {
 	.cta-panel {
 		position: relative;
 		border-radius: 0;
-		padding: clamp(64px, 11vw, 136px) clamp(24px, 7vw, 120px);
+		padding: clamp(48px, 6vw, 80px) clamp(20px, 5vw, 80px);
 		text-align: center;
 		background: linear-gradient(140deg, rgba(15,23,42,0.95), rgba(9,12,30,0.95));
 		border: none;
@@ -405,8 +403,8 @@ header, .navbar {
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-	}
-
+	  }
+	  
 	.cta-panel::after {
 		content: "";
 		position: absolute;
