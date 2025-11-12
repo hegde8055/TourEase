@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
-import { motion } from "framer-motion";
+//import { motion } from "framer-motion";
 //import Navbar from "../components/Navbar"; // 🧭 adjust path if needed
-
-const heroVideoSrc = "/assets/intro.mkv";
+import { useRef } from "react";
+import { useScroll, useTransform, motion } from "framer-motion";
 
 const aboutStyles = `
   body.about-page-active .main-content {
@@ -308,56 +308,34 @@ header, .navbar {
 		color: rgba(203,213,225,0.8);
 		line-height: 1.7;
 	}
-
-	.story-canvas {
-		position: relative;
-		border-radius: 28px;
-		overflow: hidden;
-		background: linear-gradient(180deg, rgba(15,23,42,0.9), rgba(2,6,23,0.95));
-		border: 1px solid rgba(226,232,240,0.12);
-		box-shadow: 0 28px 50px rgba(2,6,23,0.6);
-		margin: 0 auto;
-	}
-
-	.story-media {
-		position: relative;
-		padding-bottom: 56.25%;
-	}
-
-	.story-media video {
+	.story-image {
 		position: absolute;
 		inset: 0;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		filter: saturate(115%);
-	}
-
-	.story-overlay {
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(180deg, rgba(15,23,42,0.25), rgba(15,23,42,0.95));
-	}
-
-	.story-copy {
+		filter: brightness(0.9) contrast(1.1) saturate(1.05);
+		transform: translateZ(0);
+		will-change: transform;
+	  }
+	  
+	  .story-media {
 		position: relative;
-		padding: 36px 32px 48px;
-		display: grid;
-		gap: 18px;
-		text-align: left;
-	}
-
-	.story-copy h3 {
-		font-size: 1.55rem;
-		font-weight: 600;
-		color: #fef3c7;
-	}
-
-	.story-copy p {
-		color: rgba(203,213,225,0.85);
-		line-height: 1.8;
-	}
-
+		height: 480px;
+		overflow: hidden;
+		border-radius: 24px;
+		background: #000;
+	  }
+	  
+	  .story-canvas {
+		overflow: hidden;
+		scroll-behavior: smooth;
+	  }
+	  
+	  .cta-panel {
+		overflow: visible;
+	  }
+	  
 	.testimonials-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -389,23 +367,33 @@ header, .navbar {
 		font-size: 0.86rem;
 		color: rgba(148,163,184,0.78);
 	}
+.cta-panel::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  left: 0;
+  width: 100%;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, rgba(15,23,42,0.9));
+  pointer-events: none;
+}
 
 	.cta-panel {
-		position: relative;
-		border-radius: 0;
-		padding: clamp(48px, 6vw, 80px) clamp(20px, 5vw, 80px);
-		text-align: center;
-		background: linear-gradient(140deg, rgba(15,23,42,0.95), rgba(9,12,30,0.95));
-		border: none;
-		box-shadow: none;
-		overflow: hidden;
-		width: 100%;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-	  }
-	  
+  position: relative;
+  border-radius: 0;
+  padding: clamp(32px, 4vw, 60px) clamp(16px, 4vw, 60px);
+  text-align: center;
+  background: linear-gradient(140deg, rgba(15,23,42,0.95), rgba(9,12,30,0.95));
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+  
 	.cta-panel::after {
 		content: "";
 		position: absolute;
@@ -502,29 +490,12 @@ const serviceStages = [
     body: "We capture highlights, polaroids, and journal prompts so the story of your trip lives on. Rebook favorite spots in a single tap.",
   },
 ];
-
-const travelerVoices = [
-  {
-    name: "Hannah & Omar",
-    role: "Newlyweds, Marrakech escape",
-    words:
-      "We handed TourEase a Pinterest board and they gave us lantern-lit dinners, quiet riads, and sunrise desert guides who felt like friends.",
-  },
-  {
-    name: "Arjun",
-    role: "Solo climber, Patagonia",
-    words:
-      "Weather turned, buses stopped, and somehow I still summited. They rerouted me mid-hike and had a warm lodge waiting that night.",
-  },
-  {
-    name: "Nguyen family",
-    role: "Three generations, Japan",
-    words:
-      "Wheelchair-ready routes, toddler nap windows, and tea ceremonies my parents still talk about. We just showed up and soaked it in.",
-  },
-];
-
 const About = () => {
+  const heroVideoSrc = "/assets/intro.mkv";
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
 
@@ -705,10 +676,24 @@ const About = () => {
             transition={{ duration: 0.7, ease: "easeOut" }}
           >
             <div className="story-canvas">
-              <div className="story-media">
-                <video src={heroVideoSrc} autoPlay muted loop playsInline />
+              <motion.div
+                className="story-media"
+                initial={{ scale: 1.1 }}
+                whileInView={{ scale: 1 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+              >
+                <motion.img
+                  src="/assets/gladiator-field.jpg"
+                  alt="Cinematic Gladiator Field"
+                  className="story-image"
+                  style={{ y }}
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  transition={{ duration: 1.2, ease: "easeOut" }}
+                />
                 <div className="story-overlay" />
-              </div>
+              </motion.div>
+
               <div className="story-copy">
                 <h3>From idea to immersive escape</h3>
                 <p>
@@ -725,32 +710,7 @@ const About = () => {
               </div>
             </div>
           </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          >
-            <h2 className="section-title">Travelers who trusted us with their time</h2>
-            <p className="section-intro">
-              Real voices from journeys we shepherded—from deserts to glaciers, families to
-              soloists. They handed us the heavy lifting and reclaimed awe.
-            </p>
-            <div className="testimonials-grid">
-              {travelerVoices.map((voice) => (
-                <motion.div key={voice.name} className="testimonial-card" whileHover={{ y: -6 }}>
-                  <p>“{voice.words}”</p>
-                  <div className="testimonial-meta">
-                    <strong>{voice.name}</strong>
-                    <span>{voice.role}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
         </main>
-
         <motion.section
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
