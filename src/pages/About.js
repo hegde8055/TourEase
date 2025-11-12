@@ -547,6 +547,15 @@ const About = () => {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  // 🔧 Shared animation variant for smoother unified motion
+  const fadeVariant = {
+    hidden: { opacity: 0, y: 80 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut" },
+    },
+  };
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -676,9 +685,9 @@ const About = () => {
         <main className="content-wrapper event-series">
           <motion.div
             className="event event-essentials"
-            initial={{ opacity: 0, y: 80 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
+            variants={fadeVariant}
+            initial="hidden"
+            whileInView="visible"
             viewport={{ once: true, amount: 0.3 }}
           >
             <h2 className="section-title">Why TourEase Exists</h2>
