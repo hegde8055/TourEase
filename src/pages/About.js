@@ -212,7 +212,37 @@ header, .navbar {
 	.content-wrapper > * {
 		width: 100%;
 	}
-
+  .event-series {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 64px;
+    align-items: start;
+    justify-items: center;
+  }
+  
+  .event {
+    max-width: 500px;
+    padding: 20px;
+  }
+  
+  .event-timeline .timeline {
+    border-left: none;
+    padding-left: 0;
+  }
+  
+  .event-story .story-canvas {
+    background: transparent;
+    box-shadow: none;
+  }
+  
+  .event-story .story-copy {
+    background: none;
+    color: #e2e8f0;
+    text-align: center;
+    padding: 0;
+    margin-top: 16px;
+  }
+  
 	.section-title {
 		font-size: clamp(2rem, 4vw, 3rem);
 		font-weight: 700;
@@ -643,14 +673,15 @@ const About = () => {
           </motion.div>
         </section>
 
-        <main className="content-wrapper">
-          <motion.section
-            initial={{ opacity: 0, y: 40 }}
+        <main className="content-wrapper event-series">
+          <motion.div
+            className="event event-essentials"
+            initial={{ opacity: 0, y: 80 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }} // 👈 small but powerful upgrade
-            transition={{ duration: 0.7, ease: "easeOut" }} // smoother animation
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            viewport={{ once: true, amount: 0.3 }}
           >
-            <h2 className="section-title">Why TourEase exists</h2>
+            <h2 className="section-title">Why TourEase Exists</h2>
             <p className="section-intro">
               We are travelers who lost weekends to spreadsheets and sleepless nights refreshing
               airline tabs. TourEase began to rewrite that experience—giving adventurers cinematic
@@ -671,34 +702,43 @@ const About = () => {
                 </motion.div>
               ))}
             </div>
-          </motion.section>
+          </motion.div>
 
-          <motion.section
-            initial={{ opacity: 0, y: 40 }}
+          <motion.div
+            className="event event-timeline"
+            initial={{ opacity: 0, y: 80 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
+            transition={{ duration: 0.9, delay: 0.2, ease: "easeOut" }}
+            viewport={{ once: true, amount: 0.3 }}
           >
-            <h2 className="section-title">How we choreograph your adventure</h2>
+            <h2 className="section-title">How We Choreograph Your Adventure</h2>
             <p className="section-intro">
               Our service weaves technology, empathetic planners, and a global caretaker network.
               Every stage keeps you relaxed yet ready for whatever the road reveals.
             </p>
             <div className="timeline">
-              {serviceStages.map((stage) => (
-                <div key={stage.heading} className="timeline-point">
+              {serviceStages.map((stage, index) => (
+                <motion.div
+                  key={stage.heading}
+                  className="timeline-point"
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -60 : 60 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                >
                   <h4>{stage.heading}</h4>
                   <p>{stage.body}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </motion.section>
+          </motion.div>
 
-          <motion.section
-            initial={{ opacity: 0, y: 40 }}
+          <motion.div
+            className="event event-story"
+            initial={{ opacity: 0, y: 80 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
+            transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
+            viewport={{ once: true, amount: 0.3 }}
           >
             <div className="story-canvas">
               <motion.div
@@ -716,11 +756,9 @@ const About = () => {
                   whileInView={{ opacity: 1 }}
                   transition={{ duration: 1.2, ease: "easeOut" }}
                 />
-                <div className="story-overlay" />
               </motion.div>
-
               <div className="story-copy">
-                <h3>From idea to immersive escape</h3>
+                <h3>From Idea to Immersive Escape</h3>
                 <p>
                   The film you see is where TourEase travelers have stood—dawn flights over coral
                   reefs, markets humming with colour, and cliffside sunsets captured only after we
@@ -734,8 +772,9 @@ const About = () => {
                 </p>
               </div>
             </div>
-          </motion.section>
+          </motion.div>
         </main>
+
         <motion.section
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
