@@ -1,5 +1,5 @@
 // /client/src/components/ConfirmModal.js
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useState, useMemo } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { motion } from "framer-motion";
 import { FaExclamationTriangle } from "react-icons/fa";
@@ -7,57 +7,73 @@ import { FaExclamationTriangle } from "react-icons/fa";
 const openSound = "https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3";
 const confirmSound = "https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3";
 
+const playSound = (url, volume = 0.4) => {
+  try {
+    const audio = new Audio(url);
+    audio.volume = volume;
+    audio.play().catch(() => {});
+  } catch (err) {
+    console.debug("[ConfirmModal] Audio playback skipped:", err?.message);
+  }
+};
+
 const ConfirmModal = ({ isOpen, onConfirm, onCancel, onForceConfirm, message }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      const audio = new Audio(openSound);
-      audio.volume = 0.4;
-      audio.play().catch(() => {});
+      playSound(openSound, 0.35);
+      setIsProcessing(false);
     }
   }, [isOpen]);
 
-  const handleConfirm = async (e) => {
-    if (e && typeof e.preventDefault === "function") e.preventDefault();
-    if (isProcessing) return;
-    setIsProcessing(true);
-    try {
-      const audio = new Audio(confirmSound);
-      audio.volume = 0.5;
-      audio.play().catch(() => {});
+  const colors = useMemo(
+    () => ({
+      gold: "#D4AF37",
+      text: "#E5E7EB",
+      muted: "#94A3B8",
+    }),
+    []
+  );
 
+  const handleConfirm = async (event) => {
+    if (event?.preventDefault) event.preventDefault();
+    if (isProcessing) return;
+
+    setIsProcessing(true);
+    playSound(confirmSound, 0.45);
+
+    try {
       if (typeof onConfirm === "function") {
         await onConfirm();
       }
-    } catch (err) {
-      console.error("[ConfirmModal] onConfirm error:", err);
+    } catch (error) {
+      console.error("[ConfirmModal] Confirm handler failed:", error);
     } finally {
       setIsProcessing(false);
-      if (typeof onCancel === "function") {
-        onCancel();
-      }
     }
   };
 
-  const colors = {
-    gold: "#D4AF37",
-    goldDeep: "#B38F2B",
-    bgDark: "#0B0E14",
-    surface: "#111827",
-    text: "#E5E7EB",
-    muted: "#94A3B8",
+  const handleCancel = (event) => {
+    if (event?.preventDefault) event.preventDefault();
+    if (isProcessing) return;
+    if (typeof onCancel === "function") onCancel();
+  };
+
+  const handleForce = (event) => {
+    if (event?.preventDefault) event.preventDefault();
+    if (typeof onForceConfirm === "function") onForceConfirm();
   };
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative" onClose={onCancel} style={{ zIndex: 2000 }}>
+    <Transition as={Fragment} appear show={isOpen}>
+      <Dialog as="div" className="relative" onClose={handleCancel} style={{ zIndex: 2000 }}>
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-400"
+          enter="ease-out duration-200"
           enterFrom="opacity-0"
           enterTo="opacity-100"
-          leave="ease-in duration-300"
+          leave="ease-in duration-150"
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
@@ -65,8 +81,8 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, onForceConfirm, message }) 
             style={{
               position: "fixed",
               inset: 0,
-              backgroundColor: "rgba(0,0,0,0.7)",
               backdropFilter: "blur(8px)",
+              backgroundColor: "rgba(0,0,0,0.65)",
             }}
           />
         </Transition.Child>
@@ -75,86 +91,60 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, onForceConfirm, message }) 
           style={{
             position: "fixed",
             inset: 0,
-            overflowY: "auto",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "1rem",
-            textAlign: "center",
+            padding: "16px",
           }}
         >
           <Transition.Child
             as={Fragment}
-            enter="ease-out duration-500"
-            enterFrom="opacity-0 scale-90 rotate-[-4deg]"
-            enterTo="opacity-100 scale-100 rotate-0"
-            leave="ease-in duration-300"
+            enter="ease-out duration-250"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="ease-in duration-150"
             leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-90 rotate-2"
+            leaveTo="opacity-0 scale-95"
           >
             <Dialog.Panel
               style={{
                 position: "relative",
                 width: "100%",
-                maxWidth: "420px",
-                borderRadius: "18px",
-                padding: "28px 22px 32px",
-                background: "linear-gradient(145deg, #000000 0%, #0b0e14 60%, #111827 100%)",
-                boxShadow: "0 0 40px rgba(212,175,55,0.25)",
+                maxWidth: 420,
+                borderRadius: 18,
+                padding: "30px 26px",
+                background: "linear-gradient(150deg, #05070f 0%, #0e162b 65%, #0b0e14 100%)",
                 border: "1px solid rgba(212,175,55,0.35)",
-                overflow: "hidden",
+                boxShadow: "0 0 36px rgba(212,175,55,0.28)",
               }}
             >
               <motion.div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: "18px",
-                  border: "2px solid rgba(212,175,55,0.3)",
-                }}
-                animate={{ opacity: [0.3, 0.9, 0.3], scale: [1, 1.02, 1] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              />
-
-              <motion.div
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 14 }}
-                style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}
+                initial={{ scale: 0.9, opacity: 0.6 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}
               >
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                <div
                   style={{
-                    background: "rgba(212,175,55,0.15)",
-                    padding: "16px",
+                    padding: 16,
                     borderRadius: "50%",
+                    background: "rgba(212,175,55,0.15)",
                     border: "1px solid rgba(212,175,55,0.4)",
                     boxShadow: "0 0 20px rgba(212,175,55,0.4)",
                   }}
                 >
-                  <FaExclamationTriangle
-                    style={{
-                      width: "38px",
-                      height: "38px",
-                      color: colors.gold,
-                      filter: "drop-shadow(0 0 6px rgba(212,175,55,0.7))",
-                    }}
-                  />
-                </motion.div>
+                  <FaExclamationTriangle size={34} color={colors.gold} />
+                </div>
               </motion.div>
 
               <Dialog.Title
                 as="h3"
                 style={{
-                  fontSize: "1.3rem",
-                  fontWeight: "700",
-                  background: "linear-gradient(90deg, #D4AF37, #FCE570, #D4AF37)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  letterSpacing: "0.5px",
                   textAlign: "center",
-                  marginBottom: "6px",
+                  fontSize: "1.25rem",
+                  fontWeight: 700,
+                  color: colors.gold,
+                  marginBottom: 10,
                 }}
               >
                 {message}
@@ -162,10 +152,10 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, onForceConfirm, message }) 
 
               <p
                 style={{
-                  color: colors.muted,
-                  fontSize: "0.9rem",
                   textAlign: "center",
-                  marginBottom: "24px",
+                  color: colors.muted,
+                  fontSize: "0.95rem",
+                  marginBottom: 28,
                 }}
               >
                 You’ll need to sign in again to continue exploring TourEase.
@@ -175,22 +165,22 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, onForceConfirm, message }) 
                 style={{
                   display: "flex",
                   justifyContent: "center",
-                  gap: "18px",
+                  gap: 18,
                 }}
               >
                 <motion.button
-                  whileHover={{ scale: 1.1, textShadow: "0 0 10px rgba(255,255,255,0.7)" }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={onCancel}
-                  disabled={isProcessing}
                   type="button"
+                  whileHover={{ scale: isProcessing ? 1 : 1.05 }}
+                  whileTap={{ scale: isProcessing ? 1 : 0.95 }}
+                  onClick={handleCancel}
+                  disabled={isProcessing}
                   style={{
-                    padding: "10px 26px",
-                    borderRadius: "10px",
-                    backgroundColor: "rgba(17,24,39,0.8)",
+                    padding: "10px 24px",
+                    borderRadius: 10,
                     border: "1px solid rgba(212,175,55,0.3)",
+                    background: "rgba(17,24,39,0.75)",
                     color: colors.text,
-                    fontWeight: "600",
+                    fontWeight: 600,
                     cursor: isProcessing ? "not-allowed" : "pointer",
                     opacity: isProcessing ? 0.7 : 1,
                   }}
@@ -199,63 +189,60 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, onForceConfirm, message }) 
                 </motion.button>
 
                 <motion.button
-                  whileHover={{ scale: 1.15, boxShadow: "0 0 24px rgba(212,175,55,0.7)" }}
-                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  whileHover={{ scale: isProcessing ? 1 : 1.08 }}
+                  whileTap={{ scale: isProcessing ? 1 : 0.94 }}
                   onClick={handleConfirm}
                   disabled={isProcessing}
-                  type="button"
                   style={{
-                    padding: "10px 26px",
-                    borderRadius: "10px",
-                    fontWeight: "700",
+                    padding: "10px 24px",
+                    borderRadius: 10,
+                    fontWeight: 700,
                     cursor: isProcessing ? "not-allowed" : "pointer",
                     color: "#0b0e14",
                     background: "linear-gradient(135deg, #D4AF37, #B38F2B, #F8E78A)",
-                    boxShadow: "0 0 18px rgba(212,175,55,0.4)",
+                    boxShadow: "0 0 20px rgba(212,175,55,0.45)",
                     border: "none",
-                    transition: "all 0.3s ease",
                     opacity: isProcessing ? 0.7 : 1,
                   }}
                 >
-                  {isProcessing ? "Signing out..." : "Sign Out"}
+                  {isProcessing ? "Signing out…" : "Sign Out"}
                 </motion.button>
               </div>
 
-              {onForceConfirm && (
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={onForceConfirm}
+              {typeof onForceConfirm === "function" && (
+                <button
                   type="button"
+                  onClick={handleForce}
                   style={{
-                    marginTop: "18px",
+                    marginTop: 18,
                     padding: "8px 18px",
-                    borderRadius: "999px",
+                    borderRadius: 999,
                     border: "1px dashed rgba(212,175,55,0.45)",
                     background: "transparent",
                     color: colors.muted,
+                    fontSize: "0.85rem",
                     fontWeight: 600,
                     cursor: "pointer",
                   }}
                 >
-                  Force sign out (backup)
-                </motion.button>
+                  Trouble signing out? Force it
+                </button>
               )}
 
               <button
-                onClick={onCancel}
+                type="button"
+                onClick={handleCancel}
                 style={{
                   position: "absolute",
-                  top: "14px",
-                  right: "18px",
-                  fontSize: "1.2rem",
+                  top: 14,
+                  right: 18,
+                  border: "none",
                   background: "transparent",
                   color: colors.gold,
-                  border: "none",
+                  fontSize: "1.2rem",
                   cursor: "pointer",
-                  transition: "color 0.2s ease",
                 }}
-                type="button"
               >
                 ✕
               </button>
