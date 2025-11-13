@@ -43,12 +43,21 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, onForceConfirm, message }) 
     setIsProcessing(true);
     playSound(confirmSound, 0.45);
 
+    const tryForce = async () => {
+      if (typeof onForceConfirm === "function") {
+        await onForceConfirm();
+      }
+    };
+
     try {
       if (typeof onConfirm === "function") {
         await onConfirm();
+      } else if (typeof onForceConfirm === "function") {
+        await tryForce();
       }
     } catch (error) {
-      console.error("[ConfirmModal] Confirm handler failed:", error);
+      console.error("[ConfirmModal] Confirm handler failed, invoking fallback:", error);
+      await tryForce();
     } finally {
       setIsProcessing(false);
     }
