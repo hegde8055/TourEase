@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useScroll, useTransform, motion } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 
 const aboutStyles = `
   body.about-page-active .main-content {
@@ -111,16 +112,17 @@ header, .navbar {
 	
 	/* Keeps video layered correctly and visible site-wide */
 	.hero-video {
-	  position: fixed;
-	  top: 0;
-	  left: 0;
-	  width: 100%;
-	  height: 100%;
-	  object-fit: cover;
-	  z-index: 0;
-	  filter: saturate(110%) contrast(95%) brightness(0.75);
-	}
-	
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    transform-origin: center center;
+    will-change: transform;
+  }
+  
 	.hero-overlay {
 		will-change: transform, opacity;
 			position: absolute;
@@ -271,6 +273,41 @@ header, .navbar {
 		font-size: 0.86rem;
 		color: rgba(148,163,184,0.78);
 	}
+  .event-sequence {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .event-sequence::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(250,204,21,0.8), rgba(59,130,246,0.2));
+    transform: translateX(-50%);
+    z-index: 0;
+  }
+  
+  .event-block-centered {
+    position: relative;
+    z-index: 1;
+    background: rgba(15,23,42,0.85);
+    border: 1px solid rgba(255,255,255,0.05);
+    margin: 80px 0;
+    padding: 60px;
+    border-radius: 24px;
+    backdrop-filter: blur(10px);
+    transition: transform 0.6s ease, opacity 0.6s ease;
+  }
+  
+  .event-block-centered:hover {
+    transform: translateY(-10px);
+  }
+  
 .cta-panel::before {
   content: "";
   position: absolute;
@@ -381,10 +418,10 @@ const About = () => {
         video?.play();
       }
     };
-
+    // Text reveal setup
     document.addEventListener("visibilitychange", handleVisibilityChange);
-
     // 🧹 Cleanup on component unmount
+    // Text reveal setup
     return () => {
       classList.remove("about-page-active");
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -427,6 +464,10 @@ const About = () => {
   };
   // Slight depth motion for hero background video
   const videoY = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
+  // ✨ Scroll-based text reveal hooks (must be at top-level)
+  const [refTitle, inViewTitle] = useInView({ threshold: 0.4, triggerOnce: false });
+  const [refBlurb, inViewBlurb] = useInView({ threshold: 0.3, triggerOnce: false });
+  const [refCTA, inViewCTA] = useInView({ threshold: 0.3, triggerOnce: false });
 
   return (
     <div className="about-page">
@@ -443,16 +484,24 @@ const About = () => {
           {/* 🎥 Background Video */}
           <motion.video
             className="hero-video"
-            data-src={heroVideoSrc}
+            poster="/assets/hero-poster.jpg"
             autoPlay
             muted
             loop
             playsInline
-            style={{ y: videoY }} // 🌌 Depth parallax
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.2 }}
-          />
+            preload="none"
+            style={{
+              y: videoY ?? 0, // fallback to prevent stretch on load
+              scale: 1.02, // slight zoom for cinematic tone
+              transformOrigin: "center center",
+              willChange: "transform",
+            }}
+            initial={{ opacity: 0, scale: 1.02 }}
+            animate={{ opacity: 1, scale: 1.02 }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+          >
+            <source src={heroVideoSrc} type="video/mp4" />
+          </motion.video>
 
           {/* 🌒 Overlay */}
           <motion.div
@@ -461,8 +510,6 @@ const About = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 1 }}
           />
-
-          {/* ✨ Hero Content (parallax + scroll fade) */}
           <motion.div
             className="hero-content"
             variants={fadeVariant}
@@ -493,11 +540,27 @@ const About = () => {
               Guided journeys · Seamless support · Real stories
             </motion.span>
 
-            <h1 className="hero-title">
+            <h1
+              ref={refTitle}
+              className="hero-title"
+              style={{
+                transform: inViewTitle ? "translateY(0)" : "translateY(60px)",
+                opacity: inViewTitle ? 1 : 0,
+                transition: "all 1.2s cubic-bezier(0.23, 1, 0.32, 1)",
+              }}
+            >
               We ease the weight of planning so you can feel every moment of your trip.
             </h1>
 
-            <p className="hero-blurb">
+            <p
+              ref={refBlurb}
+              className="hero-blurb"
+              style={{
+                transform: inViewBlurb ? "translateY(0)" : "translateY(50px)",
+                opacity: inViewBlurb ? 1 : 0,
+                transition: "all 1.4s cubic-bezier(0.25, 1, 0.5, 1)",
+              }}
+            >
               TourEase is the travel companion for explorers who crave depth without the logistics
               grind. We merge human travel designers with adaptive intelligence to choreograph
               itineraries that flex with you—sunrise to midnight.
@@ -522,94 +585,112 @@ const About = () => {
               </motion.a>
             </div>
           </motion.div>
-        </motion.section>
 
-        <main className="event-sequence">
-          {/* Content 1 */}
-          <motion.div
-            className="event-block-centered"
-            initial={{ opacity: 0, y: 80 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -80 }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
-            viewport={{ once: false, amount: 0.6 }}
-          >
-            <h2 className="event-title">CHASE THE HORIZON</h2>
-            <p className="event-desc">
-              Feel the wind bite as you ascend Himalayan trails, or the golden sand slip through
-              your fingers in Goa’s twilight. TourEase designs journeys that blur the line between
-              dream and reality — so every sunrise feels like your first.
-            </p>
-          </motion.div>
-
-          {/* Content 2 */}
-          <motion.div
-            className="event-block-centered"
-            initial={{ opacity: 0, y: 100 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -100 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            viewport={{ once: false, amount: 0.6 }}
-          >
-            <h2 className="event-title">BEYOND THE MAP</h2>
-            <p className="event-desc">
-              From city skylines lit like constellations to mountain ridges kissed by mist — we
-              guide you to places that don’t exist on ordinary maps. Every turn, every trail, every
-              tide — sculpted by your own rhythm. Adventure doesn’t start with a booking. It starts
-              with a heartbeat.
-            </p>
-          </motion.div>
-
-          {/* Content 3 */}
-          <motion.div
-            className="event-block-centered"
-            initial={{ opacity: 0, y: 120 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -120 }}
-            transition={{ duration: 1.1, ease: "easeOut" }}
-            viewport={{ once: false, amount: 0.6 }}
-          >
-            <h2 className="event-title">WHERE STORIES BEGIN</h2>
-            <p className="event-desc">
-              Whether it’s sharing laughter with locals under Bali’s lantern-lit skies, or tracing
-              footprints across Iceland’s icy silence — we turn your travels into living stories.
-              Not just destinations, but memories carved into time.
-            </p>
-          </motion.div>
-        </main>
-        <motion.section
-          className="cta-panel"
-          style={{ y }}
-          variants={fadeVariant}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.4 }}
-        >
-          <h2 className="section-title" style={{ marginBottom: 20 }}>
-            Ready to feel excited—not exhausted—about planning?
-          </h2>
-          <p className="section-intro" style={{ margin: "0 auto 32px" }}>
-            Share your dream destination, travel crew, and vibe. We will translate it into a
-            flexible itinerary, secure your bookings, and stay close while you explore.
-          </p>
-          <div className="hero-cta">
-            <motion.a
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.96 }}
-              href="/get-started"
-              className="btn-primary"
+          <main className="event-sequence">
+            {/* Content 1 */}
+            <motion.div
+              className="event-block-centered"
+              initial={{ opacity: 0, y: 100, scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              viewport={{ once: false, amount: 0.4 }}
+              whileHover={{ scale: 1.03 }}
             >
-              Start my travel brief
-            </motion.a>
-            <motion.a
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.96 }}
-              href="mailto:care@tourease.com"
-              className="btn-secondary"
+              <h2 className="event-title">CHASE THE HORIZON</h2>
+              <p className="event-desc">
+                Feel the wind bite as you ascend Himalayan trails, or the golden sand slip through
+                your fingers in Goa’s twilight. TourEase designs journeys that blur the line between
+                dream and reality — so every sunrise feels like your first.
+              </p>
+            </motion.div>
+
+            {/* Content 2 */}
+            <motion.div
+              className="event-block-centered"
+              initial={{ opacity: 0, y: 100 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -100 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              viewport={{ once: false, amount: 0.6 }}
             >
-              Talk to a planner
-            </motion.a>
-          </div>
+              <h2 className="event-title">BEYOND THE MAP</h2>
+              <p className="event-desc">
+                From city skylines lit like constellations to mountain ridges kissed by mist — we
+                guide you to places that don’t exist on ordinary maps. Every turn, every trail,
+                every tide — sculpted by your own rhythm. Adventure doesn’t start with a booking. It
+                starts with a heartbeat.
+              </p>
+            </motion.div>
+
+            {/* Content 3 */}
+            <motion.div
+              className="event-block-centered"
+              initial={{ opacity: 0, y: 120 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -120 }}
+              transition={{ duration: 1.1, ease: "easeOut" }}
+              viewport={{ once: false, amount: 0.6 }}
+            >
+              <h2 className="event-title">WHERE STORIES BEGIN</h2>
+              <p className="event-desc">
+                Whether it’s sharing laughter with locals under Bali’s lantern-lit skies, or tracing
+                footprints across Iceland’s icy silence — we turn your travels into living stories.
+                Not just destinations, but memories carved into time.
+              </p>
+            </motion.div>
+          </main>
+          <motion.section
+            className="cta-panel"
+            style={{ y }}
+            variants={fadeVariant}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.4 }}
+          >
+            <h2
+              ref={refCTA}
+              className="section-title"
+              style={{
+                transform: inViewCTA ? "translateY(0)" : "translateY(40px)",
+                opacity: inViewCTA ? 1 : 0,
+                transition: "all 1s cubic-bezier(0.23, 1, 0.32, 1)",
+                marginBottom: 20,
+              }}
+            >
+              Ready to feel excited—not exhausted—about planning?
+            </h2>
+
+            <p
+              className="section-intro"
+              style={{
+                transform: inViewCTA ? "translateY(0)" : "translateY(40px)",
+                opacity: inViewCTA ? 1 : 0,
+                transition: "all 1.2s cubic-bezier(0.23, 1, 0.32, 1)",
+                margin: "0 auto 32px",
+              }}
+            >
+              Share your dream destination, travel crew, and vibe. We will translate it into a
+              flexible itinerary, secure your bookings, and stay close while you explore.
+            </p>
+            <div className="hero-cta">
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.96 }}
+                href="/get-started"
+                className="btn-primary"
+              >
+                Start my travel brief
+              </motion.a>
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.96 }}
+                href="mailto:care@tourease.com"
+                className="btn-secondary"
+              >
+                Talk to a planner
+              </motion.a>
+            </div>
+          </motion.section>
         </motion.section>
       </div>
     </div>

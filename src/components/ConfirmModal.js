@@ -7,7 +7,7 @@ import { FaExclamationTriangle } from "react-icons/fa";
 const openSound = "https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3";
 const confirmSound = "https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3";
 
-const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
+const ConfirmModal = ({ isOpen, onConfirm, onCancel, onForceConfirm, message }) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -220,6 +220,27 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, message }) => {
                   {isProcessing ? "Signing out..." : "Sign Out"}
                 </motion.button>
               </div>
+
+              {onForceConfirm && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={onForceConfirm}
+                  type="button"
+                  style={{
+                    marginTop: "18px",
+                    padding: "8px 18px",
+                    borderRadius: "999px",
+                    border: "1px dashed rgba(212,175,55,0.45)",
+                    background: "transparent",
+                    color: colors.muted,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  Force sign out (backup)
+                </motion.button>
+              )}
 
               <button
                 onClick={onCancel}

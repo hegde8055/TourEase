@@ -75,6 +75,28 @@ const Navbar = () => {
     }
   };
 
+  const handleForceLogout = () => {
+    setMenuActive(false);
+    setIsModalOpen(false);
+    try {
+      if (typeof contextLogout === "function") {
+        contextLogout();
+      }
+    } catch (err) {
+      console.error("[Navbar] Force logout fallback error:", err);
+    } finally {
+      clearStoredAuth();
+      setAuthenticated(false);
+      setUsername("");
+      if (typeof window !== "undefined") {
+        window.location.replace("/signin?forced=1");
+        window.setTimeout(() => {
+          window.location.reload();
+        }, 200);
+      }
+    }
+  };
+
   const handleCancelLogout = () => setIsModalOpen(false);
   const toggleMenu = () => setMenuActive(!menuActive);
   const closeMenu = () => setMenuActive(false);
@@ -159,6 +181,7 @@ const Navbar = () => {
         message="Are you sure you want to sign out?"
         onConfirm={handleConfirmLogout}
         onCancel={handleCancelLogout}
+        onForceConfirm={handleForceLogout}
       />
     </header>
   );
