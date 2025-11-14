@@ -195,14 +195,7 @@ function AnimatedRoutes() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/about"
-            element={
-              <ProtectedRoute>
-                <About />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/about" element={<About />} />
 
           <Route
             path="/destination/:id"
