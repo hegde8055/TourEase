@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useScroll, useTransform, motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 
@@ -101,6 +101,23 @@ header, .navbar {
 			overflow: hidden;
 			width: 100%;
 	}
+  .hero-section.no-video {
+    background:
+      linear-gradient(180deg, rgba(7,11,22,0.92) 0%, rgba(2,6,23,0.96) 70%),
+      radial-gradient(820px 420px at 22% 18%, rgba(59,130,246,0.28), transparent 75%),
+      rgb(2,6,23);
+  }
+
+  .hero-section.no-video .hero-overlay {
+    opacity: 0.85;
+    background:
+      linear-gradient(180deg, rgba(5,10,25,0.86) 0%, rgba(2,6,23,0.95) 75%),
+      radial-gradient(700px 360px at 18% 20%, rgba(56,189,248,0.2), transparent 70%);
+  }
+
+  .hero-section.no-video .hero-video {
+    display: none;
+  }
 	/* Ensures video stays visible behind all content */
 	.about-page,
 	body.about-page-active .main-content,
@@ -401,6 +418,13 @@ header, .navbar {
 
 const About = () => {
   const heroVideoSrc = "/assets/intro.mkv";
+  const [videoError, setVideoError] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
 
@@ -429,6 +453,8 @@ const About = () => {
   }, []);
   useEffect(() => {
     // 💤 Lazy-load background video for better performance
+    if (videoError) return undefined;
+
     const video = document.querySelector(".hero-video");
 
     const loadVideo = () => {
@@ -446,7 +472,7 @@ const About = () => {
     } else {
       setTimeout(loadVideo, 1000);
     }
-  }, []);
+  }, [videoError]);
   // 🌀 Scroll motion setup
   const { scrollYProgress } = useScroll();
 
@@ -469,27 +495,37 @@ const About = () => {
   const [refBlurb, inViewBlurb] = useInView({ threshold: 0.3, triggerOnce: false });
   const [refCTA, inViewCTA] = useInView({ threshold: 0.3, triggerOnce: false });
 
+  const heroSectionClassName = `hero-section${videoError ? " no-video" : ""}`;
+  const revealTitle = hasMounted ? inViewTitle : true;
+  const revealBlurb = hasMounted ? inViewBlurb : true;
+  const revealCTA = hasMounted ? inViewCTA : true;
+
   return (
     <div className="about-page">
       <style>{aboutStyles}</style>
       <div className="about-shell">
         <motion.section
-          className="hero-section"
+          className={heroSectionClassName}
           style={{ y }} // 🌊 Parallax motion tied to scroll
           variants={fadeVariant}
-          initial="hidden"
+          initial={hasMounted ? "hidden" : "visible"}
           whileInView="visible"
           viewport={{ once: true, amount: 0.5 }}
         >
           {/* 🎥 Background Video */}
           <motion.video
             className="hero-video"
-            poster="/assets/hero-poster.jpg"
+            poster="/assets/1.jpg"
             autoPlay
             muted
             loop
             playsInline
             preload="none"
+            onLoadedData={() => setVideoLoaded(true)}
+            onError={() => {
+              setVideoError(true);
+              setVideoLoaded(false);
+            }}
             style={{
               y: videoY ?? 0, // fallback to prevent stretch on load
               scale: 1.02, // slight zoom for cinematic tone
@@ -497,7 +533,7 @@ const About = () => {
               willChange: "transform",
             }}
             initial={{ opacity: 0, scale: 1.02 }}
-            animate={{ opacity: 1, scale: 1.02 }}
+            animate={{ opacity: videoError ? 0 : videoLoaded ? 1 : 0, scale: 1.02 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
           >
             <source src={heroVideoSrc} type="video/mp4" />
@@ -544,8 +580,8 @@ const About = () => {
               ref={refTitle}
               className="hero-title"
               style={{
-                transform: inViewTitle ? "translateY(0)" : "translateY(60px)",
-                opacity: inViewTitle ? 1 : 0,
+                transform: revealTitle ? "translateY(0)" : "translateY(60px)",
+                opacity: revealTitle ? 1 : 0,
                 transition: "all 1.2s cubic-bezier(0.23, 1, 0.32, 1)",
               }}
             >
@@ -556,8 +592,8 @@ const About = () => {
               ref={refBlurb}
               className="hero-blurb"
               style={{
-                transform: inViewBlurb ? "translateY(0)" : "translateY(50px)",
-                opacity: inViewBlurb ? 1 : 0,
+                transform: revealBlurb ? "translateY(0)" : "translateY(50px)",
+                opacity: revealBlurb ? 1 : 0,
                 transition: "all 1.4s cubic-bezier(0.25, 1, 0.5, 1)",
               }}
             >
@@ -651,8 +687,8 @@ const About = () => {
               ref={refCTA}
               className="section-title"
               style={{
-                transform: inViewCTA ? "translateY(0)" : "translateY(40px)",
-                opacity: inViewCTA ? 1 : 0,
+                transform: revealCTA ? "translateY(0)" : "translateY(40px)",
+                opacity: revealCTA ? 1 : 0,
                 transition: "all 1s cubic-bezier(0.23, 1, 0.32, 1)",
                 marginBottom: 20,
               }}
@@ -663,8 +699,8 @@ const About = () => {
             <p
               className="section-intro"
               style={{
-                transform: inViewCTA ? "translateY(0)" : "translateY(40px)",
-                opacity: inViewCTA ? 1 : 0,
+                transform: revealCTA ? "translateY(0)" : "translateY(40px)",
+                opacity: revealCTA ? 1 : 0,
                 transition: "all 1.2s cubic-bezier(0.23, 1, 0.32, 1)",
                 margin: "0 auto 32px",
               }}
