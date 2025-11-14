@@ -506,7 +506,6 @@ const About = () => {
       <div className="about-shell">
         <motion.section
           className={heroSectionClassName}
-          style={{ y }} // 🌊 Parallax motion tied to scroll
           variants={fadeVariant}
           initial={hasMounted ? "hidden" : "visible"}
           whileInView="visible"
@@ -527,10 +526,16 @@ const About = () => {
               setVideoLoaded(false);
             }}
             style={{
-              y: videoY ?? 0, // fallback to prevent stretch on load
-              scale: 1.02, // slight zoom for cinematic tone
-              transformOrigin: "center center",
-              willChange: "transform",
+              y: videoY,
+              scale: 1.05, // cinematic zoom
+              minWidth: "100%",
+              minHeight: "100%",
+              width: "100vw",
+              height: "100vh",
+              objectFit: "cover",
+              position: "absolute",
+              top: 0,
+              left: 0,
             }}
             initial={{ opacity: 0, scale: 1.02 }}
             animate={{ opacity: videoError ? 0 : videoLoaded ? 1 : 0, scale: 1.02 }}
