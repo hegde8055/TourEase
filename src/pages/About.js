@@ -23,7 +23,6 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
 .about-page{background:linear-gradient(180deg,var(--deep) 0%, #071122 70%);color:var(--muted);min-height:100vh}
 .about-shell{max-width:1200px;margin:0 auto;padding:0 16px}
 
-.header-spacer{height:84px}
 
 /* PARTICLES */
 .hero-particles{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none}
@@ -193,7 +192,6 @@ const About = () => {
         {/* <Navbar /> */}
         <ScrollProgressBar />
         <Navbar />
-        <div className="header-spacer" />
 
         {/* HERO */}
         <motion.section

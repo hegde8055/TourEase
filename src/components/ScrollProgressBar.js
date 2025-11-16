@@ -1,6 +1,6 @@
 // client/src/components/ScrollProgressBar.js
-import { motion, useScroll, useSpring } from "framer-motion";
-import React from "react";
+import { motion, useMotionValue, useSpring } from "framer-motion";
+import React, { useEffect } from "react";
 
 /**
  * ScrollProgressBar
@@ -8,12 +8,42 @@ import React from "react";
  * Displays a top progress bar that fills as you scroll down.
  */
 const ScrollProgressBar = () => {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
+  const progress = useMotionValue(0);
+  const scaleX = useSpring(progress, {
+    stiffness: 160,
+    damping: 26,
+    restDelta: 0.0005,
   });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    let animationFrameId;
+
+    const updateProgress = () => {
+      const { scrollY, innerHeight } = window;
+      const { scrollHeight } = document.documentElement;
+      const maxScrollable = Math.max(scrollHeight - innerHeight, 1);
+      const nextValue = Math.min(Math.max(scrollY / maxScrollable, 0), 1);
+      progress.set(nextValue);
+    };
+
+    const scheduleUpdate = () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(updateProgress);
+    };
+
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+
+    updateProgress();
+
+    return () => {
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [progress]);
 
   return (
     <motion.div
