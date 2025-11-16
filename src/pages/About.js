@@ -11,10 +11,10 @@ import { useInView } from "react-intersection-observer";
 // -----------------------------------------------------------------------------
 
 const aboutStyles = `
-/* reset browser margins and ensure app container has no top padding */
+/* CULPRIT FIX 1: Made resets more aggressive with !important */
 html, body, #root {
-  margin: 0;
-  padding: 0;
+  margin: 0 !important;
+  padding: 0 !important;
   height: 100%;
 }
 /* safety: hide any leftover spacer elements that use classnames containing 'spacer' */
@@ -36,13 +36,24 @@ html, body, #root {
   --muted: rgba(226,232,240,0.92);
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
+/* Base font-family is now part of the main reset above */
+html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
 
-.about-page{background:linear-gradient(180deg,var(--deep) 0%, #071122 70%);color:var(--muted);min-height:100vh}
+/* CULPRIT FIX 1 (cont.): Added explicit margin/padding reset to the page container */
+.about-page{
+  margin: 0;
+  padding: 0;
+  background:linear-gradient(180deg,var(--deep) 0%, #071122 70%);
+  color:var(--muted);
+  min-height:100vh
+}
+
+/* CULPRIT FIX 2: Moved bottom padding from .content-wrapper to here */
 .about-shell{
   max-width:1200px;
   margin:0 auto;
-  padding:0 16px 0 16px; /* no top padding */
+  /* This now controls the final padding at the bottom of the page */
+  padding: 0 16px 80px 16px; 
 }
 
 
@@ -60,15 +71,13 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
 .hero-particles span:nth-child(9){left:75%;animation-duration:9s}
 .hero-particles span:nth-child(10){left:50%;animation-duration:15s}
 @keyframes floatUp{0%{transform:translateY(120vh) scale(0.6);opacity:0}20%{opacity:0.9}100%{transform:translateY(-20vh) scale(1.1);opacity:0}}
+
+/* This padding is correct: it pushes the hero *content* down, not the whole page */
 .hero-section{
   position: relative;
   min-height: 70vh;
   display: grid;
   place-items: center;
-  /* FIX 1: Added var(--nav-height) to top padding. 
-    This pushes content down by the navbar's height.
-    The '70px' is a fallback. 
-  */
   padding: var(--nav-height, 70px) 20px 80px;
   margin-top: 0 !important; 
   top: 0 !important;
@@ -94,12 +103,11 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
 .btn-ghost{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.12);color:var(--muted);transition:box-shadow 0.3s ease}
 .btn-ghost:hover{box-shadow:0 10px 28px rgba(0,0,0,0.28);transform:translateY(-3px)}
 
-/* FIX 3: Added padding-bottom to fix gap before footer.
-  Removed !important flags. 
-*/
+
+/* CULPRIT FIX 2 (cont.): Removed padding-bottom from here */
 .content-wrapper{
   max-width:1200px;  
-  padding-bottom: 80px; /* Added space before footer */
+  /* padding-bottom: 80px; <-- REMOVED */
 }
 
 /* Founder / profile section - split layout */
@@ -134,14 +142,12 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
   background:linear-gradient(180deg, rgba(8,12,24,0.48), rgba(8,12,24,0.6));
   backdrop-filter:blur(16px);
   border-radius:14px;
-  margin: 40px 0 0 0;  /* Removed !important */
+  margin: 40px 0 0 0;  
   text-align:center;
   border:1px solid rgba(255,255,255,0.06);
 }
 .cta-panel h3{color:var(--gold);font-weight:800}
-/* FIX 2: Added margin-bottom to create space 
-  between text and buttons. Removed !important.
-*/
+/* This fix was correct and remains: adds space between CTA text and buttons */
 .cta-panel p{
   max-width:860px;  
   margin-bottom: 24px; 
