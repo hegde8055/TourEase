@@ -22,12 +22,14 @@ const ScrollProgressBar = () => {
         top: 0,
         left: 0,
         right: 0,
-        height: "5px",
-        background: "linear-gradient(90deg, rgba(212,175,55,1) 0%, rgba(59,130,246,1) 100%)",
+        height: "4px",
+        background: "linear-gradient(90deg, rgba(212,175,55,0.95) 0%, rgba(59,130,246,0.95) 100%)",
         transformOrigin: "0%",
         scaleX,
-        zIndex: 9999,
+        zIndex: 12000,
+        pointerEvents: "none",
       }}
+      aria-hidden
     />
   );
 };
