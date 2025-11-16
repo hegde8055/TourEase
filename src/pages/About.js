@@ -39,7 +39,14 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
 @keyframes floatUp{0%{transform:translateY(120vh) scale(0.6);opacity:0}20%{opacity:0.9}100%{transform:translateY(-20vh) scale(1.1);opacity:0}}
 
 /* HERO */
-.hero-section{position:relative;min-height:70vh;display:grid;place-items:center;padding:56px 20px 80px;overflow:hidden}
+.hero-section{
+  position: relative;
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  padding: 0 20px 80px; /* removed top padding */
+  overflow: hidden;
+}
 .hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(0.36) contrast(1.03);transition:opacity 0.8s ease,transform 1.2s ease}
 /* overlay reduces top darkness so title always visible */
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(2,6,23,0.32) 0%, rgba(2,6,23,0.65) 60%, rgba(2,6,23,0.82) 100%);z-index:1;pointer-events:none}
@@ -61,7 +68,8 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
 .btn-ghost:hover{box-shadow:0 10px 28px rgba(0,0,0,0.28);transform:translateY(-3px)}
 
 /* ensure content below hero isn't covered */
-.content-wrapper{max-width:1200px;margin:40px auto 0;padding:20px}
+.content-wrapper{max-width:1200px;  margin-bottom: 0 !important;
+padding-bottom: 0 !important;}
 
 /* Founder / profile section - split layout */
 .profile-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 24px;background:linear-gradient(135deg,#b76e79 0%,#eec9d2 100%);border-radius:12px;margin-top:0;box-shadow:0 20px 45px rgba(0,0,0,0.25);overflow:visible}
@@ -92,7 +100,7 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
 /* CTA panel */
 .cta-panel{padding:38px 20px;background:linear-gradient(180deg, rgba(8,12,24,0.48), rgba(8,12,24,0.6));backdrop-filter:blur(16px);border-radius:14px;margin:40px 0;text-align:center;border:1px solid rgba(255,255,255,0.06)}
 .cta-panel h3{color:var(--gold);font-weight:800}
-.cta-panel p{max-width:860px;margin:10px auto 20px;color:rgba(226,232,240,0.95)}
+.cta-panel p{max-width:860px;  margin-bottom: 0 !important;color:rgba(226,232,240,0.95)}
 
 /* NEON ROSE-GOLD & SHIMMER */
 .btn-primary{position:relative;overflow:hidden}
