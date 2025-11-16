@@ -21,40 +21,53 @@ const ScrollProgressBar = () => {
     let animationFrameId;
 
     const updateProgress = () => {
-      const scrollingElement =
-        document.scrollingElement || document.documentElement || document.body;
+      // Find the element that scrolls
+      const scrollingElement = document.scrollingElement || document.documentElement;
       if (!scrollingElement) {
         progress.set(0);
         return;
       }
 
-      const scrollTop = window.scrollY ?? window.pageYOffset ?? scrollingElement.scrollTop ?? 0;
-      const viewportHeight = window.innerHeight ?? scrollingElement.clientHeight ?? 1;
-      const scrollHeight = Math.max(
-        scrollingElement.scrollHeight ?? viewportHeight,
-      const updateProgress = () => {
-      );
+      const scrollTop = scrollingElement.scrollTop;
+      const viewportHeight = scrollingElement.clientHeight;
+      const scrollHeight = scrollingElement.scrollHeight;
+
+      // Calculate the maximum scrollable distance
       const maxScrollable = Math.max(scrollHeight - viewportHeight, 1);
-      const nextValue = Math.min(Math.max(scrollTop / maxScrollable, 0), 1);
-      progress.set(nextValue);
+
+      // Calculate the raw progress value
+      const rawValue = scrollTop / maxScrollable;
+
+      // Ensure the value is between 0 and 1
+      const clampedValue = Math.min(Math.max(rawValue, 0), 1);
+
+      // Ensure the value is a valid number before setting
+      const safeValue = Number.isFinite(clampedValue) ? clampedValue : 0;
+
+      progress.set(safeValue);
     };
 
     const scheduleUpdate = () => {
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
       animationFrameId = requestAnimationFrame(updateProgress);
     };
 
+    // Add event listeners for both scroll and resize
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
-        const rawValue = scrollTop / maxScrollable;
-        const clampedValue = Math.min(Math.max(rawValue, 0), 1);
-        const safeValue = Number.isFinite(clampedValue) ? clampedValue : 0;
-        progress.set(safeValue);
+    window.addEventListener("resize", scheduleUpdate, { passive: true });
+
+    // Set initial progress
     updateProgress();
 
+    // Cleanup function
     return () => {
       window.removeEventListener("scroll", scheduleUpdate);
       window.removeEventListener("resize", scheduleUpdate);
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
     };
   }, [progress]);
 
@@ -66,6 +79,7 @@ const ScrollProgressBar = () => {
         left: 0,
         width: "100%",
         height: "6px",
+        // This is the background of the "track"
         background: "linear-gradient(90deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.25) 100%)",
         zIndex: 12000,
         pointerEvents: "none",
@@ -73,24 +87,24 @@ const ScrollProgressBar = () => {
       }}
       aria-hidden
     >
+      {/* This is the moving progress bar */}
       <motion.div
         style={{
           height: "100%",
-        background: "linear-gradient(90deg, rgba(8,12,24,0.75) 0%, rgba(8,12,24,0.35) 100%)",
-          background:
-            "linear-gradient(90deg, rgba(212,175,55,0.95) 0%, rgba(59,130,246,0.95) 100%)",
+          // This is the gradient of the bar itself
+          background: "linear-gradient(90deg, rgba(212,175,55,1) 0%, rgba(59,130,246,1) 100%)",
           transformOrigin: "0%",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
+          // This is the glow effect for the bar
+          boxShadow: "0 0 12px rgba(212,175,55,0.45)",
+          // This is the spring-animated scaleX value
           scaleX,
+          // Performance hints
+          minWidth: "1px",
+          transform: "translateZ(0)",
         }}
       />
     </div>
   );
 };
 
-          background: "linear-gradient(90deg, rgba(212,175,55,1) 0%, rgba(59,130,246,1) 100%)",
-
-          scaleX,
-          boxShadow: "0 0 12px rgba(212,175,55,0.45)",
-          minWidth: "1px",
-          transform: "translateZ(0)",
+export default ScrollProgressBar;
