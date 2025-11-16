@@ -1,886 +1,508 @@
-import React, {
-  // Scroll progress bar
-  useEffect,
-  useState,
-  useRef,
-} from "react";
-import { useScroll, useTransform, motion, useMotionValue, useSpring } from "framer-motion";
-import { useInView } from "react-intersection-observer";
+import React, { useEffect } from "react";
+import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-// ----- Level 3: GSAP ScrollTrigger Cinematic Engine -----
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-gsap.registerPlugin(ScrollTrigger);
+import ScrollProgressBar from "../components/ScrollProgressBar";
+import { useScroll, useTransform, motion } from "framer-motion";
+import { useInView } from "react-intersection-observer";
 
-/* 🌫️ Level‑3 Atmospherics — fog, bloom, depth */
-const fogAnimate = () => {
-  gsap.utils.toArray(".fog-layer").forEach((layer, i) => {
-    gsap.to(layer, {
-      x: i % 2 === 0 ? 80 : -80,
-      opacity: 0.5 + i * 0.15,
-      ease: "none",
-      scrollTrigger: {
-        trigger: ".hero-section",
-        start: "top top",
-        end: "+=1200",
-        scrub: 1.5,
-      },
-    });
-  });
-};
-
-// ----- Magnetic Button + Parallax utilities -----
-const MagneticButton = ({ href, children, className }) => {
-  const ref = useRef(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 300, damping: 25 });
-  const sy = useSpring(y, { stiffness: 300, damping: 25 });
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const handle = (e) => {
-      const rect = el.getBoundingClientRect();
-      const relX = e.clientX - (rect.left + rect.width / 2);
-      const relY = e.clientY - (rect.top + rect.height / 2);
-      x.set(relX * 0.15);
-      y.set(relY * 0.12);
-    };
-    const reset = () => {
-      x.set(0);
-      y.set(0);
-    };
-    el.addEventListener("mousemove", handle);
-    el.addEventListener("mouseleave", reset);
-    return () => {
-      el.removeEventListener("mousemove", handle);
-      el.removeEventListener("mouseleave", reset);
-    };
-  }, [x, y]);
-
-  return (
-    <motion.a
-      ref={ref}
-      href={href}
-      className={className}
-      style={{ translateX: sx, translateY: sy }}
-      whileTap={{ scale: 0.97 }}
-    >
-      {children}
-    </motion.a>
-  );
-};
-
-// Small utility to add gentle 3D tilt on event cards
-const useCardTilt = (selector = ".event-block-centered") => {
-  useEffect(() => {
-    const els = Array.from(document.querySelectorAll(selector));
-    if (!els.length) return;
-    const handlers = new Map();
-    els.forEach((el) => {
-      const mousemove = (e) => {
-        const rect = el.getBoundingClientRect();
-        const px = (e.clientX - rect.left) / rect.width - 0.5;
-        const py = (e.clientY - rect.top) / rect.height - 0.5;
-        const rx = -py * 6;
-        const ry = px * 6;
-        el.style.transform = `translateY(-6px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.01)`;
-        el.style.transition = "transform 120ms linear";
-      };
-      const leave = () => {
-        el.style.transform = "translateY(0) rotateX(0) rotateY(0) scale(1)";
-        el.style.transition = "transform 500ms cubic-bezier(.2,.8,.2,1)";
-      };
-      el.addEventListener("mousemove", mousemove);
-      el.addEventListener("mouseleave", leave);
-      handlers.set(el, { mousemove, leave });
-    });
-    return () => {
-      handlers.forEach((v, el) => {
-        el.removeEventListener("mousemove", v.mousemove);
-        el.removeEventListener("mouseleave", v.leave);
-      });
-    };
-  }, [selector]);
-};
+// -----------------------------------------------------------------------------
+// Redesigned About.js — cleaned, fixed imports, corrected CSS and animations
+// All frontend logic (styles, layout, animations) is contained in this file
+// Replace '/assets/founder.jpg' and heroVideoSrc with your actual assets when deploying
+// -----------------------------------------------------------------------------
 
 const aboutStyles = `
-  body.about-page-active .main-content {
-    padding-top: 20px;
-  }
-
-  body.about-page-active header {
-    top: 10px;
-  }
-  /* 🧭 Tighten navbar position to exactly 10px from the top */
-  body, html {
-	margin: 0;
-	padding: 0;
-  }
-  
-  /* 🧭 Ensure global Navbar always stays on top */
-header, .navbar {
-  z-index: 9999 !important;
-  position: fixed;
-  top: 40px; /* increased from 20px for visibility */
-  left: 50%;
-  transform: translateX(-50%);
+:root{
+  --gold: #caa72b;
+  --deep: #081225;
+  --muted: rgba(226,232,240,0.92);
 }
-  
-  header {
-	width: 100%;
-	margin: 0 auto;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-  }
-  
-  /* 🧭 Scroll & background fix */
-  html, body {
-    height: auto;
-    overflow-y: auto;
-  }
-  html {
-	scroll-behavior: smooth;
-	backface-visibility: hidden;
-	-webkit-font-smoothing: antialiased;
-  }
-  html, body {
-    scroll-behavior: smooth;
-    perspective: 1000px;
-  }
-  
-  /* motion elements hint */
-  .about-page {
-    position: relative;
-    min-height: 100%;
-    background: transparent;
-    overflow-x: hidden;
-    overflow-y: visible;
-  }
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
 
-  /* ✨ CINEMATIC SCROLL EFFECTS */
+.about-page{background:linear-gradient(180deg,var(--deep) 0%, #071122 70%);color:var(--muted);min-height:100vh}
+.about-shell{max-width:1200px;margin:0 auto;padding:0 16px}
 
-  /* ✨ Apple Vision Pro — Holographic text effect REMOVED for hero area */
-/* (Kept disabled except inside event-block-centered cards) */
+.header-spacer{height:84px}
 
-/* subtle sheen disabled */
-  .holo-gradient::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.08));
-    mix-blend-mode: screen;
-    opacity: 0.7;
-    transform: translateZ(0);
-  }
+/* PARTICLES */
+.hero-particles{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none}
+.hero-particles span{position:absolute;width:6px;height:6px;background:rgba(255,199,173,0.8);border-radius:50%;filter:blur(1px);animation:floatUp 8s linear infinite}
+.hero-particles span:nth-child(1){left:10%;animation-duration:7s}
+.hero-particles span:nth-child(2){left:25%;animation-duration:9s}
+.hero-particles span:nth-child(3){left:40%;animation-duration:11s}
+.hero-particles span:nth-child(4){left:55%;animation-duration:8s}
+.hero-particles span:nth-child(5){left:70%;animation-duration:10s}
+.hero-particles span:nth-child(6){left:85%;animation-duration:12s}
+.hero-particles span:nth-child(7){left:30%;animation-duration:14s}
+.hero-particles span:nth-child(8){left:60%;animation-duration:13s}
+.hero-particles span:nth-child(9){left:75%;animation-duration:9s}
+.hero-particles span:nth-child(10){left:50%;animation-duration:15s}
+@keyframes floatUp{0%{transform:translateY(120vh) scale(0.6);opacity:0}20%{opacity:0.9}100%{transform:translateY(-20vh) scale(1.1);opacity:0}}
 
-  /* apply the holographic treatment to most textual elements */
-  ./* hologram disabled for hero */
-    text-shadow: 0 8px 26px rgba(0,0,0,0.45);
-  }
+/* HERO */
+.hero-section{position:relative;min-height:70vh;display:grid;place-items:center;padding:56px 20px 80px;overflow:hidden}
+.hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(0.36) contrast(1.03);transition:opacity 0.8s ease,transform 1.2s ease}
+/* overlay reduces top darkness so title always visible */
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(2,6,23,0.32) 0%, rgba(2,6,23,0.65) 60%, rgba(2,6,23,0.82) 100%);z-index:1;pointer-events:none}
+.hero-content{position:relative;z-index:3;text-align:center;max-width:980px;padding:28px;border-radius:18px;margin-top:12px;backdrop-filter:blur(10px);background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);opacity:0;transform:translateY(12px);transition:opacity 0.7s ease, transform 0.7s ease}
+.hero-content.visible{opacity:1;transform:none}
+.pretitle{display:inline-block;padding:8px 18px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);letter-spacing:0.12em;text-transform:uppercase;font-size:0.78rem;color:var(--gold)}
+.hero-title{font-weight:800;font-size:clamp(2rem,5vw,3.6rem);line-height:1.04;margin:18px 0;background:linear-gradient(120deg,var(--gold),#f7d36b);-webkit-background-clip:text;color:transparent}
+.hero-blurb{max-width:760px;margin:10px auto 18px;color:rgba(226,232,240,0.9);font-size:1.04rem}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{padding:12px 30px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border:none;cursor:pointer;outline:none}
+/* Primary button clean */
+.btn-primary{background:linear-gradient(135deg,#e3b8a5 0%,#f6d4c8 100%);color:#2a0e12;border:1px solid rgba(255,255,255,0.18);transition:transform 0.28s cubic-bezier(.2,.9,.2,1), box-shadow 0.35s ease;position:relative;overflow:hidden}
+.btn-primary:hover{transform:translateY(-4px) scale(1.03);box-shadow:0 14px 40px rgba(227,146,146,0.12)}
+.btn-primary::after{content:'';position:absolute;left:-60%;top:0;height:100%;width:60%;background:linear-gradient(120deg, rgba(255,255,255,0.25), rgba(255,255,255,0.06), rgba(255,255,255,0.18));transform:skewX(-18deg);transition:all 0.9s ease;opacity:0}
+.btn-primary:hover::after{left:120%;opacity:1}
+.btn-primary.neon{animation:neonPulse 2.8s ease-in-out infinite}
+@keyframes neonPulse{0%{box-shadow:0 0 0 rgba(231,150,150,0)}50%{box-shadow:0 0 24px rgba(231,150,150,0.18)}100%{box-shadow:0 0 0 rgba(231,150,150,0)}}
+.btn-ghost{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.12);color:var(--muted);transition:box-shadow 0.3s ease}
+.btn-ghost:hover{box-shadow:0 10px 28px rgba(0,0,0,0.28);transform:translateY(-3px)}
 
-  /* For primary buttons, keep the button background but add a subtle holo sheen on text */
-  .btn-primary {
-    color: #041120; /* keep readable on bright gradient button */
-    position: relative;
-    overflow: hidden;
-  }
-  .btn-primary .holo-text,
-  .btn-secondary .holo-text {
-    display: inline-block;
-    background-image: linear-gradient(90deg, var(--holo-1), var(--holo-2), var(--holo-3), var(--holo-4));
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: holoShift 7.5s linear infinite;
-  }
+/* ensure content below hero isn't covered */
+.content-wrapper{max-width:1200px;margin:40px auto 0;padding:20px}
 
-  /* small screens: slow down the holo animation to reduce motion sensitivity */
-  @media (max-width: 720px) {
-    .holo-gradient, .btn-primary .holo-text, .btn-secondary .holo-text { animation-duration: 14s; }
-  }
+/* Founder / profile section - split layout */
+.profile-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 24px;background:linear-gradient(135deg,#b76e79 0%,#eec9d2 100%);border-radius:12px;margin-top:0;box-shadow:0 20px 45px rgba(0,0,0,0.25);overflow:visible}
+.profile-photo{width:100%;height:420px;object-fit:cover;border-radius:10px;border:2px solid rgba(255,255,255,0.22);box-shadow:0 10px 30px rgba(0,0,0,0.28);backdrop-filter:blur(6px)}
+.profile-meta{color:#3a1f21}
+.profile-name{font-size:1.8rem;font-weight:800;color:#3a1f21}
+.profile-role{color:#5a2e31;margin-bottom:12px}
+.profile-bio{color:#4b272a;line-height:1.7}
 
+/* Feature grid */
+.features{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin:60px 0;padding:0;list-style:none}
+.feature{background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);padding:24px;border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,0.18);transition:transform 0.35s cubic-bezier(.2,.9,.2,1),box-shadow 0.35s ease,opacity 0.6s ease;opacity:0;transform:translateY(18px)}
+.feature.visible{opacity:1;transform:none}
+.feature:hover{transform:translateY(-8px) scale(1.02);box-shadow:0 22px 44px rgba(0,0,0,0.26)}
+.feature h4{margin:6px 0;color:#e9b94a}
+.feature p{font-size:0.95rem;color:rgba(226,232,240,0.9)}
 
-.hero-video {
-  filter: brightness(0.92) contrast(1.05) saturate(1.2);
+/* Services band */
+.services-band{background:linear-gradient(135deg,#81d8d0 0%,#b0f0ea 100%);color:#071122;padding:36px 18px;margin-top:32px;border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,0.18)}
+.services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1100px;margin:0 auto}
+.services-grid h3{font-weight:800;margin-bottom:6px}
+.services-list{font-size:0.92rem;color:#081225;line-height:1.6}
+
+/* Clients */
+.clients{padding:44px 20px 10px 20px;text-align:center}
+.clients img{max-height:40px;opacity:0.45;margin:0 24px}
+
+/* CTA panel */
+.cta-panel{padding:38px 20px;background:linear-gradient(180deg, rgba(8,12,24,0.48), rgba(8,12,24,0.6));backdrop-filter:blur(16px);border-radius:14px;margin:40px 0;text-align:center;border:1px solid rgba(255,255,255,0.06)}
+.cta-panel h3{color:var(--gold);font-weight:800}
+.cta-panel p{max-width:860px;margin:10px auto 20px;color:rgba(226,232,240,0.95)}
+
+/* NEON ROSE-GOLD & SHIMMER */
+.btn-primary{position:relative;overflow:hidden}
+.btn-primary::after{content:'';position:absolute;left:-60%;top:0;height:100%;width:60%;background:linear-gradient(120deg, rgba(255,255,255,0.25), rgba(255,255,255,0.06), rgba(255,255,255,0.18));transform:skewX(-18deg);transition:all 0.9s ease;opacity:0}
+.btn-primary:hover::after{left:120%;opacity:1}
+@keyframes neonPulse{0%{box-shadow:0 0 0 rgba(231,150,150,0)}50%{box-shadow:0 0 24px rgba(231,150,150,0.18)}100%{box-shadow:0 0 0 rgba(231,150,150,0)}}
+.btn-primary.neon{animation:neonPulse 2.8s ease-in-out infinite}
+
+/* Reveal line */
+.reveal-line{height:3px;width:140px;background:linear-gradient(90deg,#ffd6c2,#e6b0a0);transform-origin:left;transform:scaleX(0);margin:40px auto 40px;border-radius:4px;z-index:5;position:relative}
+
+/* responsive breakpoint follows */
+@media (max-width:980px){
+  .profile-wrap{grid-template-columns:1fr;padding:28px}
+  .features{grid-template-columns:repeat(2,1fr)}
+  .services-grid{grid-template-columns:repeat(2,1fr)}
+  .hero-section{padding:40px 16px 60px}
 }
-
-.hero-video::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  backdrop-filter: blur(2px);
+@media (max-width:640px){
+  .hero-title{font-size:1.8rem}
+  .features{grid-template-columns:1fr}
+  .services-grid{grid-template-columns:1fr}
+  .profile-photo{height:320px}
 }
-
-/* ✨ Apple‑style fade + depth */
-.event-block-centered {
-  position: relative;
-  z-index: 1;
-  background: rgba(15,23,42,0.92);
-  border: 1px solid rgba(255,255,255,0.08);
-  margin: 80px 0;
-  padding: 40px;
-  border-radius: 20px;
-  backdrop-filter: blur(6px);
-  transition: transform 0.25s ease, box-shadow 0.3s ease;: transform 0.25s ease, box-shadow 0.3s ease;
-	}
-
-	.btn-primary {
-		background: linear-gradient(130deg, #facc15, #f97316 55%, #facc15 100%);
-		color: #041120;
-		box-shadow: 0 25px 45px rgba(250,204,21,0.25);
-	}
-
-	.btn-secondary {
-		background: rgba(15,23,42,0.72);
-		border: 1px solid rgba(148,163,184,0.35);
-		color: #e2e8f0;
-	}
-
-	.btn-primary:hover,
-	.btn-secondary:hover {
-		transform: translateY(-4px);
-	}
-
-	.content-wrapper {
-		width: 100%;
-		max-width: 1200px;
-		margin: clamp(48px, 9vh, 108px) auto 0;
-		padding: 0 clamp(24px, 6vw, 108px);
-		display: grid;
-		gap: clamp(80px, 10vw, 128px);
-		justify-items: center;
-	}
-
-	.content-wrapper > * {
-		width: 100%;
-	}
-  
-	.section-title {
-		font-size: clamp(2rem, 4vw, 3rem);
-		font-weight: 700;
-		letter-spacing: -0.01em;
-		margin-bottom: 16px;
-		text-align: center;
-	}
-
-	.section-intro {
-		max-width: 960px;
-		margin: 0 auto;
-		padding: 0;
-		color: rgba(203,213,225,0.85);
-		font-size: 1.05rem;
-		line-height: 1.8;
-		text-align: center;
-	}
-	  .cta-panel {
-		overflow: visible;
-	  }
-	  
-	.testimonials-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: 24px;
-	}
-
-	.testimonial-card {
-		position: relative;
-		padding: 28px 26px;
-		border-radius: 20px;
-		background: rgba(15,23,42,0.92);
-		border: 1px solid rgba(244,229,161,0.18);
-		box-shadow: 0 24px 45px rgba(2,6,23,0.55);
-	}
-
-	.testimonial-card p {
-		color: rgba(226,232,240,0.85);
-		line-height: 1.7;
-		margin-bottom: 18px;
-	}
-
-	.testimonial-meta {
-		display: flex;
-		align-items: center;
-		gap: 14px;
-	}
-
-	.testimonial-meta span {
-		font-size: 0.86rem;
-		color: rgba(148,163,184,0.78);
-	}
-  .event-sequence {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .event-sequence::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 0;
-    width: 2px;
-    height: 100%;
-    background: linear-gradient(to bottom, rgba(250,204,21,0.8), rgba(59,130,246,0.2));
-    transform: translateX(-50%);
-    z-index: 0;
-  }
-  
-  .event-block-centered {
-  position: relative;
-  z-index: 1;
-  background: rgba(15,23,42,0.85);
-  border: 1px solid rgba(255,255,255,0.05);
-  margin: 80px 0;
-  padding: 60px;
-  border-radius: 24px;
-  backdrop-filter: blur(10px);
-  transition: transform 0.6s ease, opacity 0.6s ease;
-}
-
-.event-title {
-  font-size: clamp(2.4rem, 5vw, 3.6rem);
-  font-weight: 800;
-  text-align: center;
-  letter-spacing: -0.01em;
-  color: #fef3c7; /* original normal text */
-  margin-bottom: 20px;
-}
-}
-
-.event-desc {
-  font-size: 1.15rem;
-  line-height: 1.75;
-  color: rgba(203,213,225,0.85);
-  padding: 0 10px;
-  text-align: center;
-}
-}
-}
-  
-  .event-block-centered:hover {
-    transform: translateY(-10px);
-  }
-  
-.cta-panel::before {
-  content: "";
-  position: absolute;
-  top: -120px;
-  left: 0;
-  width: 100%;
-  height: 120px;
-  background: linear-gradient(to bottom, transparent, rgba(15,23,42,0.9));
-  pointer-events: none;
-}
-
-.cta-panel {
-  position: relative;
-  width: 100%;
-  text-align: center;
-  background: linear-gradient(140deg, rgba(15,23,42,0.95), rgba(9,12,30,0.95));
-  border: none;
-  box-shadow: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 20px; /* Reduced padding */
-  overflow: visible; /* Ensures no inner scroll */
-  max-height: unset; /* Removes height restrictions */
-}
-
-.cta-panel > * {
-  margin: 12px 0;
-}
-
-  
-	.cta-panel::after {
-		content: "";
-		position: absolute;
-		inset: -15%;
-		background: radial-gradient(circle, rgba(250,204,21,0.2), transparent 70%);
-	}
-
-	.cta-panel > * {
-		position: relative;
-		z-index: 1;
-	}
-
-	.cta-bleed {
-		position: relative;
-		width: 100%;
-		margin: clamp(48px, 10vh, 96px) 0 0;
-		min-height: min(calc(100vh - 110px), 720px);
-		display: flex;
-		align-items: stretch;
-		justify-content: center;
-	}
-
-	@media (max-width: 960px) {
-		.hero-content {
-			padding: 120px 24px 72px;
-		}
-		.content-wrapper {
-			margin: 64px auto 0;
-			padding: 0 24px;
-			gap: 80px;
-		}
-		.timeline {
-			margin-left: 12px;
-			padding-left: 22px;
-		}
-		.cta-bleed {
-			margin-top: 96px;
-		}
-		.cta-panel {
-			padding: 64px 28px;
-		}
-	}
-
-	@media (max-width: 640px) {
-		.hero-content {
-			padding: 96px 20px 56px;
-		}
-		.btn-primary,
-		.btn-secondary {
-			width: 100%;
-			justify-content: center;
-			text-align: center;
-		}
-		.cta-panel {
-			padding: 56px 20px;
-		}
-	}
 `;
 
-// import ScrollProgressBar from "../components/ScrollProgressBar";
-
-const heroVideoSources = [
-  { src: "/assets/Welcome to Karnataka _ One State Many Worlds.mp4", type: "video/mp4" },
-  { src: "/assets/intro.mkv", type: "video/x-matroska" },
-];
-
-const primaryVideoSrc = heroVideoSources[0]?.src ?? "";
-
 const About = () => {
-  // enable level-2 parallax tilt on event cards
-  useCardTilt();
-
-  const [videoError, setVideoError] = useState(false);
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  // 🟦 LEVEL‑3: Apple Vision Pro style camera‑push + depth parallax
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      fogAnimate(); // 🌫️ LEVEL‑3 Fog activated
-
-      // Camera push on scroll
-      gsap.to(".hero-video", {
-        scale: 1.08,
-        ease: "power1.out",
-        scrollTrigger: {
-          trigger: ".hero-section",
-          start: "top top",
-          end: "bottom top",
-          scrub: 2.2,
-        },
-      });
-
-      // Hero overlay deepen on scroll
-      gsap.to(".hero-overlay", {
-        opacity: 0.92,
-        ease: "power1.out",
-        scrollTrigger: {
-          trigger: ".hero-section",
-          start: "top top",
-          end: "bottom top",
-          scrub: 2.2,
-        },
-      });
-
-      // Event blocks floating depth
-      gsap.utils.toArray(".event-block-centered").forEach((el, i) => {
-        gsap.fromTo(
-          el,
-          { opacity: 0, y: 120, filter: "blur(12px)" },
-          {
-            opacity: 1,
-            y: 0,
-            filter: "blur(0px)",
-            duration: 1.2,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: el,
-              start: "top 80%",
-              end: "top 40%",
-              scrub: 1,
-            },
-          }
-        );
-      });
-    });
-
-    return () => ctx.revert();
-  }, []);
+  // hero video kept as variable — replace with uploaded filename when ready
+  const heroVideoSrc = "/assets/hero-bg.mp4"; // <-- update this to your provided video path
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
-
-    const { classList } = document.body;
-    classList.add("about-page-active");
-
-    // 🎬 Select the hero video for visibility control
+    document.body.classList.add("about-page-active");
     const video = document.querySelector(".hero-video");
-
-    // ⚡ Pause the video when the tab isn't active (saves CPU/GPU)
     const handleVisibilityChange = () => {
-      if (document.hidden) {
-        video?.pause();
-      } else {
-        video?.play();
-      }
+      if (document.hidden) video?.pause();
+      else video?.play().catch(() => {});
     };
-    // Text reveal setup
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    // 🧹 Cleanup on component unmount
-    // Text reveal setup
     return () => {
-      classList.remove("about-page-active");
+      document.body.classList.remove("about-page-active");
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
+
   useEffect(() => {
-    // 💤 Lazy-load background video for better performance
-    if (videoError) return undefined;
-
     const video = document.querySelector(".hero-video");
-
     const loadVideo = () => {
       if (!video) return;
-
-      const sources = Array.from(video.querySelectorAll("source[data-src]"));
-      sources.forEach((source) => {
-        const dataSrc = source.getAttribute("data-src");
-        if (dataSrc && !source.getAttribute("src")) {
-          source.setAttribute("src", dataSrc);
-        }
-      });
-
-      if (!video.getAttribute("src") && primaryVideoSrc) {
-        video.setAttribute("src", primaryVideoSrc);
+      const src = video.getAttribute("data-src");
+      if (src && video.src !== src) {
+        video.src = src;
+        video.load();
+        video.play().catch(() => {});
       }
-
-      video.load();
-      video.play().catch(() => {});
     };
-
-    if ("requestIdleCallback" in window) {
-      requestIdleCallback(loadVideo, { timeout: 2000 });
+    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
+      requestIdleCallback(loadVideo, { timeout: 1600 });
     } else {
-      setTimeout(loadVideo, 1000);
+      setTimeout(loadVideo, 600);
     }
-  }, [videoError]);
-  // 🌀 Scroll motion setup
+  }, []);
+
+  // motion + scroll effects
   const { scrollYProgress } = useScroll();
+  const parallax = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
 
-  // Parallax movement on scroll
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "25%"]);
-
-  // Shared fade variant for all scroll reveals
-  const fadeVariant = {
-    hidden: { opacity: 0, y: 80 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.8, ease: "easeOut" },
-    },
+  const container = {
+    hidden: { opacity: 0, y: 24 },
+    show: { opacity: 1, y: 0, transition: { staggerChildren: 0.12 } },
   };
-  // Slight depth motion for hero background video
-  const videoY = useTransform(scrollYProgress, [0, 1], ["0%", "-10%"]);
-  // ✨ Scroll-based text reveal hooks (must be at top-level)
-  const [refTitle, inViewTitle] = useInView({ threshold: 0.4, triggerOnce: false });
-  const [refBlurb, inViewBlurb] = useInView({ threshold: 0.3, triggerOnce: false });
-  const [refCTA, inViewCTA] = useInView({ threshold: 0.3, triggerOnce: false });
+  const item = {
+    hidden: { opacity: 0, y: 12 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  };
 
-  const heroSectionClassName = `hero-section${videoError ? " no-video" : ""}`;
-  const revealTitle = hasMounted ? inViewTitle : true;
-  const revealBlurb = hasMounted ? inViewBlurb : true;
-  const revealCTA = hasMounted ? inViewCTA : true;
+  const [refProfile, inViewProfile] = useInView({ threshold: 0.2, triggerOnce: true });
+  const [refFeatures, inViewFeatures] = useInView({ threshold: 0.15, triggerOnce: true });
+
+  // ----------------
+  // Founder details (user provided)
+  // ----------------
+  const founder = {
+    name: "Shridhar Sharatkumar Hegde",
+    role: "Founder & Full-Stack Developer",
+    location: "Siddapur-581355 (U.K)",
+    school: "SDMIT, Ujire — Information Science",
+    bio: `Born and raised in the quiet town of Siddapur-581355, I am currently pursuing my career as an Information Science engineer at SDMIT, Ujire. I built TourEase as a one-man full-stack project — starting from beginner-level web development skills and iterating until the platform could help travellers plan with less friction. I handle UI, backend glue, basic AI integrations, and the day-to-day code that keeps TourEase running.`,
+    photo: "/assets/founder.jpg",
+  };
 
   return (
     <div className="about-page">
       <style>{aboutStyles}</style>
-      {/* <ScrollProgressBar /> */}
       <div className="about-shell">
-        <motion.section
-          className={heroSectionClassName}
-          variants={fadeVariant}
-          initial={hasMounted ? "hidden" : "visible"}
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.5 }}
-        >
-          {/* 🌫️ Level‑3 Atmospherics Layers (fog placed under content) */}
-          <div className="fog-layer fog-1" aria-hidden />
-          <div className="fog-layer fog-2" aria-hidden />
-          <div className="fog-layer fog-3" aria-hidden />
+        {/* <Navbar /> */}
+        <ScrollProgressBar />
+        <Navbar />
+        <div className="header-spacer" />
 
-          {/* 🎥 Background Video */}
+        {/* HERO */}
+        <motion.section
+          className="hero-section"
+          style={{ y: parallax }}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: false, amount: 0.25 }}
+        >
           <motion.video
             className="hero-video"
-            poster="/assets/1.jpg"
+            poster="/assets/hero-poster.jpg"
             autoPlay
             muted
             loop
             playsInline
             preload="none"
-            data-src={primaryVideoSrc}
-            onLoadedData={() => setVideoLoaded(true)}
-            onError={() => {
-              setVideoError(true);
-              setVideoLoaded(false);
-            }}
-            style={{
-              y: videoY,
-              scale: 1.05, // cinematic zoom
-              minWidth: "100%",
-              minHeight: "100%",
-              width: "100vw",
-              height: "100vh",
-              objectFit: "cover",
-              position: "absolute",
-              top: 0,
-              left: 0,
-            }}
-            initial={{ opacity: 0, scale: 1.02 }}
-            animate={{ opacity: videoError ? 0 : videoLoaded ? 1 : 0, scale: 1.02 }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
-          >
-            {heroVideoSources.map(({ src, type }, index) => (
-              <source key={`${type}-${index}`} data-src={src} type={type} />
-            ))}
-          </motion.video>
-
-          {/* 🌒 Overlay */}
-          <motion.div
-            className="hero-overlay"
+            data-src={heroVideoSrc}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-          />
-          <motion.div
-            className="hero-content"
-            variants={fadeVariant}
-            initial="hidden"
-            whileInView="visible"
-            style={{ y }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
-            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 1.1 }}
           >
-            <motion.span
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "10px 20px",
-                borderRadius: 999,
-                background: "rgba(15,23,42,0.65)",
-                border: "1px solid rgba(148,163,184,0.4)",
-                color: "#fef3c7",
-                fontSize: "0.8rem",
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-              }}
-            >
-              Journeys Reimagined · Crafted For You · Travel Beyond Ordinary
+            <source src={heroVideoSrc} type="video/mp4" />
+          </motion.video>
+
+          <motion.div className="hero-overlay" aria-hidden />
+
+          <motion.div className="hero-content" variants={container}>
+            <motion.span className="pretitle" variants={item}>
+              Guided journeys · Smart planning · One person behind the code
             </motion.span>
 
-            <h1
-              ref={refTitle}
-              className="hero-title"
-              style={{
-                transform: revealTitle ? "translateY(0)" : "translateY(60px)",
-                opacity: revealTitle ? 1 : 0,
-                transition: "all 1.2s cubic-bezier(0.23, 1, 0.32, 1)",
-              }}
-            >
-              We ease the weight of planning so you can feel every moment of your trip.
-            </h1>
+            <motion.h1 className="hero-title" style={{ marginTop: 12 }} variants={item}>
+              TourEase — travel planning that keeps the adventure, loses the friction.
+            </motion.h1>
 
-            <p
-              ref={refBlurb}
-              className="hero-blurb"
-              style={{
-                transform: revealBlurb ? "translateY(0)" : "translateY(50px)",
-                opacity: revealBlurb ? 1 : 0,
-                transition: "all 1.4s cubic-bezier(0.25, 1, 0.5, 1)",
-              }}
-            >
-              TourEase is the travel companion for explorers who crave depth without the logistics
-              grind. We merge human travel designers with adaptive intelligence to choreograph
-              itineraries that flex with you—sunrise to midnight.
-            </p>
-
-            <div className="hero-cta">
-              <MagneticButton href="/get-started" className="btn-primary">
-                <span className="holo-text">Start my travel brief</span>
-              </MagneticButton>
-              <MagneticButton href="mailto:care@tourease.com" className="btn-secondary">
-                <span className="holo-text">Talk to a planner</span>
-              </MagneticButton>
-            </div>
-          </motion.div>
-        </motion.section>
-
-        {/* ✨ EVENT SEQUENCE — LEVEL‑2 PARALLAX */}
-        <motion.main className="event-sequence">
-          <motion.div
-            className="events-container"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ amount: 0.3 }}
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.22 } },
-            }}
-          >
-            {/* 1 — Chase the Horizon */}
-            <motion.div
-              className="event-block-centered"
-              variants={{ hidden: { opacity: 0, y: 90 }, visible: { opacity: 1, y: 0 } }}
-            >
-              <h2 className="event-title">Chase the Horizon</h2>
-              <p className="event-desc">
-                Stand where the sky kisses the earth. From Mt. Everest’s dawn glow to Bali’s warm
-                tides, every journey pulls you toward the edge of possibility.
-              </p>
-            </motion.div>
-
-            {/* 2 — Echoes of the Unknown */}
-            <motion.div
-              className="event-block-centered"
-              variants={{ hidden: { opacity: 0, y: 90 }, visible: { opacity: 1, y: 0 } }}
-            >
-              <h2 className="event-title">Echoes of the Unknown</h2>
-              <p className="event-desc">
-                Walk ancient paths carved by stories older than memory. Desert winds, forest
-                whispers, canyon echoes—every step reveals a world untouched.
-              </p>
-            </motion.div>
-
-            {/* 3 — Rhythm of the Journey */}
-            <motion.div
-              className="event-block-centered"
-              variants={{ hidden: { opacity: 0, y: 90 }, visible: { opacity: 1, y: 0 } }}
-            >
-              <h2 className="event-title">Rhythm of the Journey</h2>
-              <p className="event-desc">
-                Cities hum, mountains breathe, oceans roar. Follow the pulse of the planet as it
-                guides your path through chaos and calm alike.
-              </p>
-            </motion.div>
-
-            {/* 4 — Where Memories Are Forged */}
-            <motion.div
-              className="event-block-centered"
-              variants={{ hidden: { opacity: 0, y: 90 }, visible: { opacity: 1, y: 0 } }}
-            >
-              <h2 className="event-title">Where Memories Are Forged</h2>
-              <p className="event-desc">
-                Sunsets witnessed. Roads conquered. People met. Journeys complete you in ways
-                destinations never could.
-              </p>
-            </motion.div>
-
-            {/* 5 — Wander Beyond Maps */}
-            <motion.div
-              className="event-block-centered"
-              variants={{ hidden: { opacity: 0, y: 90 }, visible: { opacity: 1, y: 0 } }}
-            >
-              <h2 className="event-title">Wander Beyond Maps</h2>
-              <p className="event-desc">
-                Some treasures can’t be located—only discovered. Step beyond routes, lose the map,
-                and find the world waiting.
-              </p>
-            </motion.div>
-
-            {/* 6 — The Path You Haven’t Taken */}
-            <motion.div
-              className="event-block-centered"
-              variants={{ hidden: { opacity: 0, y: 90 }, visible: { opacity: 1, y: 0 } }}
-            >
-              <h2 className="event-title">The Path You Haven't Taken</h2>
-              <p className="event-desc">
-                The most meaningful journeys begin with one brave step into the unfamiliar. Let
-                curiosity lead—you’ll never walk the same again.
-              </p>
-            </motion.div>
-          </motion.div>
-        </motion.main>
-
-        {/* ✨ CTA PANEL */}
-        <motion.section
-          className="cta-bleed"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.45 }}
-          variants={{
-            hidden: { opacity: 0, y: 60 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              transition: { duration: 0.9, ease: "easeOut" },
-            },
-          }}
-        >
-          <div className="cta-panel">
-            <motion.h2
-              ref={refCTA}
-              className="section-title"
-              style={{ color: "#facc15" }}
-              initial={{ opacity: 0, y: 35 }}
-              animate={{ opacity: revealCTA ? 1 : 0, y: revealCTA ? 0 : 35 }}
-              transition={{ duration: 1, ease: "easeOut" }}
-            >
-              Start your next unforgettable escape
-            </motion.h2>
-            <motion.p
-              className="section-intro"
-              initial={{ opacity: 0, y: 35 }}
-              animate={{ opacity: revealCTA ? 1 : 0, y: revealCTA ? 0 : 35 }}
-              transition={{ duration: 1.1, ease: "easeOut", delay: 0.1 }}
-            >
-              Let our travel specialists craft a journey that moves with you—fluid, cinematic,
-              unforgettable.
+            <motion.p className="hero-blurb" variants={item}>
+              A compact, friendly tool to plan trips, collect memories and hand off the logistics to
+              a simple, predictable system. Built with care by one developer who wanted fewer tabs,
+              less stress, and more time in the sun.
             </motion.p>
 
-            <MagneticButton href="/planner" className="btn-primary">
-              <span className="holo-text">Plan My Journey</span>
-            </MagneticButton>
-            <MagneticButton href="mailto:care@tourease.com" className="btn-secondary">
-              <span className="holo-text">Speak With Us</span>
-            </MagneticButton>
+            <motion.div className="hero-cta" variants={item}>
+              <motion.a
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="btn btn-primary"
+                href="/planner"
+              >
+                Start your itinerary
+              </motion.a>
+              <motion.a
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="btn btn-ghost"
+                href="/explore"
+              >
+                Explore destinations
+              </motion.a>
+            </motion.div>
+          </motion.div>
+          <div className="hero-particles">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
         </motion.section>
 
-        {/* 🔻 Footer added below */}
-        <Footer />
+        {/* Founder / Profile Section */}
+        <section className="content-wrapper">
+          <motion.div
+            ref={refProfile}
+            className="profile-wrap"
+            initial="hidden"
+            animate={inViewProfile ? "show" : "hidden"}
+            variants={container}
+          >
+            <motion.div variants={item}>
+              <img src={founder.photo} alt={founder.name} className="profile-photo" />
+            </motion.div>
+            <motion.div className="profile-meta" variants={item}>
+              <div style={{ display: "flex", gap: 12, alignItems: "baseline" }}>
+                <h2 className="profile-name">{founder.name}</h2>
+                <span style={{ fontSize: 14, color: "rgba(7,18,34,0.45)" }}>{founder.role}</span>
+              </div>
+              <div style={{ margin: "10px 0 8px", color: "rgba(7,18,34,0.6)", fontWeight: 600 }}>
+                {founder.school} · {founder.location}
+              </div>
+              <p className="profile-bio">{founder.bio}</p>
+
+              <div style={{ marginTop: 18 }}>
+                <motion.a
+                  whileHover={{ y: -4 }}
+                  className="btn btn-primary"
+                  href="mailto:shridhars@example.com"
+                  style={{ marginRight: 12 }}
+                >
+                  Talk to Creator
+                </motion.a>
+                <motion.a
+                  whileHover={{ y: -2 }}
+                  className="btn btn-ghost"
+                  href={`mailto:shridhars@example.com`}
+                >
+                  Contact me
+                </motion.a>
+              </div>
+
+              <div style={{ marginTop: 22, display: "flex", gap: 14, alignItems: "center" }}>
+                <div style={{ fontSize: 13, color: "rgba(7,18,34,0.6)", fontWeight: 700 }}>
+                  Skills:
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <span
+                    style={{
+                      background: "#e9e6dd",
+                      color: "#071122",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                    }}
+                  >
+                    React
+                  </span>
+                  <span
+                    style={{
+                      background: "#e9e6dd",
+                      color: "#071122",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                    }}
+                  >
+                    Node.js
+                  </span>
+                  <span
+                    style={{
+                      background: "#e9e6dd",
+                      color: "#071122",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                    }}
+                  >
+                    MongoDB
+                  </span>
+                  <span
+                    style={{
+                      background: "#e9e6dd",
+                      color: "#071122",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                    }}
+                  >
+                    Framer Motion
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Features / Value props */}
+          <motion.div
+            ref={refFeatures}
+            className="features"
+            initial="hidden"
+            animate={inViewFeatures ? "show" : "hidden"}
+            variants={container}
+          >
+            <motion.div
+              whileHover={{ rotateX: 2, rotateY: -2, scale: 1.04 }}
+              transition={{ type: "spring", stiffness: 120 }}
+              className="feature"
+              variants={item}
+            >
+              <h4>Live Weather</h4>
+              <p>Get real‑time weather updates for any destination before and during your trip.</p>
+            </motion.div>
+            <motion.div className="feature" variants={item}>
+              <h4>Routing Info</h4>
+              <p>Smart routing suggestions to optimize your travel time between locations.</p>
+            </motion.div>
+            <motion.div className="feature" variants={item}>
+              <h4>Nearby Spots</h4>
+              <p>Discover restaurants, attractions, fuel stations and essentials around you.</p>
+            </motion.div>
+            <motion.div className="feature" variants={item}>
+              <h4>Trip Insights</h4>
+              <p>Auto‑generated trip insights based on your itinerary and behavior.</p>
+            </motion.div>
+          </motion.div>
+
+          {/* Services band */}
+          <motion.div
+            className="reveal-line"
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            viewport={{ once: true }}
+            style={{ transformOrigin: "left" }}
+          />
+          <section className="services-band">
+            <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+              <h2
+                style={{ textAlign: "center", color: "#071122", fontWeight: 900, marginBottom: 8 }}
+              >
+                Our Capabilities
+              </h2>
+              <p style={{ textAlign: "center", color: "#071122", opacity: 0.9, marginBottom: 18 }}>
+                TourEase is lightweight but focused — here are the building blocks that power the
+                site.
+              </p>
+
+              <div className="services-grid">
+                <div>
+                  <h3>Planner</h3>
+                  <div className="services-list">
+                    Itinerary creator · Day split automation · Shared links
+                  </div>
+                </div>
+                <div>
+                  <h3>Uploads</h3>
+                  <div className="services-list">
+                    Assignment & receipts upload · File previews · Versioned attachments
+                  </div>
+                </div>
+                <div>
+                  <h3>Profile & History</h3>
+                  <div className="services-list">
+                    Track your past trips · Personal notes · Export to PDF
+                  </div>
+                </div>
+                <div>
+                  <h3>Smarts</h3>
+                  <div className="services-list">
+                    Basic recommendations · Priority sorting · Lightweight caching
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Clients / partners (placeholder logos) */}
+          <section className="clients">
+            <h3 style={{ color: "#9aa0ab", marginBottom: 24 }}>
+              Trusted by early users & test trips
+            </h3>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 20,
+                flexWrap: "wrap",
+              }}
+            >
+              <img
+                src="/assets/clients/amc.svg"
+                alt="AMC"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+              <img
+                src="/assets/clients/disney.svg"
+                alt="Disney"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+              <img
+                src="/assets/clients/nbc.svg"
+                alt="NBC"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            </div>
+          </section>
+
+          {/* CTA panel */}
+          <section className="cta-panel">
+            <h3>Ready to plan something memorable?</h3>
+            <p>
+              Tell me where you want to go and how many days you have — I’ll show you a simple
+              itinerary and the next steps.
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+              <a className="btn btn-primary" href="/planner">
+                Create my trip
+              </a>
+              <a className="btn btn-ghost" href="mailto:shridhars@example.com">
+                Talk to the creator
+              </a>
+            </div>
+          </section>
+        </section>
       </div>
+      <Footer />
     </div>
   );
 };
-
-// 🔻 Import Footer
 
 export default About;
