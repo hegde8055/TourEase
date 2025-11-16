@@ -57,21 +57,31 @@ const ScrollProgressBar = () => {
   }, [progress]);
 
   return (
-    <motion.div
+    <div
       style={{
         position: "fixed",
         top: 0,
         left: 0,
-        right: 0,
-        height: "4px",
-        background: "linear-gradient(90deg, rgba(212,175,55,0.95) 0%, rgba(59,130,246,0.95) 100%)",
-        transformOrigin: "0%",
-        scaleX,
+        width: "100%",
+        height: "6px",
+        background: "linear-gradient(90deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.25) 100%)",
         zIndex: 12000,
         pointerEvents: "none",
+        backdropFilter: "blur(12px)",
       }}
       aria-hidden
-    />
+    >
+      <motion.div
+        style={{
+          height: "100%",
+          width: "100%",
+          background:
+            "linear-gradient(90deg, rgba(212,175,55,0.95) 0%, rgba(59,130,246,0.95) 100%)",
+          transformOrigin: "0%",
+          scaleX,
+        }}
+      />
+    </div>
   );
 };
 

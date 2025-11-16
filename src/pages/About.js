@@ -11,6 +11,25 @@ import { useInView } from "react-intersection-observer";
 // -----------------------------------------------------------------------------
 
 const aboutStyles = `
+/* reset browser margins and ensure app container has no top padding */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+/* safety: hide any leftover spacer elements that use classnames containing 'spacer' */
+[class*="spacer"], [id*="spacer"] {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+/* ensure hero content visually starts under/at the very top */
+.hero-content {
+  margin-top: 0 !important;
+}
+
+
 :root{
   --gold: #caa72b;
   --deep: #081225;
@@ -47,7 +66,8 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
   display: grid;
   place-items: center;
   padding: 0 20px 80px;  /* Removed ALL top padding */
-  margin-top:0;
+  margin-top: 0 !important; 
+  top: 0 !important;
 }
 
 .hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(0.36) contrast(1.03);transition:opacity 0.8s ease,transform 1.2s ease}
@@ -106,8 +126,7 @@ padding-bottom: 0 !important;}
   background:linear-gradient(180deg, rgba(8,12,24,0.48), rgba(8,12,24,0.6));
   backdrop-filter:blur(16px);
   border-radius:14px;
-  margin:40px 0 0 0; /* only TOP margin */
-  text-align:center;
+  margin: 40px 0 0 0 !important;  text-align:center;
   border:1px solid rgba(255,255,255,0.06);
 }
 .cta-panel h3{color:var(--gold);font-weight:800}
@@ -183,6 +202,21 @@ const About = () => {
     computeHeight();
     window.addEventListener("resize", computeHeight);
     return () => window.removeEventListener("resize", computeHeight);
+  }, []);
+  useEffect(() => {
+    const computeNavHeight = () => {
+      if (typeof document === "undefined") return;
+      const nav = document.querySelector('nav, header, .navbar, #navbar, [role="navigation"]');
+      const h = nav ? nav.getBoundingClientRect().height : 0;
+      document.documentElement.style.setProperty("--nav-height", `${h}px`);
+    };
+    computeNavHeight();
+    window.addEventListener("resize", computeNavHeight);
+    const t = setTimeout(computeNavHeight, 200);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", computeNavHeight);
+    };
   }, []);
 
   // motion + scroll effects
