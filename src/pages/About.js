@@ -20,7 +20,11 @@ const aboutStyles = `
 html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
 
 .about-page{background:linear-gradient(180deg,var(--deep) 0%, #071122 70%);color:var(--muted);min-height:100vh}
-.about-shell{max-width:1200px;margin:0 auto;padding:0 16px}
+.about-shell{
+  max-width:1200px;
+  margin:0 auto;
+  padding:0 16px 0 16px; /* no top padding */
+}
 
 
 /* PARTICLES */
@@ -37,16 +41,15 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
 .hero-particles span:nth-child(9){left:75%;animation-duration:9s}
 .hero-particles span:nth-child(10){left:50%;animation-duration:15s}
 @keyframes floatUp{0%{transform:translateY(120vh) scale(0.6);opacity:0}20%{opacity:0.9}100%{transform:translateY(-20vh) scale(1.1);opacity:0}}
-
-/* HERO */
 .hero-section{
   position: relative;
   min-height: 70vh;
   display: grid;
   place-items: center;
-  padding: 0 20px 80px; /* removed top padding */
-  overflow: hidden;
+  padding: 0 20px 80px;  /* Removed ALL top padding */
+  margin-top: calc(var(--nav-height, 72px)); /* Offset for fixed navbar dynamically */
 }
+
 .hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(0.36) contrast(1.03);transition:opacity 0.8s ease,transform 1.2s ease}
 /* overlay reduces top darkness so title always visible */
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(2,6,23,0.32) 0%, rgba(2,6,23,0.65) 60%, rgba(2,6,23,0.82) 100%);z-index:1;pointer-events:none}
@@ -162,6 +165,16 @@ const About = () => {
     } else {
       setTimeout(loadVideo, 600);
     }
+  }, []);
+  useEffect(() => {
+    const computeHeight = () => {
+      const nav = document.querySelector("nav, .navbar, header");
+      const h = nav ? nav.getBoundingClientRect().height : 0;
+      document.documentElement.style.setProperty("--nav-height", `${h}px`);
+    };
+    computeHeight();
+    window.addEventListener("resize", computeHeight);
+    return () => window.removeEventListener("resize", computeHeight);
   }, []);
 
   // motion + scroll effects
