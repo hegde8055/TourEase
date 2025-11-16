@@ -47,7 +47,7 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
   display: grid;
   place-items: center;
   padding: 0 20px 80px;  /* Removed ALL top padding */
-  margin-top: calc(var(--nav-height, 72px)); /* Offset for fixed navbar dynamically */
+  margin-top:0;
 }
 
 .hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(0.36) contrast(1.03);transition:opacity 0.8s ease,transform 1.2s ease}
@@ -101,7 +101,15 @@ padding-bottom: 0 !important;}
 .clients img{max-height:40px;opacity:0.45;margin:0 24px}
 
 /* CTA panel */
-.cta-panel{padding:38px 20px;background:linear-gradient(180deg, rgba(8,12,24,0.48), rgba(8,12,24,0.6));backdrop-filter:blur(16px);border-radius:14px;margin:40px 0;text-align:center;border:1px solid rgba(255,255,255,0.06)}
+.cta-panel{
+  padding:38px 20px;
+  background:linear-gradient(180deg, rgba(8,12,24,0.48), rgba(8,12,24,0.6));
+  backdrop-filter:blur(16px);
+  border-radius:14px;
+  margin:40px 0 0 0; /* only TOP margin */
+  text-align:center;
+  border:1px solid rgba(255,255,255,0.06);
+}
 .cta-panel h3{color:var(--gold);font-weight:800}
 .cta-panel p{max-width:860px;  margin-bottom: 0 !important;color:rgba(226,232,240,0.95)}
 
