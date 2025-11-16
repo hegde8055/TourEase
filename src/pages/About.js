@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import ScrollProgressBar from "../components/ScrollProgressBar";
 import { useScroll, useTransform, motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
@@ -498,7 +497,6 @@ const About = () => {
           </section>
         </section>
       </div>
-      <Footer />
     </div>
   );
 };
