@@ -20,22 +20,24 @@ const ScrollProgressBar = () => {
 
     let animationFrameId;
 
-      const updateProgress = () => {
-        const scrollingElement =
-          document.scrollingElement || document.documentElement || document.body;
-        if (!scrollingElement) {
-          progress.set(0);
-          return;
-        }
+    const updateProgress = () => {
+      const scrollingElement =
+        document.scrollingElement || document.documentElement || document.body;
+      if (!scrollingElement) {
+        progress.set(0);
+        return;
+      }
 
-        const scrollTop =
-          window.scrollY ?? window.pageYOffset ?? scrollingElement.scrollTop ?? 0;
-        const viewportHeight = window.innerHeight ?? scrollingElement.clientHeight ?? 1;
-        const scrollHeight = Math.max(scrollingElement.scrollHeight ?? viewportHeight, viewportHeight);
-        const maxScrollable = Math.max(scrollHeight - viewportHeight, 1);
-        const nextValue = Math.min(Math.max(scrollTop / maxScrollable, 0), 1);
-        progress.set(nextValue);
-      };
+      const scrollTop = window.scrollY ?? window.pageYOffset ?? scrollingElement.scrollTop ?? 0;
+      const viewportHeight = window.innerHeight ?? scrollingElement.clientHeight ?? 1;
+      const scrollHeight = Math.max(
+        scrollingElement.scrollHeight ?? viewportHeight,
+        viewportHeight
+      );
+      const maxScrollable = Math.max(scrollHeight - viewportHeight, 1);
+      const nextValue = Math.min(Math.max(scrollTop / maxScrollable, 0), 1);
+      progress.set(nextValue);
+    };
 
     const scheduleUpdate = () => {
       if (animationFrameId) cancelAnimationFrame(animationFrameId);
