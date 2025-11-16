@@ -65,7 +65,11 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
   min-height: 70vh;
   display: grid;
   place-items: center;
-  padding: 0 20px 80px;  /* Removed ALL top padding */
+  /* FIX 1: Added var(--nav-height) to top padding. 
+    This pushes content down by the navbar's height.
+    The '70px' is a fallback. 
+  */
+  padding: var(--nav-height, 70px) 20px 80px;
   margin-top: 0 !important; 
   top: 0 !important;
 }
@@ -90,9 +94,13 @@ html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,"Sego
 .btn-ghost{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.12);color:var(--muted);transition:box-shadow 0.3s ease}
 .btn-ghost:hover{box-shadow:0 10px 28px rgba(0,0,0,0.28);transform:translateY(-3px)}
 
-/* ensure content below hero isn't covered */
-.content-wrapper{max-width:1200px;  margin-bottom: 0 !important;
-padding-bottom: 0 !important;}
+/* FIX 3: Added padding-bottom to fix gap before footer.
+  Removed !important flags. 
+*/
+.content-wrapper{
+  max-width:1200px;  
+  padding-bottom: 80px; /* Added space before footer */
+}
 
 /* Founder / profile section - split layout */
 .profile-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 24px;background:linear-gradient(135deg,#b76e79 0%,#eec9d2 100%);border-radius:12px;margin-top:0;box-shadow:0 20px 45px rgba(0,0,0,0.25);overflow:visible}
@@ -126,11 +134,19 @@ padding-bottom: 0 !important;}
   background:linear-gradient(180deg, rgba(8,12,24,0.48), rgba(8,12,24,0.6));
   backdrop-filter:blur(16px);
   border-radius:14px;
-  margin: 40px 0 0 0 !important;  text-align:center;
+  margin: 40px 0 0 0;  /* Removed !important */
+  text-align:center;
   border:1px solid rgba(255,255,255,0.06);
 }
 .cta-panel h3{color:var(--gold);font-weight:800}
-.cta-panel p{max-width:860px;  margin-bottom: 0 !important;color:rgba(226,232,240,0.95)}
+/* FIX 2: Added margin-bottom to create space 
+  between text and buttons. Removed !important.
+*/
+.cta-panel p{
+  max-width:860px;  
+  margin-bottom: 24px; 
+  color:rgba(226,232,240,0.95);
+}
 
 /* NEON ROSE-GOLD & SHIMMER */
 .btn-primary{position:relative;overflow:hidden}

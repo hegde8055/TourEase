@@ -32,7 +32,7 @@ const ScrollProgressBar = () => {
       const viewportHeight = window.innerHeight ?? scrollingElement.clientHeight ?? 1;
       const scrollHeight = Math.max(
         scrollingElement.scrollHeight ?? viewportHeight,
-        viewportHeight
+      const updateProgress = () => {
       );
       const maxScrollable = Math.max(scrollHeight - viewportHeight, 1);
       const nextValue = Math.min(Math.max(scrollTop / maxScrollable, 0), 1);
@@ -45,8 +45,10 @@ const ScrollProgressBar = () => {
     };
 
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("resize", scheduleUpdate);
-
+        const rawValue = scrollTop / maxScrollable;
+        const clampedValue = Math.min(Math.max(rawValue, 0), 1);
+        const safeValue = Number.isFinite(clampedValue) ? clampedValue : 0;
+        progress.set(safeValue);
     updateProgress();
 
     return () => {
@@ -74,10 +76,11 @@ const ScrollProgressBar = () => {
       <motion.div
         style={{
           height: "100%",
-          width: "100%",
+        background: "linear-gradient(90deg, rgba(8,12,24,0.75) 0%, rgba(8,12,24,0.35) 100%)",
           background:
             "linear-gradient(90deg, rgba(212,175,55,0.95) 0%, rgba(59,130,246,0.95) 100%)",
           transformOrigin: "0%",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
           scaleX,
         }}
       />
@@ -85,4 +88,9 @@ const ScrollProgressBar = () => {
   );
 };
 
-export default ScrollProgressBar;
+          background: "linear-gradient(90deg, rgba(212,175,55,1) 0%, rgba(59,130,246,1) 100%)",
+
+          scaleX,
+          boxShadow: "0 0 12px rgba(212,175,55,0.45)",
+          minWidth: "1px",
+          transform: "translateZ(0)",
