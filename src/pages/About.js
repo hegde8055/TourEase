@@ -3,6 +3,8 @@ import Navbar from "../components/Navbar";
 import ScrollProgressBar from "../components/ScrollProgressBar";
 import { useScroll, useTransform, motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+// --- ICONS ADDED HERE ---
+import { BsCloudSun, BsSignpostSplit, BsGeoAlt, BsLightbulb } from "react-icons/bs";
 
 // -----------------------------------------------------------------------------
 // Redesigned About.js — cleaned, fixed imports, corrected CSS and animations
@@ -118,6 +120,14 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .profile-name{font-size:1.8rem;font-weight:800;color:#3a1f21}
 .profile-role{color:#5a2e31;margin-bottom:12px}
 .profile-bio{color:#4b272a;line-height:1.7}
+
+/* --- CSS FOR ICONS ADDED HERE --- */
+.feature-icon {
+  font-size: 2.5rem; /* 40px */
+  color: var(--gold);
+  margin-bottom: 16px;
+  line-height: 1;
+}
 
 /* Feature grid */
 .features{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin:60px 0;padding:0;list-style:none}
@@ -386,7 +396,7 @@ const About = () => {
                 </motion.a>
                 <motion.a
                   whileHover={{ y: -2 }}
-                  className="btn-ghost"
+                  className="btn btn-ghost"
                   href={`mailto:shridhars@example.com`}
                 >
                   Contact me
@@ -447,7 +457,7 @@ const About = () => {
             </motion.div>
           </motion.div>
 
-          {/* Features / Value props */}
+          {/* --- FEATURES SECTION UPDATED WITH ICONS --- */}
           <motion.div
             ref={refFeatures}
             className="features"
@@ -461,18 +471,22 @@ const About = () => {
               className="feature"
               variants={item}
             >
+              <BsCloudSun className="feature-icon" />
               <h4>Live Weather</h4>
               <p>Get real‑time weather updates for any destination before and during your trip.</p>
             </motion.div>
             <motion.div className="feature" variants={item}>
+              <BsSignpostSplit className="feature-icon" />
               <h4>Routing Info</h4>
               <p>Smart routing suggestions to optimize your travel time between locations.</p>
             </motion.div>
             <motion.div className="feature" variants={item}>
+              <BsGeoAlt className="feature-icon" />
               <h4>Nearby Spots</h4>
               <p>Discover restaurants, attractions, fuel stations and essentials around you.</p>
             </motion.div>
             <motion.div className="feature" variants={item}>
+              <BsLightbulb className="feature-icon" />
               <h4>Trip Insights</h4>
               <p>Auto‑generated trip insights based on your itinerary and behavior.</p>
             </motion.div>
