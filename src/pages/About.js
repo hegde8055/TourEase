@@ -114,7 +114,8 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 }
 
 /* Founder / profile section - split layout */
-.profile-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 24px;background:linear-gradient(135deg,#b76e79 0%,#eec9d2 100%);border-radius:12px;margin-top:0;box-shadow:0 20px 45px rgba(0,0,0,0.25);overflow:visible}
+/* --- FIX: Added margin-top: 40px to create space below the hero section --- */
+.profile-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 24px;background:linear-gradient(135deg,#b76e79 0%,#eec9d2 100%);border-radius:12px;margin-top:40px;box-shadow:0 20px 45px rgba(0,0,0,0.25);overflow:visible}
 .profile-photo{width:100%;height:420px;object-fit:cover;border-radius:10px;border:2px solid rgba(255,255,255,0.22);box-shadow:0 10px 30px rgba(0,0,0,0.28);backdrop-filter:blur(6px)}
 .profile-meta{color:#3a1f21}
 .profile-name{font-size:1.8rem;font-weight:800;color:#3a1f21}
