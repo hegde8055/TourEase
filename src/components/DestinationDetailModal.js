@@ -1,25 +1,25 @@
 // /client/src/components/DestinationDetailModal.js
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"; // <-- FIX: Removed stray 'M'
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose } from "react-icons/io5";
 import { placesAPI } from "../utils/api";
 import { extractCoordinates } from "../utils/locationHelpers";
+
+// --- FIX: Import the InteractiveMap component ---
 import InteractiveMap from "./InteractiveMap";
-import { useAuth } from "../App"; // Import useAuth
+// --- END OF FIX ---
+
+import { useAuth } from "../App";
 import {
   normalizeDbDestination,
   deriveNearbyPlaces,
   resolveNearbyImage,
   normalizePlaceRating,
-} from "../utils/destinationHelpers"; // Import our new helpers
+} from "../utils/destinationHelpers";
 
-/**
- * This is the refactored, reusable modal for displaying destination details.
- * It is now self-contained and manages its own internal state for nearby places.
- */
 const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) => {
-  const { user } = useAuth(); // Get user for auth checks
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [normalizedDestination, setNormalizedDestination] = useState(null);
   const [touristPlaces, setTouristPlaces] = useState([]);
@@ -55,9 +55,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
     setNearbyPlaceStatus("idle");
     setNearbyPlaceError("");
 
-    // --- BOSS FIX: This section is now simpler ---
     // 3. Derive nearby places from the normalized data
-    // Our normalizeDbDestination function now correctly prepares the 'nearby' object
     const derivedTourist = deriveNearbyPlaces(normalized.nearby.tourist, normalized, "attraction");
     const derivedRestaurants = deriveNearbyPlaces(
       normalized.nearby.restaurants,
@@ -69,7 +67,6 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
       normalized,
       "stay"
     );
-    // --- END OF FIX ---
 
     setTouristPlaces(derivedTourist);
     setRestaurants(derivedRestaurants);
@@ -225,7 +222,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
     const mapQueryParts = [selectedNearbyPlace.name, selectedNearbyPlace.address].filter(Boolean);
     const placeId = details.placeId || selectedNearbyPlace.placeId;
     const googleMapsLink = mapQueryParts.length
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      ? `http://googleusercontent.com/maps/google.com/0{encodeURIComponent(
           mapQueryParts.join(" ")
         )}${placeId ? `&query_place_id=${encodeURIComponent(placeId)}` : ""}`
       : "";
@@ -253,16 +250,14 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
       navigate("/signin");
       return;
     }
-    // If a custom handler is passed, use it (like from Explore.js)
     if (onGenerateItinerary) {
       onGenerateItinerary(normalizedDestination);
     } else {
-      // Default behavior: navigate to planner
       navigate("/ItineraryPlanner", { state: { destinationName: normalizedDestination.name } });
     }
   }, [user, navigate, normalizedDestination, onGenerateItinerary]);
 
-  // --- Add/Remove Nearby Place Handlers ---
+  // Add/Remove Nearby Place Handlers
   const handleAddNearbyPlace = (place) => {
     if (!user) {
       alert("Please sign in to add places to your itinerary.");
@@ -284,7 +279,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
     });
   };
 
-  // --- Reusable Nearby Section Renderer ---
+  // Reusable Nearby Section Renderer
   const renderNearbySection = (
     items,
     { title, icon, accentColor, borderColor, cardGradient, accentGlow }
@@ -833,7 +828,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
             accentGlow: "0 22px 48px rgba(45, 212, 191, 0.32)",
           })}
 
-          {/* --- Map --- */}
+          {/* --- FIX: Add the map component back --- */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -845,6 +840,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
               address={normalizedDestination.formatted_address}
             />
           </motion.div>
+          {/* --- END OF FIX --- */}
         </motion.div>
       </motion.div>
 

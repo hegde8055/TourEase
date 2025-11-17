@@ -3,18 +3,18 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
-// --- REMOVED InteractiveMap ---
+// --- REMOVED InteractiveMap import ---
 import { placesAPI, destinationsAPI } from "../utils/api";
-// --- REMOVED extractCoordinates ---
+// --- REMOVED extractCoordinates import ---
 import { getDestinationHeroImage } from "../utils/imageHelpers";
 import { useAuth } from "../App";
-// --- REMOVED IoClose ---
+// --- REMOVED IoClose import ---
 
-// --- REMOVED all unused destinationHelpers ---
-// We only import what the file itself needs.
+// --- REMOVED unused destinationHelpers imports ---
 
-// --- NEW: Import the new modal component ---
+// --- Import the new modal component ---
 import DestinationDetailModal from "../components/DestinationDetailModal";
+
 const heroVariants = {
   hidden: { opacity: 0, y: -40 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: "easeOut" } },
@@ -56,7 +56,6 @@ const orbAnimation = (delay = 0) => ({
   transition: { duration: 5, repeat: Infinity, ease: "easeInOut", delay },
 });
 
-// --- This component is now MUCH smaller ---
 const Explore = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -71,30 +70,18 @@ const Explore = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchError, setSearchError] = useState("");
 
-  // --- MODAL STATE ---
-  // We only need to know *which* destination is selected.
-  // The modal will handle the rest.
   const [selectedDestination, setSelectedDestination] = useState(null);
-  // --- END OF MODAL STATE ---
 
-  // --- NEW: State for hybrid autosuggest ---
   const [localSuggestions, setLocalSuggestions] = useState([]);
   const [apiSuggestions, setApiSuggestions] = useState([]);
   const [isApiLoading, setIsApiLoading] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const debounceTimeoutRef = useRef(null);
 
-  // --- REMOVED all modal-related states ---
-  // (touristPlaces, hotels, restaurants, weather, selectedNearbyPlace, etc.)
-
-  // --- REMOVED mergedNearbyPlace useMemo ---
-
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
-
-  // --- REMOVED nearbyDetailsRequestRef ---
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -154,8 +141,6 @@ const Explore = () => {
     return dbDestinations.filter((destination) => destination.category === selectedCategory);
   }, [dbDestinations, selectedCategory]);
 
-  // --- REMOVED loadWeather function ---
-
   // Document click listener for closing suggestions
   useEffect(() => {
     const onDoc = (e) => {
@@ -166,9 +151,6 @@ const Explore = () => {
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
-
-  // --- REMOVED handleNearbyPlaceClick ---
-  // --- REMOVED applySelection function ---
 
   // Modified handleSearch
   const handleSearch = async (queryToSearch) => {
@@ -197,7 +179,6 @@ const Explore = () => {
         return;
       }
 
-      // Add/update destination in our DB list
       setDbDestinations((prev = []) => {
         const next = [...prev];
         const matchesDestination = (item) => {
@@ -214,7 +195,6 @@ const Explore = () => {
         return [destination, ...next];
       });
 
-      // Add its category if new
       if (destination.category) {
         setCategories((prevCategories) => {
           if (prevCategories.includes(destination.category)) return prevCategories;
@@ -222,7 +202,6 @@ const Explore = () => {
         });
       }
 
-      // --- NEW: Just set the selected destination. The modal will do the rest. ---
       setSelectedDestination(destination);
     } catch (err) {
       console.error("Search failed:", err);
@@ -237,39 +216,30 @@ const Explore = () => {
   const handleCardClick = async (destination) => {
     if (!destination) return;
 
-    // --- NEW: This logic is simpler. We just set the destination. ---
-    // If it's a "thin" object (missing nearby data), we fetch the full one first.
     const hasNearbyData =
-      Array.isArray(destination.nearby?.tourist) && destination.nearby.tourist.length > 0;
-    const hasLegacyNearby =
-      Array.isArray(destination.nearbyAttractions) && destination.nearbyAttractions.length > 0;
+      (Array.isArray(destination.nearby?.tourist) && destination.nearby.tourist.length > 0) ||
+      (Array.isArray(destination.nearbyAttractions) && destination.nearbyAttractions.length > 0);
 
-    if (!hasNearbyData && !hasLegacyNearby && destination._id) {
+    if (!hasNearbyData && destination._id) {
       try {
-        // Show loading or a simple spinner here if you like
         const response = await destinationsAPI.getById(destination._id);
         const hydrated = response.data?.destination || destination;
-        setSelectedDestination(hydrated); // Set the full object
+        setSelectedDestination(hydrated);
         return;
       } catch (error) {
         console.warn("Destination hydration failed:", error);
-        // Fallback: just show the data we have
         setSelectedDestination(destination);
       }
     } else {
-      // We already have the data, just set it
       setSelectedDestination(destination);
     }
   };
 
-  // --- NEW: Simplified close handler ---
   const closeDetails = useCallback(() => {
     setSelectedDestination(null);
   }, []);
 
-  // --- REMOVED Escape key handler (moved to modal) ---
-
-  // --- Hybrid Autosuggest Logic (Stays the same) ---
+  // --- Hybrid Autosuggest Logic ---
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       handleSearch(searchQuery);
@@ -344,7 +314,7 @@ const Explore = () => {
     setIsInputFocused(false);
     setLocalSuggestions([]);
     setApiSuggestions([]);
-    handleCardClick(destination); // Use handleCardClick to open modal
+    handleCardClick(destination);
   };
 
   const handleApiSuggestionClick = (suggestionText) => {
@@ -352,11 +322,10 @@ const Explore = () => {
     setIsInputFocused(false);
     setLocalSuggestions([]);
     setApiSuggestions([]);
-    handleSearch(suggestionText); // Use handleSearch to ingest and open modal
+    handleSearch(suggestionText);
   };
   // --- End of Hybrid Autosuggest Logic ---
 
-  // This function is now passed to the modal
   const handleGenerateItineraryClick = (destination) => {
     if (!user) {
       alert("Please sign in to create an itinerary.");
@@ -366,15 +335,10 @@ const Explore = () => {
     navigate("/ItineraryPlanner", { state: { destinationName: destination.name } });
   };
 
-  // --- REMOVED handleAddNearbyPlace ---
-  // --- REMOVED handleRemoveNearbyPlace ---
-  // --- REMOVED renderNearbySection ---
-
   return (
     <div className="main-content">
       <Navbar />
 
-      {/* --- Hero Section (No changes) --- */}
       <motion.section
         ref={heroRef}
         style={{
@@ -401,7 +365,6 @@ const Explore = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: prefersReducedMotion ? 0 : 1.1 }}
       >
-        {/* ... (All orb/background motion divs are unchanged) ... */}
         <motion.div
           aria-hidden="true"
           initial={{ opacity: 0.25 }}
@@ -471,7 +434,6 @@ const Explore = () => {
           }}
         />
 
-        {/* Hero Text (No changes) */}
         <div style={{ position: "relative", zIndex: 1, maxWidth: "900px", width: "100%" }}>
           <motion.h1
             variants={heroVariants}
@@ -505,7 +467,6 @@ const Explore = () => {
           </motion.p>
         </div>
 
-        {/* Search Bar (No changes) */}
         <motion.div
           initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.94 }}
           animate={
@@ -565,6 +526,7 @@ const Explore = () => {
               }}
             />
           )}
+
           <div style={{ flex: "1 1 300px", minWidth: "280px", position: "relative", zIndex: 10 }}>
             <input
               ref={searchInputRef}
@@ -591,6 +553,7 @@ const Explore = () => {
                 zIndex: 2,
               }}
             />
+
             <AnimatePresence>
               {isInputFocused &&
                 (localSuggestions.length > 0 || apiSuggestions.length > 0 || isApiLoading) && (
@@ -655,6 +618,7 @@ const Explore = () => {
                         </ul>
                       </>
                     )}
+
                     {(apiSuggestions.length > 0 || isApiLoading) && (
                       <>
                         <h4
@@ -709,6 +673,7 @@ const Explore = () => {
                 )}
             </AnimatePresence>
           </div>
+
           <motion.button
             type="button"
             onClick={() => handleSearch()}
@@ -735,7 +700,6 @@ const Explore = () => {
           </motion.button>
         </motion.div>
 
-        {/* Scroll Indicator (No changes) */}
         {!prefersReducedMotion && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -767,7 +731,6 @@ const Explore = () => {
           </motion.div>
         )}
 
-        {/* Search Error (No changes) */}
         <AnimatePresence>
           {searchError && (
             <motion.div
@@ -792,7 +755,6 @@ const Explore = () => {
         </AnimatePresence>
       </motion.section>
 
-      {/* --- Main Content Section (No changes) --- */}
       <section
         style={{
           background: "linear-gradient(180deg, #0b1120 0%, #111827 100%)",
@@ -802,7 +764,6 @@ const Explore = () => {
         }}
       >
         <div style={{ width: "100%", margin: 0, maxWidth: "100%", padding: "0 20px" }}>
-          {/* ... (Header, DB Error, Category Chips all unchanged) ... */}
           <motion.div
             initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -880,7 +841,6 @@ const Explore = () => {
             })}
           </motion.div>
 
-          {/* --- Destination Card Grid (onClick is now handleCardClick) --- */}
           {dbLoading ? (
             <div style={{ textAlign: "center", padding: "60px 20px" }}>
               <motion.div
@@ -945,7 +905,6 @@ const Explore = () => {
                       position: "relative",
                       transition: "box-shadow 0.3s ease, transform 0.3s ease",
                     }}
-                    // --- MODIFIED: onClick now uses handleCardClick ---
                     onClick={() => handleCardClick(destination)}
                     role="button"
                     tabIndex={0}
@@ -953,7 +912,6 @@ const Explore = () => {
                       if (event.key === "Enter") handleCardClick(destination);
                     }}
                   >
-                    {/* ... (Rest of card content is unchanged) ... */}
                     <div style={{ position: "relative", height: "200px", overflow: "hidden" }}>
                       <img
                         src={cardImage}
@@ -1134,16 +1092,11 @@ const Explore = () => {
         </div>
       </section>
 
-      {/* --- NEW: Render the modal component --- */}
-      {/* It will only appear when selectedDestination is not null */}
       <DestinationDetailModal
         destination={selectedDestination}
         onClose={closeDetails}
         onGenerateItinerary={handleGenerateItineraryClick}
       />
-      {/* --- END OF NEW MODAL --- */}
-
-      {/* --- REMOVED all the old AnimatePresence/modal JSX --- */}
     </div>
   );
 };
