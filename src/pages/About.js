@@ -72,14 +72,18 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .hero-particles span:nth-child(10){left:50%;animation-duration:15s}
 @keyframes floatUp{0%{transform:translateY(120vh) scale(0.6);opacity:0}20%{opacity:0.9}100%{transform:translateY(-20vh) scale(1.1);opacity:0}}
 
-/* This padding is correct: it pushes the hero *content* down, not the whole page */
+/* FIX: Using negative margin as requested.
+  - 'margin-top: -90px' cancels the 'padding-top: 90px' from App.css.
+  - 'padding-top: var(--nav-height)' remains, pushing content down by
+    the navbar's height as originally intended.
+*/
 .hero-section{
   position: relative;
   min-height: 70vh;
   display: grid;
   place-items: center;
   padding: var(--nav-height, 70px) 20px 80px;
-  margin-top: 0 !important; 
+  margin-top: -90px; /* This is the fix */
   top: 0 !important;
 }
 
@@ -169,7 +173,7 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   .profile-wrap{grid-template-columns:1fr;padding:28px}
   .features{grid-template-columns:repeat(2,1fr)}
   .services-grid{grid-template-columns:repeat(2,1fr)}
-  .hero-section{padding:40px 16px 60px}
+  .hero-section{padding:var(--nav-height, 70px) 16px 60px}
 }
 @media (max-width:640px){
   .hero-title{font-size:1.8rem}
@@ -215,6 +219,8 @@ const About = () => {
       setTimeout(loadVideo, 600);
     }
   }, []);
+
+  // This JS is still needed to calculate the padding-top for the hero section
   useEffect(() => {
     const computeHeight = () => {
       const nav = document.querySelector("nav, .navbar, header");
