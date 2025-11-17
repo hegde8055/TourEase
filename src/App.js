@@ -12,9 +12,11 @@ import {
   setSessionKey,
   // 'isRememberMe' was removed (unused)
   logout as authLogout,
-  AUTH_EXPIRED_EVENT, // <-- BOSS FIX: This is the correct file
 } from "./utils/auth";
-// --- BOSS FIX: Removed 'enhancedPlacesAPI' (it was unused) and AUTH_EXPIRED_EVENT ---
+import {
+  AUTH_EXPIRED_EVENT, // <-- BOSS FIX: This is the correct file
+  // 'enhancedPlacesAPI' was removed (unused)
+} from "./utils/api";
 import Footer from "./components/Footer";
 import AIChatbot from "./components/AIChatbot";
 import Navbar from "./components/Navbar";
