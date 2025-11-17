@@ -1,5 +1,6 @@
 // /client/src/utils/api.js
 import axios from "axios";
+// BOSS FIX: Import all auth functions from auth.js, not here
 import { getToken, getSessionKey, clearStoredAuth, AUTH_EXPIRED_EVENT } from "./auth";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
@@ -177,8 +178,6 @@ export const profileAPI = {
   },
 };
 
-// This is the object that was in your `enhancedApi.js`
-// We keep it separate for clarity, but export it as `placesAPI` for `Explore.js`
 const geoapifyPlacesAPI = {
   validateDestination: async (data) => postPlaces("validate", data),
   getTouristPlaces: async (data) => postPlaces("tourist", data),
@@ -192,17 +191,10 @@ const geoapifyPlacesAPI = {
   getWeather: async (lat, lng) =>
     axios.get(`${API_BASE}/api/places/weather`, { params: { lat, lng } }),
 
-  // --- THIS IS THE FUNCTION WE BUILT ---
-  /**
-   * Fetches autocomplete suggestions from Geoapify.
-   * We bias results towards India and prefer cities/tourist spots.
-   */
   getAutocomplete: async (text) => {
-    // --- BOSS FIX: Read the key from the .env file ---
+    // This now correctly reads your .env file
     const GEOAPIFY_API_KEY = process.env.REACT_APP_GEOAPIFY_API_KEY;
-    // --- END OF FIX ---
 
-    // This check now correctly reads the variable
     if (!GEOAPIFY_API_KEY || GEOAPIFY_API_KEY === "YOUR_GEOAPIFY_API_KEY") {
       console.warn("Geoapify API key is missing. Autocomplete will not work.");
       return Promise.reject(new Error("Missing Geoapify API key"));
@@ -226,16 +218,13 @@ const geoapifyPlacesAPI = {
       limit: 5,
     });
 
-    // We use axios.get() here because we are calling an external URL
     const citySearch = axios.get(`https://api.geoapify.com/v1/geocode/autocomplete?${params}`);
     const touristSearch = axios.get(`https://api.geoapify.com/v2/places?${touristParams}`);
 
     return Promise.allSettled([citySearch, touristSearch]);
   },
-  // --- END OF NEW FUNCTION ---
 };
 
-// Export the APIs for use in components
 export { geoapifyPlacesAPI as placesAPI };
 
 export const chatbotAPI = {
@@ -260,6 +249,8 @@ export const getImageUrl = (imagePath) => {
   return `${API_BASE}${imagePath}`;
 };
 
+// This interceptor now uses clearStoredAuth and AUTH_EXPIRED_EVENT
+// from auth.js, as it should.
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -272,10 +263,11 @@ axios.interceptors.response.use(
           errorMessage.includes("access token required")));
 
     if (tokenError) {
-      clearStoredAuth();
+      clearStoredAuth(); // This function is now imported correctly from auth.js
       if (typeof window !== "undefined") {
         window.dispatchEvent(
           new CustomEvent(AUTH_EXPIRED_EVENT, {
+            // This constant is also from auth.js
             detail: {
               status,
               message: error.response?.data?.error,
@@ -297,7 +289,7 @@ const api = {
   destinationAPI,
   itineraryAPI,
   profileAPI,
-  placesAPI: geoapifyPlacesAPI, // Ensure default export includes the right one
+  placesAPI: geoapifyPlacesAPI,
   chatbotAPI,
   contactAPI,
   getImageUrl,
