@@ -2,12 +2,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { destinationAPI, enhancedPlacesAPI } from "../utils/api";
+import { destinationAPI, enhancedPlacesAPI } from "../utils/api"; // Keep enhancedPlacesAPI for maps
 import { getDestinationHeroImage } from "../utils/imageHelpers";
 import { extractCoordinates } from "../utils/locationHelpers";
 import Navbar from "../components/Navbar";
 import AIChatbot from "../components/AIChatbot";
 import { useInView } from "react-intersection-observer";
+
+// --- NEW: Import our reusable modal ---
+import DestinationDetailModal from "../components/DestinationDetailModal";
 
 // Helper function to generate a unique key for mapping
 const getPreviewKey = (destination) => {
@@ -19,10 +22,13 @@ const getPreviewKey = (destination) => {
 const Trending = () => {
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const mapPreviewsRef = useRef({}); // Using ref for map previews
+  const mapPreviewsRef = useRef({});
   const navigate = useNavigate();
 
-  // Helper to update map previews ref
+  // --- NEW: State for the modal ---
+  const [selectedDestination, setSelectedDestination] = useState(null);
+  // --- END NEW STATE ---
+
   const setPreviewEntry = (key, value) => {
     if (!key) return;
     mapPreviewsRef.current = { ...mapPreviewsRef.current, [key]: value };
@@ -34,10 +40,9 @@ const Trending = () => {
     const fetchTrending = async () => {
       setLoading(true);
       try {
-        // Fetching 25 destinations
         const results = await destinationAPI.getTrending(25);
-        mapPreviewsRef.current = {}; // Reset map previews
-        setDestinations(results || []); // Ensure it's an array
+        mapPreviewsRef.current = {};
+        setDestinations(results || []);
       } catch (error) {
         console.error("Error fetching trending destinations:", error);
         setDestinations([]);
@@ -46,9 +51,9 @@ const Trending = () => {
       }
     };
     fetchTrending();
-  }, []); // Empty dependency array means run once on mount
+  }, []);
 
-  // Fetch map images sequentially after destinations load
+  // Fetch map images (no change to this logic)
   useEffect(() => {
     if (!destinations.length) return;
     let cancelled = false;
@@ -81,20 +86,49 @@ const Trending = () => {
           console.error(`Error fetching map for ${destination.name}:`, error);
           setPreviewEntry(key, { status: "error" });
         }
-        await new Promise((resolve) => setTimeout(resolve, 300)); // Delay between requests
+        await new Promise((resolve) => setTimeout(resolve, 300));
       }
     };
     loadMapsSequentially();
     return () => {
       cancelled = true;
-    }; // Cleanup on unmount
+    };
   }, [destinations]);
 
+  // --- NEW: Handler to open the modal ---
+  const handleViewDetailsClick = async (destination) => {
+    // The destination object from trending might be "thin".
+    // We must fetch the *full* destination object from the API.
+    if (!destination._id) {
+      console.error("Destination has no ID, cannot fetch details.");
+      return;
+    }
+
+    try {
+      // This is the same logic Explore.js uses
+      const response = await destinationAPI.getById(destination._id);
+      const hydratedDestination = response.data?.destination;
+      if (hydratedDestination) {
+        setSelectedDestination(hydratedDestination);
+      } else {
+        // Fallback to the partial data if API fails
+        setSelectedDestination(destination);
+      }
+    } catch (error) {
+      console.error("Failed to fetch full destination details:", error);
+      // Fallback to showing the partial data we already have
+      setSelectedDestination(destination);
+    }
+  };
+
+  // --- NEW: Handler to close the modal ---
+  const handleCloseModal = () => {
+    setSelectedDestination(null);
+  };
+
   return (
-    // main-content class likely adds padding-top automatically from App.css
     <div className="main-content">
       <Navbar />
-      {/* --- THIS IS THE MAIN CONTAINER WITH CORRECTED STYLES --- */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -103,30 +137,26 @@ const Trending = () => {
         <div
           style={{
             minHeight: "100vh",
-            paddingTop: "100px", // Keep padding to push content below Navbar
+            paddingTop: "100px",
             paddingBottom: "60px",
-            marginTop: "-180px", // *** KEEPING the negative margin as requested ***
-            // --- COMBINED BACKGROUND STYLES ---
+            marginTop: "-180px",
             background: `
           linear-gradient(rgba(11,14,20,0.75), rgba(11,14,20,0.85)),
           url('/assets/2.jpg')
           `,
-
             backgroundSize: "cover",
             backgroundPosition: "center center",
             backgroundRepeat: "no-repeat",
-            backgroundAttachment: "fixed", // *** IMPORTANT: Keeps background fixed to viewport ***
+            backgroundAttachment: "fixed",
           }}
         >
-          {/* Max width container */}
-          {/* Adjusted padding: Removed top padding here since parent div handles it */}
           <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 20px" }}>
-            {/* Header Section */}
+            {/* Header Section (No change) */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              style={{ textAlign: "center", marginBottom: "60px", paddingTop: "80px" }} // Add padding here to compensate for removed negative margin's effect on position
+              style={{ textAlign: "center", marginBottom: "60px", paddingTop: "80px" }}
             >
               <h1
                 style={{
@@ -154,7 +184,7 @@ const Trending = () => {
               </p>
             </motion.div>
 
-            {/* Loading State */}
+            {/* Loading / Empty States (No change) */}
             {loading ? (
               <div
                 style={{
@@ -166,13 +196,10 @@ const Trending = () => {
                   borderRadius: "15px",
                 }}
               >
-                {" "}
-                {/* Added background for visibility */}
                 <div style={{ fontSize: "4rem", marginBottom: "20px" }}>⏳</div>
                 Loading trending destinations...
               </div>
             ) : destinations.length === 0 ? (
-              // Empty State
               <div
                 style={{
                   textAlign: "center",
@@ -183,8 +210,6 @@ const Trending = () => {
                   borderRadius: "15px",
                 }}
               >
-                {" "}
-                {/* Added background */}
                 <div style={{ fontSize: "4rem", marginBottom: "20px" }}>😔</div>
                 No trending destinations available at the moment. Please check back later!
               </div>
@@ -201,7 +226,6 @@ const Trending = () => {
                   gap: "30px",
                 }}
               >
-                {/* --- Card Mapping remains the same as previous correct version --- */}
                 {destinations.map((destination, index) => {
                   const heroImage = getDestinationHeroImage(destination, {
                     size: "600x400",
@@ -217,23 +241,19 @@ const Trending = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5, delay: index * 0.08 }}
                       whileHover={{ y: -8, boxShadow: "0 16px 32px rgba(212, 175, 55, 0.18)" }}
-                      whileTap={{ scale: 0.97 }}
                       style={{
                         background: "rgba(17, 24, 39, 0.92)",
                         borderRadius: "20px",
                         overflow: "hidden",
                         border: "1.5px solid rgba(212, 175, 55, 0.22)",
                         backdropFilter: "blur(10px)",
-                        cursor: "pointer",
                         display: "flex",
                         flexDirection: "column",
                         boxShadow: "0 8px 20px rgba(0, 0, 0, 0.25)",
                         transition: "box-shadow 0.3s ease, transform 0.3s ease",
                       }}
-                      onClick={() =>
-                        navigate(`/destination/${destination._id || destination.slug || cardKey}`)
-                      }
                     >
+                      {/* Card Image (No change) */}
                       <div style={{ position: "relative", height: "200px", overflow: "hidden" }}>
                         <img
                           src={heroImage}
@@ -307,6 +327,8 @@ const Trending = () => {
                           </div>
                         )}
                       </div>
+
+                      {/* Card Content (No change) */}
                       <div
                         style={{
                           padding: "20px",
@@ -365,8 +387,11 @@ const Trending = () => {
                             {destination.location?.city || destination.location?.state || "India"}
                           </span>{" "}
                         </div>
+
+                        {/* --- MODIFIED: Button now triggers the modal --- */}
                         <motion.button
                           type="button"
+                          onClick={() => handleViewDetailsClick(destination)}
                           whileHover={{ scale: 1.03, backgroundColor: "#facc15" }}
                           whileTap={{ scale: 0.97 }}
                           style={{
@@ -398,7 +423,7 @@ const Trending = () => {
               </motion.div>
             )}
 
-            {/* Explore More Section */}
+            {/* Explore More Section (No change) */}
             {!loading && destinations.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -442,6 +467,14 @@ const Trending = () => {
         </div>
         <AIChatbot />
       </motion.div>
+
+      {/* --- NEW: Render the modal component --- */}
+      {/* It will only appear when selectedDestination is not null */}
+      <DestinationDetailModal
+        destination={selectedDestination}
+        onClose={handleCloseModal}
+        // We let the modal use its default navigation behavior
+      />
     </div>
   );
 };

@@ -3,19 +3,18 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
-import InteractiveMap from "../components/InteractiveMap";
+// --- REMOVED InteractiveMap ---
 import { placesAPI, destinationsAPI } from "../utils/api";
-import { extractCoordinates } from "../utils/locationHelpers";
+// --- REMOVED extractCoordinates ---
 import { getDestinationHeroImage } from "../utils/imageHelpers";
 import { useAuth } from "../App";
-import { IoClose } from "react-icons/io5";
+// --- REMOVED IoClose ---
 
-const formatAddress = (location = {}) => {
-  if (!location) return "India";
-  if (location.address) return location.address;
-  const parts = [location.city, location.state, location.country].filter(Boolean);
-  return parts.length ? parts.join(", ") : "India";
-};
+// --- REMOVED all unused destinationHelpers ---
+// We only import what the file itself needs.
+
+// --- NEW: Import the new modal component ---
+import DestinationDetailModal from "../components/DestinationDetailModal";
 const heroVariants = {
   hidden: { opacity: 0, y: -40 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: "easeOut" } },
@@ -56,231 +55,27 @@ const orbAnimation = (delay = 0) => ({
   opacity: [0.25, 0.6, 0.25],
   transition: { duration: 5, repeat: Infinity, ease: "easeInOut", delay },
 });
-const normalizePlaceRating = (value) => {
-  if (value == null) return null;
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return null;
-  const scaled = numeric <= 1 ? numeric * 5 : numeric;
-  const clamped = Math.max(0, Math.min(scaled, 5));
-  return Number(clamped.toFixed(1));
-};
-const extractPlaceId = (place = {}) => {
-  return (
-    place.placeId || place.place_id || place.id || place.raw?.place_id || place.raw?.id || null
-  );
-};
-const NEARBY_IMAGE_CANDIDATE_KEYS = [
-  "heroImage",
-  "hero_image_url",
-  "image",
-  "photo",
-  "thumbnail",
-  "cover",
-  "primaryImage",
-  "imageUrl",
-  "image_url",
-  "preview",
-];
-const resolveNearbyImage = (place = {}) => {
-  const inspect = (value) => {
-    if (!value) return null;
-    if (typeof value === "string") {
-      const trimmed = value.trim();
-      if (!trimmed) return null;
-      if (trimmed.startsWith("//")) return `https:${trimmed}`;
-      if (trimmed.startsWith("http") || trimmed.startsWith("data:")) return trimmed;
-      return null;
-    }
-    if (typeof value === "object") {
-      const nestedKeys = ["url", "src", "image", "imageUrl", "image_url", "path"];
-      for (const key of nestedKeys) {
-        const nested = inspect(value[key]);
-        if (nested) return nested;
-      }
-    }
-    return null;
-  };
-  for (const key of NEARBY_IMAGE_CANDIDATE_KEYS) {
-    const resolved = inspect(place[key] ?? place.raw?.[key]);
-    if (resolved) return resolved;
-  }
-  if (Array.isArray(place.images) && place.images.length > 0) {
-    const candidate = inspect(place.images[0]);
-    if (candidate) return candidate;
-  }
-  return null;
-};
-const deriveNearbyPlaces = (items = [], destination, fallbackKey) => {
-  if (!Array.isArray(items) || items.length === 0) return [];
-  const baseKey =
-    destination?._id || destination?.id || destination?.slug || destination?.name || fallbackKey;
-  return items
-    .map((item = {}, index) => {
-      const placeId = extractPlaceId(item);
-      const textualDistance =
-        typeof item.distance === "string" && item.distance.trim()
-          ? item.distance.trim()
-          : typeof item.distanceText === "string" && item.distanceText.trim()
-            ? item.distanceText.trim()
-            : typeof item.raw?.distanceText === "string" && item.raw.distanceText.trim()
-              ? item.raw.distanceText.trim()
-              : typeof item.vicinity === "string" && item.vicinity.trim()
-                ? item.vicinity.trim()
-                : "";
-      const ratingCandidates = [
-        item.rating,
-        item.rank?.importance,
-        item.rank?.confidence,
-        item.raw?.rank?.importance,
-        item.raw?.rank?.confidence,
-        item.details?.rating,
-        item.details?.rank?.popularity,
-        item.details?.datasource?.raw?.rating,
-      ];
-      const ratingSource = ratingCandidates.find((score) => typeof score === "number");
-      const normalizedRating = normalizePlaceRating(ratingSource);
-      const categories = Array.isArray(item.categories)
-        ? item.categories
-        : Array.isArray(item.raw?.categories)
-          ? item.raw.categories
-          : [];
-      const reviewCount =
-        item.raw?.rating?.count ||
-        item.raw?.datasource?.raw?.user_ratings_total ||
-        item.details?.user_ratings_total ||
-        item.details?.datasource?.raw?.user_ratings_total ||
-        item.reviewCount ||
-        null;
-      const priceLevel =
-        item.raw?.price_level ??
-        item.details?.price_level ??
-        item.raw?.datasource?.raw?.price_level ??
-        null;
-      return {
-        key: placeId || `${baseKey || "destination"}-nearby-${index}`,
-        placeId,
-        name: item.name || item.title || item.address || `Nearby place ${index + 1}`,
-        address:
-          item.address ||
-          item.formatted ||
-          item.vicinity ||
-          item.description ||
-          item.raw?.address_line1 ||
-          item.raw?.formatted ||
-          "",
-        distanceText: textualDistance,
-        rating: normalizedRating != null ? normalizedRating : null,
-        ratingCount: reviewCount,
-        priceLevel,
-        categories,
-        website: item.website || item.raw?.website || item.details?.website || "",
-        phone: item.phone || item.raw?.phone || item.details?.contact?.phone || "",
-        heroImage: resolveNearbyImage(item),
-        heroImageSource: item.heroImageSource || item.raw?.heroImageSource || "",
-        heroImageAttribution:
-          item.heroImageAttribution ||
-          item.raw?.heroImageAttribution ||
-          item.details?.imageCredits ||
-          "",
-        description:
-          item.description ||
-          item.summary ||
-          item.raw?.description ||
-          item.raw?.datasource?.raw?.description ||
-          item.details?.description ||
-          "",
-        openingHours:
-          item.details?.opening_hours?.weekday_text ||
-          item.raw?.opening_hours?.weekday_text ||
-          item.raw?.datasource?.raw?.opening_hours ||
-          null,
-        coordinates: item.coordinates || item.raw?.coordinates || null,
-        raw: item,
-      };
-    })
-    .filter((entry) => Boolean(entry.name));
-};
-const normalizeDbDestination = (destination) => {
-  if (!destination) return null;
-  const normalizedRating = normalizePlaceRating(destination.rating);
-  const normalized = {
-    id: destination._id,
-    name: destination.name,
-    category: destination.category,
-    description: destination.description,
-    formatted_address: formatAddress(destination.location),
-    rating:
-      normalizedRating != null
-        ? normalizedRating
-        : typeof destination.rating === "number"
-          ? Number(destination.rating.toFixed(1))
-          : destination.rating || "N/A",
-    website: destination.website || "",
-    entryFee: destination.entryFee || "Included in package",
-    bestTimeToVisit: destination.bestTimeToVisit || "Year round",
-    photo: getDestinationHeroImage(destination, {
-      size: "900x600",
-      querySuffix: "India landmark cinematic",
-    }),
-    location: destination.location,
-    highlights: destination.highlights || [],
-    activities: destination.activities || [],
-    nearbyAttractions: destination.nearbyAttractions || [],
-    nearby: {
-      tourist: Array.isArray(destination.nearby?.tourist) ? destination.nearby.tourist : [],
-      restaurants: Array.isArray(destination.nearby?.restaurants)
-        ? destination.nearby.restaurants
-        : [],
-      accommodations: Array.isArray(destination.nearby?.accommodations)
-        ? destination.nearby.accommodations
-        : [],
-    },
-    tips: destination.tips || [],
-    howToReach: destination.howToReach || "",
-    weather: destination.weather || null,
-    mapImage:
-      destination.mapImage ||
-      destination.map?.image ||
-      destination.map?.staticMap ||
-      destination.staticMap ||
-      null,
-    mapProvider: destination.mapProvider || destination.map?.provider || "geoapify",
-    raw: destination,
-  };
-  return normalized;
-};
 
+// --- This component is now MUCH smaller ---
 const Explore = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const heroRef = useRef(null);
-  // --- MODIFIED: Removed old suggestion refs ---
-  // const suggestionRefs = useRef([]);
-  // const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // --- MODIFIED: Removed old suggestion states ---
-  // const [suggestionNames, setSuggestionNames] = useState([]);
-  // const [showSuggestions, setShowSuggestions] = useState(false);
-
-  const searchInputRef = useRef(null); // for outside-click handling
+  const searchInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [dbDestinations, setDbDestinations] = useState([]);
   const [dbLoading, setDbLoading] = useState(true);
   const [dbError, setDbError] = useState("");
   const [categories, setCategories] = useState(["All"]);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedDestination, setSelectedDestination] = useState(null);
-  const [touristPlaces, setTouristPlaces] = useState([]);
-  const [hotels, setHotels] = useState([]);
-  const [restaurants, setRestaurants] = useState([]);
-  const [weather, setWeather] = useState(null);
   const [searchError, setSearchError] = useState("");
-  const [selectedNearbyPlace, setSelectedNearbyPlace] = useState(null);
-  const [nearbyPlaceDetails, setNearbyPlaceDetails] = useState(null);
-  const [nearbyPlaceStatus, setNearbyPlaceStatus] = useState("idle");
-  const [nearbyPlaceError, setNearbyPlaceError] = useState("");
-  const [addedPlaces, setAddedPlaces] = useState(new Set());
+
+  // --- MODAL STATE ---
+  // We only need to know *which* destination is selected.
+  // The modal will handle the rest.
+  const [selectedDestination, setSelectedDestination] = useState(null);
+  // --- END OF MODAL STATE ---
 
   // --- NEW: State for hybrid autosuggest ---
   const [localSuggestions, setLocalSuggestions] = useState([]);
@@ -288,80 +83,18 @@ const Explore = () => {
   const [isApiLoading, setIsApiLoading] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const debounceTimeoutRef = useRef(null);
-  // --- END OF NEW STATE ---
 
-  const mergedNearbyPlace = useMemo(() => {
-    if (!selectedNearbyPlace) return null;
-    const details = nearbyPlaceDetails || {};
+  // --- REMOVED all modal-related states ---
+  // (touristPlaces, hotels, restaurants, weather, selectedNearbyPlace, etc.)
 
-    const resolvedOpeningHours =
-      Array.isArray(details.openingHours) && details.openingHours.length > 0
-        ? details.openingHours
-        : Array.isArray(selectedNearbyPlace.openingHours) &&
-            selectedNearbyPlace.openingHours.length > 0
-          ? selectedNearbyPlace.openingHours
-          : Array.isArray(details.raw?.opening_hours?.weekday_text)
-            ? details.raw.opening_hours.weekday_text
-            : Array.isArray(details.raw?.opening_hours?.labels)
-              ? details.raw.opening_hours.labels
-              : [];
-
-    const resolvedCategories =
-      Array.isArray(details.categories) && details.categories.length > 0
-        ? details.categories
-        : Array.isArray(selectedNearbyPlace.categories)
-          ? selectedNearbyPlace.categories
-          : [];
-
-    const ratingCount =
-      details.raw?.datasource?.raw?.user_ratings_total ??
-      details.raw?.user_ratings_total ??
-      details.ratingCount ??
-      selectedNearbyPlace.ratingCount ??
-      selectedNearbyPlace.raw?.datasource?.raw?.user_ratings_total ??
-      null;
-
-    const description = details.description || selectedNearbyPlace.description || "";
-    const website = details.website || selectedNearbyPlace.website || "";
-    const phone = details.phone || selectedNearbyPlace.phone || "";
-    const heroImage = details.heroImage || selectedNearbyPlace.heroImage || "";
-    const priceLevel =
-      details.priceLevel ??
-      details.raw?.price_level ??
-      selectedNearbyPlace.priceLevel ??
-      selectedNearbyPlace.raw?.price_level ??
-      null;
-
-    const mapQueryParts = [selectedNearbyPlace.name, selectedNearbyPlace.address].filter(Boolean);
-    const placeId = details.placeId || selectedNearbyPlace.placeId;
-    const googleMapsLink = mapQueryParts.length
-      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-          mapQueryParts.join(" ")
-        )}${placeId ? `&query_place_id=${encodeURIComponent(placeId)}` : ""}`
-      : "";
-
-    return {
-      ...selectedNearbyPlace,
-      ...details,
-      rating: details.rating ?? selectedNearbyPlace.rating ?? null,
-      ratingCount,
-      description,
-      website,
-      phone,
-      heroImage,
-      priceLevel,
-      categories: resolvedCategories,
-      openingHours: resolvedOpeningHours,
-      googleMapsLink,
-    };
-  }, [selectedNearbyPlace, nearbyPlaceDetails]);
+  // --- REMOVED mergedNearbyPlace useMemo ---
 
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }, []);
 
-  const nearbyDetailsRequestRef = useRef(0);
+  // --- REMOVED nearbyDetailsRequestRef ---
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -376,6 +109,7 @@ const Explore = () => {
     }
   }, []);
 
+  // Fetch curated destinations
   useEffect(() => {
     let isMounted = true;
     const fetchCurated = async () => {
@@ -415,35 +149,14 @@ const Explore = () => {
     };
   }, []);
 
-  // --- MODIFIED: This old suggestion logic is REMOVED ---
-  // useEffect(() => {
-  //   const q = (searchQuery || "").trim().toLowerCase();
-  // ...
-  //   setShowSuggestions(unique.length > 0);
-  // }, [searchQuery, dbDestinations]);
-
   const filteredDestinations = useMemo(() => {
     if (selectedCategory === "All") return dbDestinations;
     return dbDestinations.filter((destination) => destination.category === selectedCategory);
   }, [dbDestinations, selectedCategory]);
 
-  const loadWeather = async (coordinates) => {
-    if (!coordinates || coordinates.lat == null || coordinates.lng == null) {
-      setWeather(null);
-      return;
-    }
-    try {
-      // --- FIX: Ensure placesAPI.getWeather is called correctly ---
-      // This relies on the api.js fix
-      const weatherResponse = await placesAPI.getWeather(coordinates.lat, coordinates.lng);
-      setWeather(weatherResponse.data?.weather || null);
-    } catch (err) {
-      console.warn("Weather fetch failed:", err?.message || err);
-      setWeather(null);
-    }
-  };
+  // --- REMOVED loadWeather function ---
 
-  // --- MODIFIED: This listener now controls isInputFocused ---
+  // Document click listener for closing suggestions
   useEffect(() => {
     const onDoc = (e) => {
       if (!searchInputRef.current?.contains(e.target)) {
@@ -454,122 +167,11 @@ const Explore = () => {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  // --- MODIFIED: Removed old suggestion keyboard logic ---
-  // useEffect(() => {
-  //   if (activeSuggestionIndex >= 0 && suggestionRefs.current[activeSuggestionIndex]) {
-  //     ...
-  //   }
-  // }, [activeSuggestionIndex]);
+  // --- REMOVED handleNearbyPlaceClick ---
+  // --- REMOVED applySelection function ---
 
-  const handleNearbyPlaceClick = async (place) => {
-    if (!place) return;
-    setSelectedNearbyPlace(place);
-    setNearbyPlaceError("");
-    setNearbyPlaceDetails(null);
-    if (!place.placeId) {
-      setNearbyPlaceStatus("ready");
-      return;
-    }
-    const requestId = Date.now();
-    nearbyDetailsRequestRef.current = requestId;
-    setNearbyPlaceStatus("loading");
-    try {
-      // --- FIX: Ensure placesAPI.getPlaceDetails is called correctly ---
-      // This relies on the api.js fix
-      const response = await placesAPI.getPlaceDetails(place.placeId);
-      if (nearbyDetailsRequestRef.current !== requestId) return;
-      const props = response.data?.place || {};
-      if (!props || Object.keys(props).length === 0) {
-        setNearbyPlaceStatus("ready");
-        setNearbyPlaceDetails(null);
-        return;
-      }
-      const openingHours = Array.isArray(props.opening_hours?.weekday_text)
-        ? props.opening_hours.weekday_text
-        : Array.isArray(props.opening_hours?.labels)
-          ? props.opening_hours.labels
-          : [];
-      const ratingSource =
-        typeof props.rank?.confidence === "number"
-          ? props.rank.confidence
-          : typeof props.rank?.importance === "number"
-            ? props.rank.importance
-            : typeof props.rating === "number"
-              ? props.rating
-              : null;
-      const detailedRating = normalizePlaceRating(ratingSource);
-      setNearbyPlaceDetails({
-        name: props.name || place.name,
-        address: props.formatted || props.address_line1 || place.address,
-        description: props.description || props.datasource?.raw?.description || "",
-        categories: props.categories || place.categories || [],
-        website: props.website || props.datasource?.raw?.website || place.website || "",
-        phone:
-          props.contact?.phone ||
-          props.contact?.formatted_phone ||
-          props.datasource?.raw?.phone ||
-          place.phone ||
-          "",
-        openingHours,
-        rating: detailedRating,
-        heroImage: place.heroImage || resolveNearbyImage(props),
-        raw: props,
-      });
-      setNearbyPlaceStatus("ready");
-    } catch (error) {
-      if (nearbyDetailsRequestRef.current !== requestId) return;
-      console.error("Place details fetch failed:", error);
-      setNearbyPlaceError("We couldn't load more details for this place just now.");
-      setNearbyPlaceStatus("error");
-    }
-  };
-
-  const applySelection = (destination) => {
-    const normalized = normalizeDbDestination(destination);
-    setSelectedDestination(normalized);
-    setSelectedNearbyPlace(null);
-    setNearbyPlaceDetails(null);
-    setNearbyPlaceStatus("idle");
-    setNearbyPlaceError("");
-    const derivedTourist = deriveNearbyPlaces(
-      destination.nearby?.tourist || destination.nearbyAttractions || [],
-      destination,
-      "attraction"
-    );
-    const derivedRestaurants = deriveNearbyPlaces(
-      destination.nearby?.restaurants || destination.restaurants || [],
-      destination,
-      "restaurant"
-    );
-    const derivedAccommodations = deriveNearbyPlaces(
-      destination.nearby?.accommodations || destination.hotels || destination.accommodations || [],
-      destination,
-      "stay"
-    );
-    setTouristPlaces(derivedTourist);
-    setRestaurants(derivedRestaurants);
-    setHotels(derivedAccommodations);
-    if (destination.weather) {
-      setWeather(destination.weather);
-      if (!destination.weather.icon && !destination.weather.symbol && !destination.weather.emoji) {
-        const coords = extractCoordinates(destination);
-        if (coords) {
-          loadWeather(coords);
-        }
-      }
-    } else {
-      const coords = extractCoordinates(destination);
-      if (coords) {
-        loadWeather(coords);
-      } else {
-        setWeather(null);
-      }
-    }
-  };
-
-  // --- MODIFIED: handleSearch now accepts an argument ---
+  // Modified handleSearch
   const handleSearch = async (queryToSearch) => {
-    // Use argument if provided, otherwise fall back to state
     const query = (typeof queryToSearch === "string" ? queryToSearch : searchQuery).trim();
 
     if (!query) {
@@ -581,7 +183,6 @@ const Explore = () => {
     setSearchError("");
     try {
       const ingestResponse = await destinationsAPI.ingestFromGeoapify({
-        // Use the validated query variable
         query: `${query}, India`,
         country: "IN",
       });
@@ -593,12 +194,10 @@ const Explore = () => {
             "No destination details were returned. Please try a different search."
         );
         setSelectedDestination(null);
-        setTouristPlaces([]);
-        setHotels([]);
-        setRestaurants([]);
-        setWeather(null);
         return;
       }
+
+      // Add/update destination in our DB list
       setDbDestinations((prev = []) => {
         const next = [...prev];
         const matchesDestination = (item) => {
@@ -614,13 +213,17 @@ const Explore = () => {
         }
         return [destination, ...next];
       });
+
+      // Add its category if new
       if (destination.category) {
         setCategories((prevCategories) => {
           if (prevCategories.includes(destination.category)) return prevCategories;
           return [...prevCategories, destination.category];
         });
       }
-      applySelection(destination);
+
+      // --- NEW: Just set the selected destination. The modal will do the rest. ---
+      setSelectedDestination(destination);
     } catch (err) {
       console.error("Search failed:", err);
       setSearchError(err.response?.data?.error || "Search failed. Please try again.");
@@ -630,55 +233,46 @@ const Explore = () => {
     }
   };
 
+  // Modified handleCardClick
   const handleCardClick = async (destination) => {
     if (!destination) return;
+
+    // --- NEW: This logic is simpler. We just set the destination. ---
+    // If it's a "thin" object (missing nearby data), we fetch the full one first.
     const hasNearbyData =
       Array.isArray(destination.nearby?.tourist) && destination.nearby.tourist.length > 0;
     const hasLegacyNearby =
       Array.isArray(destination.nearbyAttractions) && destination.nearbyAttractions.length > 0;
+
     if (!hasNearbyData && !hasLegacyNearby && destination._id) {
       try {
+        // Show loading or a simple spinner here if you like
         const response = await destinationsAPI.getById(destination._id);
         const hydrated = response.data?.destination || destination;
-        applySelection(hydrated);
+        setSelectedDestination(hydrated); // Set the full object
         return;
       } catch (error) {
         console.warn("Destination hydration failed:", error);
+        // Fallback: just show the data we have
+        setSelectedDestination(destination);
       }
+    } else {
+      // We already have the data, just set it
+      setSelectedDestination(destination);
     }
-    applySelection(destination);
   };
 
+  // --- NEW: Simplified close handler ---
   const closeDetails = useCallback(() => {
     setSelectedDestination(null);
-    setWeather(null);
-    setSelectedNearbyPlace(null);
-    setNearbyPlaceDetails(null);
-    setNearbyPlaceStatus("idle");
-    setNearbyPlaceError("");
   }, []);
 
-  useEffect(() => {
-    if (!selectedDestination) return;
-    const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeDetails();
-      }
-    };
-    window.addEventListener("keydown", handleEscape);
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-    };
-  }, [selectedDestination, closeDetails]);
+  // --- REMOVED Escape key handler (moved to modal) ---
 
-  // --- NEW: Replaced all old suggestion logic with hybrid logic ---
-
+  // --- Hybrid Autosuggest Logic (Stays the same) ---
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
-      // Pass the current query to handleSearch
       handleSearch(searchQuery);
-      // Prevent form submission and close suggestions
       event.preventDefault();
       setIsInputFocused(false);
       setLocalSuggestions([]);
@@ -686,35 +280,26 @@ const Explore = () => {
     }
   };
 
-  // New logic for HYBRID autosuggest (local + API)
   useEffect(() => {
-    // 1. Clear any pending API call
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
-
-    // 2. Handle empty query
     if (!searchQuery.trim()) {
       setLocalSuggestions([]);
       setApiSuggestions([]);
       setIsApiLoading(false);
       return;
     }
-
-    // 3. Set Local Suggestions (Instant)
     const filteredLocal = dbDestinations
       .filter((destination) => destination.name.toLowerCase().startsWith(searchQuery.toLowerCase()))
-      .slice(0, 3); // Show top 3 local matches
+      .slice(0, 3);
     setLocalSuggestions(filteredLocal);
-
-    // 4. Set API Suggestions (Debounced)
-    setIsApiLoading(true); // Show loading spinner
-    setApiSuggestions([]); // Clear old API results
+    setIsApiLoading(true);
+    setApiSuggestions([]);
 
     debounceTimeoutRef.current = setTimeout(async () => {
       try {
         const [cityResults, touristResults] = await placesAPI.getAutocomplete(searchQuery);
-
         let combinedFeatures = [];
         if (cityResults.status === "fulfilled" && cityResults.value.data.features) {
           combinedFeatures.push(...cityResults.value.data.features);
@@ -722,8 +307,6 @@ const Explore = () => {
         if (touristResults.status === "fulfilled" && touristResults.value.data.features) {
           combinedFeatures.push(...touristResults.value.data.features);
         }
-
-        // Process and deduplicate results
         const seen = new Set(filteredLocal.map((d) => d.name.toLowerCase()));
         const processedApiResults = combinedFeatures
           .map((feature) => ({
@@ -735,345 +318,63 @@ const Explore = () => {
           }))
           .filter((suggestion) => {
             if (!suggestion.text || seen.has(suggestion.text.toLowerCase())) {
-              return false; // Skip if no text or if it's already in local list
+              return false;
             }
             seen.add(suggestion.text.toLowerCase());
             return true;
           });
-
-        setApiSuggestions(processedApiResults.slice(0, 5)); // Show top 5 API matches
+        setApiSuggestions(processedApiResults.slice(0, 5));
       } catch (error) {
         console.warn("Autocomplete API fetch failed:", error);
-        setApiSuggestions([]); // Clear on error
+        setApiSuggestions([]);
       } finally {
-        setIsApiLoading(false); // Hide loading spinner
+        setIsApiLoading(false);
       }
-    }, 400); // 400ms debounce
+    }, 400);
 
-    // Cleanup function
     return () => {
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
     };
-  }, [searchQuery, dbDestinations]); // Re-run when query or destination list changes
+  }, [searchQuery, dbDestinations]);
 
-  // Handler for when a user clicks a LOCAL suggestion
   const handleLocalSuggestionClick = (destination) => {
-    setSearchQuery(destination.name); // Set the input text
-    setIsInputFocused(false); // Close the suggestion box
+    setSearchQuery(destination.name);
+    setIsInputFocused(false);
     setLocalSuggestions([]);
     setApiSuggestions([]);
-
-    // This function is already built to select a destination
-    handleCardClick(destination);
+    handleCardClick(destination); // Use handleCardClick to open modal
   };
 
-  // Handler for when a user clicks an API suggestion
   const handleApiSuggestionClick = (suggestionText) => {
-    setSearchQuery(suggestionText); // Set the input text
-    setIsInputFocused(false); // Close the suggestion box
+    setSearchQuery(suggestionText);
+    setIsInputFocused(false);
     setLocalSuggestions([]);
     setApiSuggestions([]);
-
-    // Call handleSearch *with the specific query* to trigger the ingest
-    handleSearch(suggestionText);
+    handleSearch(suggestionText); // Use handleSearch to ingest and open modal
   };
+  // --- End of Hybrid Autosuggest Logic ---
 
-  // --- END OF NEW LOGIC ---
-
-  // --- MODIFIED FUNCTION ---
-  // This function now handles navigation to the planner page
+  // This function is now passed to the modal
   const handleGenerateItineraryClick = (destination) => {
     if (!user) {
       alert("Please sign in to create an itinerary.");
       navigate("/signin");
       return;
     }
-    // Navigate to the planner page and pass the destination name in the state
     navigate("/ItineraryPlanner", { state: { destinationName: destination.name } });
   };
 
-  // Handler for adding a nearby place to the itinerary planner
-  const handleAddNearbyPlace = (place) => {
-    if (!user) {
-      alert("Please sign in to add places to your itinerary.");
-      navigate("/signin");
-      return;
-    }
-    setAddedPlaces((prev) => {
-      const newSet = new Set(prev);
-      newSet.add(place.key);
-      return newSet;
-    });
-  };
-
-  // Handler for removing a nearby place from the itinerary planner
-  const handleRemoveNearbyPlace = (place) => {
-    setAddedPlaces((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(place.key);
-      return newSet;
-    });
-  };
-
-  const renderNearbySection = (
-    items,
-    { title, icon, accentColor, borderColor, cardGradient, accentGlow }
-  ) => {
-    if (!Array.isArray(items) || items.length === 0) return null;
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: prefersReducedMotion ? 0 : 0.5 }}
-        style={{
-          background: "rgba(17, 24, 39, 0.86)",
-          padding: "24px",
-          borderRadius: "20px",
-          border: `1px solid ${borderColor}`,
-          marginBottom: "26px",
-        }}
-      >
-        <h3
-          style={{
-            color: accentColor,
-            marginBottom: "18px",
-            fontSize: "1.3rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-          }}
-        >
-          {" "}
-          <span>{icon}</span> {title}{" "}
-        </h3>
-        <div
-          style={{
-            display: "grid",
-            gap: "18px",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          }}
-        >
-          {items.map((place) => (
-            <div
-              key={place.key}
-              style={{
-                borderRadius: "18px",
-                padding: "18px",
-                background:
-                  cardGradient ||
-                  "linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.92))",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                boxShadow: accentGlow || "0 20px 40px rgba(15, 23, 42, 0.45)",
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-                position: "relative",
-                overflow: "hidden",
-              }}
-            >
-              {place.heroImage && (
-                <div
-                  style={{
-                    width: "100%",
-                    borderRadius: "14px",
-                    overflow: "hidden",
-                    border: "1px solid rgba(255, 255, 255, 0.12)",
-                  }}
-                >
-                  {" "}
-                  <img
-                    src={place.heroImage}
-                    alt={place.name}
-                    style={{ width: "100%", height: "150px", objectFit: "cover", display: "block" }}
-                    loading="lazy"
-                  />{" "}
-                </div>
-              )}
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: "8px", flex: "1 1 auto" }}
-              >
-                {" "}
-                <span
-                  style={{
-                    color: "#fef9c3",
-                    fontSize: "1.1rem",
-                    fontWeight: 700,
-                    lineHeight: 1.3,
-                    letterSpacing: "0.01em",
-                  }}
-                >
-                  {" "}
-                  {place.name}{" "}
-                </span>{" "}
-                <div
-                  style={{ display: "flex", flexWrap: "wrap", gap: "10px", fontSize: "0.85rem" }}
-                >
-                  {" "}
-                  <span
-                    style={{
-                      color: "#fbbf24",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "4px",
-                    }}
-                  >
-                    {" "}
-                    ⭐ {place.rating != null ? place.rating : "N/A"}{" "}
-                    {place.ratingCount ? ` (${place.ratingCount})` : ""}{" "}
-                  </span>{" "}
-                  {place.priceLevel != null && (
-                    <span style={{ color: "#f97316" }}>
-                      {" "}
-                      Price:{" "}
-                      {"₹".repeat(Math.min(Math.max(Number(place.priceLevel) || 0, 1), 4))}{" "}
-                    </span>
-                  )}{" "}
-                </div>{" "}
-                {place.distanceText && (
-                  <span style={{ color: "#bfdbfe", fontSize: "0.9rem" }}>{place.distanceText}</span>
-                )}{" "}
-                {place.address && (
-                  <span style={{ color: "#cbd5f5", fontSize: "0.9rem", lineHeight: 1.5 }}>
-                    {" "}
-                    {place.address}{" "}
-                  </span>
-                )}{" "}
-                {place.description && (
-                  <span
-                    style={{
-                      color: "#d1d5db",
-                      fontSize: "0.85rem",
-                      lineHeight: 1.5,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {" "}
-                    {place.description}{" "}
-                  </span>
-                )}{" "}
-                {Array.isArray(place.categories) && place.categories.length > 0 && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                    {" "}
-                    {place.categories.slice(0, 3).map((category, idx) => (
-                      <span
-                        key={idx}
-                        style={{
-                          background: "rgba(59, 130, 246, 0.2)",
-                          color: "#bfdbfe",
-                          padding: "6px 12px",
-                          borderRadius: "999px",
-                          fontSize: "0.75rem",
-                          textTransform: "capitalize",
-                          border: "1px solid rgba(59, 130, 246, 0.35)",
-                        }}
-                      >
-                        {" "}
-                        {category}{" "}
-                      </span>
-                    ))}{" "}
-                  </div>
-                )}{" "}
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: "auto",
-                }}
-              >
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: prefersReducedMotion ? 1 : 1.05 }}
-                  whileTap={{ scale: prefersReducedMotion ? 1 : 0.95 }}
-                  onClick={() => handleNearbyPlaceClick(place)}
-                  style={{
-                    background: "linear-gradient(135deg, #38bdf8, #3b82f6)",
-                    color: "#0f172a",
-                    border: "none",
-                    borderRadius: "999px",
-                    padding: "10px 20px",
-                    fontSize: "0.9rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    boxShadow: "0 12px 24px rgba(56, 189, 248, 0.35)",
-                    flex: 1,
-                  }}
-                >
-                  {" "}
-                  View Details{" "}
-                </motion.button>
-                {addedPlaces.has(place.key) ? (
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: prefersReducedMotion ? 1 : 1.08 }}
-                    whileTap={{ scale: prefersReducedMotion ? 1 : 0.92 }}
-                    onClick={() => handleRemoveNearbyPlace(place)}
-                    style={{
-                      background: "linear-gradient(135deg, #ef4444, #dc2626)",
-                      color: "#fef2f2",
-                      border: "none",
-                      borderRadius: "999px",
-                      padding: "10px 16px",
-                      fontSize: "1.1rem",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      boxShadow: "0 12px 24px rgba(239, 68, 68, 0.35)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      minWidth: "44px",
-                      minHeight: "44px",
-                    }}
-                    title="Remove from itinerary"
-                  >
-                    −
-                  </motion.button>
-                ) : (
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: prefersReducedMotion ? 1 : 1.08 }}
-                    whileTap={{ scale: prefersReducedMotion ? 1 : 0.92 }}
-                    onClick={() => handleAddNearbyPlace(place)}
-                    style={{
-                      background: "linear-gradient(135deg, #10b981, #059669)",
-                      color: "#f0fdf4",
-                      border: "none",
-                      borderRadius: "999px",
-                      padding: "10px 16px",
-                      fontSize: "1.1rem",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      boxShadow: "0 12px 24px rgba(16, 185, 129, 0.35)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      minWidth: "44px",
-                      minHeight: "44px",
-                    }}
-                    title="Add to itinerary"
-                  >
-                    +
-                  </motion.button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </motion.div>
-    );
-  };
+  // --- REMOVED handleAddNearbyPlace ---
+  // --- REMOVED handleRemoveNearbyPlace ---
+  // --- REMOVED renderNearbySection ---
 
   return (
     <div className="main-content">
       <Navbar />
 
+      {/* --- Hero Section (No changes) --- */}
       <motion.section
         ref={heroRef}
         style={{
@@ -1100,6 +401,7 @@ const Explore = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: prefersReducedMotion ? 0 : 1.1 }}
       >
+        {/* ... (All orb/background motion divs are unchanged) ... */}
         <motion.div
           aria-hidden="true"
           initial={{ opacity: 0.25 }}
@@ -1169,6 +471,7 @@ const Explore = () => {
           }}
         />
 
+        {/* Hero Text (No changes) */}
         <div style={{ position: "relative", zIndex: 1, maxWidth: "900px", width: "100%" }}>
           <motion.h1
             variants={heroVariants}
@@ -1183,7 +486,6 @@ const Explore = () => {
           >
             Explore India's Top Destinations for 2025
           </motion.h1>
-
           <motion.p
             variants={heroSupportingVariants}
             initial="hidden"
@@ -1203,7 +505,7 @@ const Explore = () => {
           </motion.p>
         </div>
 
-        {/* --- MODIFIED: Search Bar and Button --- */}
+        {/* Search Bar (No changes) */}
         <motion.div
           initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.94 }}
           animate={
@@ -1244,7 +546,6 @@ const Explore = () => {
             backdropFilter: "blur(22px)",
             overflow: "hidden",
             zIndex: 1,
-            // --- NEW: Using min-width to match original style ---
             minWidth: "min(90%, 650px)",
           }}
         >
@@ -1264,8 +565,6 @@ const Explore = () => {
               }}
             />
           )}
-
-          {/* --- NEW: Replaced old input/ul with this wrapper div --- */}
           <div style={{ flex: "1 1 300px", minWidth: "280px", position: "relative", zIndex: 10 }}>
             <input
               ref={searchInputRef}
@@ -1276,7 +575,6 @@ const Explore = () => {
               onKeyDown={handleKeyDown}
               onFocus={() => setIsInputFocused(true)}
               onBlur={() => {
-                // Delay closing to allow click events to fire
                 setTimeout(() => setIsInputFocused(false), 200);
               }}
               autoComplete="off"
@@ -1293,8 +591,6 @@ const Explore = () => {
                 zIndex: 2,
               }}
             />
-
-            {/* --- NEW: The HYBRID Suggestions Dropdown --- */}
             <AnimatePresence>
               {isInputFocused &&
                 (localSuggestions.length > 0 || apiSuggestions.length > 0 || isApiLoading) && (
@@ -1320,7 +616,6 @@ const Explore = () => {
                       zIndex: 50,
                     }}
                   >
-                    {/* Local Suggestions */}
                     {localSuggestions.length > 0 && (
                       <>
                         <h4
@@ -1360,8 +655,6 @@ const Explore = () => {
                         </ul>
                       </>
                     )}
-
-                    {/* API Suggestions */}
                     {(apiSuggestions.length > 0 || isApiLoading) && (
                       <>
                         <h4
@@ -1415,12 +708,9 @@ const Explore = () => {
                   </motion.div>
                 )}
             </AnimatePresence>
-            {/* --- END OF NEW FEATURE --- */}
           </div>
-
           <motion.button
             type="button"
-            // --- MODIFIED: onClick now uses the function correctly ---
             onClick={() => handleSearch()}
             disabled={loading}
             whileHover={{ scale: loading ? 1 : 1.05 }}
@@ -1437,15 +727,15 @@ const Explore = () => {
               boxShadow: "0 14px 28px rgba(212, 175, 55, 0.35)",
               position: "relative",
               zIndex: 1,
-              minWidth: "120px", // Give it a min-width
-              flexShrink: 0, // Prevent button from shrinking
+              minWidth: "120px",
+              flexShrink: 0,
             }}
           >
             {loading ? "Searching..." : "Search"}
           </motion.button>
         </motion.div>
-        {/* --- END OF MODIFIED SEARCH BAR --- */}
 
+        {/* Scroll Indicator (No changes) */}
         {!prefersReducedMotion && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -1477,6 +767,7 @@ const Explore = () => {
           </motion.div>
         )}
 
+        {/* Search Error (No changes) */}
         <AnimatePresence>
           {searchError && (
             <motion.div
@@ -1501,6 +792,7 @@ const Explore = () => {
         </AnimatePresence>
       </motion.section>
 
+      {/* --- Main Content Section (No changes) --- */}
       <section
         style={{
           background: "linear-gradient(180deg, #0b1120 0%, #111827 100%)",
@@ -1510,6 +802,7 @@ const Explore = () => {
         }}
       >
         <div style={{ width: "100%", margin: 0, maxWidth: "100%", padding: "0 20px" }}>
+          {/* ... (Header, DB Error, Category Chips all unchanged) ... */}
           <motion.div
             initial={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1527,7 +820,6 @@ const Explore = () => {
               that match your vibe.{" "}
             </p>
           </motion.div>
-
           {dbError && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -1545,7 +837,6 @@ const Explore = () => {
               {dbError}
             </motion.div>
           )}
-
           <motion.div
             variants={chipContainerVariants}
             initial="hidden"
@@ -1589,6 +880,7 @@ const Explore = () => {
             })}
           </motion.div>
 
+          {/* --- Destination Card Grid (onClick is now handleCardClick) --- */}
           {dbLoading ? (
             <div style={{ textAlign: "center", padding: "60px 20px" }}>
               <motion.div
@@ -1653,6 +945,7 @@ const Explore = () => {
                       position: "relative",
                       transition: "box-shadow 0.3s ease, transform 0.3s ease",
                     }}
+                    // --- MODIFIED: onClick now uses handleCardClick ---
                     onClick={() => handleCardClick(destination)}
                     role="button"
                     tabIndex={0}
@@ -1660,6 +953,7 @@ const Explore = () => {
                       if (event.key === "Enter") handleCardClick(destination);
                     }}
                   >
+                    {/* ... (Rest of card content is unchanged) ... */}
                     <div style={{ position: "relative", height: "200px", overflow: "hidden" }}>
                       <img
                         src={cardImage}
@@ -1840,579 +1134,16 @@ const Explore = () => {
         </div>
       </section>
 
-      <AnimatePresence>
-        {selectedDestination && (
-          <motion.div
-            key="destination-details"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.25 }}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(8, 11, 19, 0.78)",
-              backdropFilter: prefersReducedMotion ? "none" : "blur(12px)",
-              zIndex: 950,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "40px 20px",
-            }}
-            onClick={closeDetails}
-          >
-            <motion.div
-              initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: prefersReducedMotion ? 0 : 30 }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.35 }}
-              style={{
-                width: "100%",
-                maxWidth: "1100px",
-                maxHeight: "90vh",
-                overflowY: "auto",
-                background:
-                  "linear-gradient(180deg, rgba(11,14,20,0.95) 0%, rgba(17,24,39,0.98) 100%)",
-                borderRadius: "28px",
-                border: "1px solid rgba(212, 175, 55, 0.25)",
-                boxShadow: "0 30px 60px rgba(0,0,0,0.35)",
-                padding: "34px",
-                position: "relative",
-              }}
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div
-                style={{
-                  position: "sticky",
-                  top: 0,
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  paddingBottom: "12px",
-                  marginBottom: "12px",
-                  zIndex: 20,
-                  background:
-                    "linear-gradient(180deg, rgba(11,14,20,0.98) 0%, rgba(11,14,20,0.82) 45%, rgba(11,14,20,0) 100%)",
-                }}
-              >
-                <motion.button
-                  type="button"
-                  onClick={closeDetails}
-                  whileHover={{
-                    scale: prefersReducedMotion ? 1 : 1.06,
-                    rotate: prefersReducedMotion ? 0 : 2,
-                  }}
-                  whileTap={{ scale: prefersReducedMotion ? 1 : 0.94, rotate: 0 }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px",
-                    padding: "10px 18px",
-                    borderRadius: "999px",
-                    border: "1px solid rgba(148, 163, 184, 0.45)",
-                    background:
-                      "linear-gradient(135deg, rgba(15,23,42,0.85) 0%, rgba(31,41,55,0.95) 100%)",
-                    color: "#e2e8f0",
-                    cursor: "pointer",
-                    boxShadow: "0 10px 24px rgba(15, 23, 42, 0.45)",
-                    fontWeight: 600,
-                    letterSpacing: "0.02em",
-                  }}
-                  aria-label="Close destination details"
-                >
-                  <IoClose size={20} />
-                  <span style={{ fontSize: "0.85rem" }}>Close</span>
-                </motion.button>
-              </div>
+      {/* --- NEW: Render the modal component --- */}
+      {/* It will only appear when selectedDestination is not null */}
+      <DestinationDetailModal
+        destination={selectedDestination}
+        onClose={closeDetails}
+        onGenerateItinerary={handleGenerateItineraryClick}
+      />
+      {/* --- END OF NEW MODAL --- */}
 
-              <motion.div
-                initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
-                style={{
-                  background: "rgba(17, 24, 39, 0.92)",
-                  borderRadius: "24px",
-                  padding: "26px",
-                  border: "1px solid rgba(212, 175, 55, 0.3)",
-                  marginBottom: "30px",
-                }}
-              >
-                <div
-                  style={{ display: "flex", gap: "26px", flexWrap: "wrap", alignItems: "center" }}
-                >
-                  <motion.img
-                    src={selectedDestination.photo}
-                    alt={selectedDestination.name}
-                    style={{
-                      width: "320px",
-                      height: "220px",
-                      objectFit: "cover",
-                      borderRadius: "16px",
-                      border: "1px solid rgba(212, 175, 55, 0.3)",
-                    }}
-                    whileHover={{ scale: prefersReducedMotion ? 1 : 1.03 }}
-                    transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
-                  />
-                  <div style={{ flex: 1, minWidth: "260px" }}>
-                    <h2 style={{ color: "#fcd34d", marginBottom: "12px", fontSize: "2rem" }}>
-                      {" "}
-                      {selectedDestination.name}{" "}
-                    </h2>
-                    <p style={{ color: "#e5e7eb", marginBottom: "10px" }}>
-                      {" "}
-                      <strong>📍 Address:</strong> {selectedDestination.formatted_address}{" "}
-                    </p>
-                    <p style={{ color: "#e5e7eb", marginBottom: "10px" }}>
-                      {" "}
-                      <strong>⭐ Rating:</strong> {selectedDestination.rating}{" "}
-                    </p>
-                    <p style={{ color: "#e5e7eb", marginBottom: "10px" }}>
-                      {" "}
-                      <strong>🕒 Best time to visit:</strong>{" "}
-                      {selectedDestination.bestTimeToVisit}{" "}
-                    </p>
-                    <p style={{ color: "#e5e7eb", marginBottom: "20px" }}>
-                      {" "}
-                      <strong>💰 Entry fee:</strong> {selectedDestination.entryFee}{" "}
-                    </p>
-                    {selectedDestination.website && (
-                      <p style={{ color: "#e5e7eb", marginBottom: "18px" }}>
-                        {" "}
-                        <strong>🌐 Website:</strong>{" "}
-                        <a
-                          href={selectedDestination.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ color: "#60a5fa" }}
-                        >
-                          {" "}
-                          {selectedDestination.website}{" "}
-                        </a>{" "}
-                      </p>
-                    )}
-                    {/* --- MODIFIED BUTTON --- */}
-                    <motion.button
-                      type="button"
-                      onClick={() => handleGenerateItineraryClick(selectedDestination)}
-                      whileHover={{ scale: prefersReducedMotion ? 1 : 1.05 }}
-                      whileTap={{ scale: prefersReducedMotion ? 1 : 0.96 }}
-                      style={{
-                        padding: "12px 26px",
-                        background: "linear-gradient(135deg, #d4af37 0%, #f7ef8a 100%)",
-                        color: "#0b0e14",
-                        border: "none",
-                        borderRadius: "12px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                        fontSize: "1rem",
-                        boxShadow: "0 15px 30px rgba(212, 175, 55, 0.25)",
-                      }}
-                    >
-                      🤖 Generate AI Itinerary
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-
-              {weather && (
-                <motion.div
-                  initial={{ opacity: 0, x: prefersReducedMotion ? 0 : -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: prefersReducedMotion ? 0 : 0.4 }}
-                  style={{
-                    background: "rgba(59, 130, 246, 0.1)",
-                    padding: "18px 24px",
-                    borderRadius: "16px",
-                    border: "1px solid rgba(59, 130, 246, 0.25)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "18px",
-                    marginBottom: "28px",
-                  }}
-                >
-                  {" "}
-                  {weather.icon ? (
-                    <img
-                      src={weather.icon}
-                      alt={weather.conditionLabel || weather.description || "Weather"}
-                      style={{ width: "58px", height: "58px" }}
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        width: "58px",
-                        height: "58px",
-                        borderRadius: "50%",
-                        background: "rgba(30, 64, 175, 0.3)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "1.9rem",
-                      }}
-                      aria-hidden="true"
-                    >
-                      {" "}
-                      {weather.symbol || weather.emoji || "🌦️"}{" "}
-                    </div>
-                  )}{" "}
-                  <div>
-                    {" "}
-                    <h3 style={{ color: "#fcd34d", marginBottom: "6px" }}>Current Weather</h3>{" "}
-                    <p style={{ color: "#e5e7eb" }}>
-                      {" "}
-                      {weather.temp ?? weather.temperature ?? "—"}{" "}
-                      {weather.temp != null || weather.temperature != null ? "°C" : ""} {" • "}{" "}
-                      {weather.conditionLabel || weather.description || "Weather"}{" "}
-                      {weather.city ? ` in ${weather.city}` : ""}{" "}
-                    </p>{" "}
-                    <p style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "4px" }}>
-                      {" "}
-                      Feels like {weather.feels_like ?? weather.feelsLike ?? "—"}{" "}
-                      {weather.feels_like != null || weather.feelsLike != null ? "°C" : ""}{" "}
-                      {" • Humidity: "}{" "}
-                      {weather.humidity != null ? `${weather.humidity}%` : "—"}{" "}
-                    </p>{" "}
-                  </div>{" "}
-                </motion.div>
-              )}
-              {selectedDestination.description && (
-                <motion.div
-                  initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: prefersReducedMotion ? 0 : 0.5 }}
-                  style={{
-                    background: "rgba(17, 24, 39, 0.86)",
-                    padding: "26px",
-                    borderRadius: "20px",
-                    border: "1px solid rgba(148, 163, 184, 0.25)",
-                    marginBottom: "26px",
-                  }}
-                >
-                  {" "}
-                  <h3 style={{ color: "#fcd34d", marginBottom: "14px", fontSize: "1.4rem" }}>
-                    {" "}
-                    Overview{" "}
-                  </h3>{" "}
-                  <p style={{ color: "#cbd5f5", lineHeight: 1.7 }}>
-                    {" "}
-                    {selectedDestination.description}{" "}
-                  </p>{" "}
-                </motion.div>
-              )}
-              {renderNearbySection(touristPlaces, {
-                title: "Nearby Attractions",
-                icon: "🧭",
-                accentColor: "#60a5fa",
-                borderColor: "rgba(59, 130, 246, 0.25)",
-                cardGradient:
-                  "linear-gradient(160deg, rgba(29, 78, 216, 0.45), rgba(14, 116, 144, 0.55))",
-                accentGlow: "0 22px 48px rgba(37, 99, 235, 0.35)",
-              })}
-              {renderNearbySection(restaurants, {
-                title: "Dining & Cafés",
-                icon: "🍽️",
-                accentColor: "#f97316",
-                borderColor: "rgba(249, 115, 22, 0.28)",
-                cardGradient:
-                  "linear-gradient(160deg, rgba(124, 45, 18, 0.45), rgba(236, 72, 153, 0.4))",
-                accentGlow: "0 22px 48px rgba(236, 72, 153, 0.28)",
-              })}
-              {renderNearbySection(hotels, {
-                title: "Stays & Lodging",
-                icon: "🛏️",
-                accentColor: "#34d399",
-                borderColor: "rgba(52, 211, 153, 0.28)",
-                cardGradient:
-                  "linear-gradient(160deg, rgba(13, 148, 136, 0.4), rgba(56, 189, 248, 0.35))",
-                accentGlow: "0 22px 48px rgba(45, 212, 191, 0.32)",
-              })}
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <InteractiveMap
-                  coordinates={extractCoordinates(selectedDestination)}
-                  name={selectedDestination.name}
-                  address={selectedDestination.formatted_address}
-                />
-              </motion.div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {selectedNearbyPlace && (
-          <motion.div
-            key={selectedNearbyPlace.key || selectedNearbyPlace.placeId || selectedNearbyPlace.name}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.25 }}
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 1300,
-              background: "rgba(15, 23, 42, 0.85)",
-              backdropFilter: "blur(6px)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "24px",
-            }}
-            onClick={() => setSelectedNearbyPlace(null)}
-          >
-            <motion.div
-              initial={{ y: prefersReducedMotion ? 0 : 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: prefersReducedMotion ? 0 : 20, opacity: 0 }}
-              transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
-              onClick={(event) => event.stopPropagation()}
-              style={{
-                width: "min(520px, 95vw)",
-                maxHeight: "90vh",
-                overflowY: "auto",
-                background: "rgba(17, 24, 39, 0.95)",
-                borderRadius: "24px",
-                border: "1px solid rgba(59, 130, 246, 0.35)",
-                boxShadow: "0 25px 70px rgba(8, 12, 20, 0.65)",
-                padding: "28px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "16px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ color: "#fcd34d", margin: 0, fontSize: "1.5rem" }}>
-                    {mergedNearbyPlace.name}
-                  </h3>
-                  {mergedNearbyPlace.address && (
-                    <p style={{ color: "#cbd5f5", margin: "8px 0 0", fontSize: "0.95rem" }}>
-                      {mergedNearbyPlace.address}
-                    </p>
-                  )}
-                </div>
-                <motion.button
-                  type="button"
-                  onClick={() => setSelectedNearbyPlace(null)}
-                  whileHover={{ scale: prefersReducedMotion ? 1 : 1.05 }}
-                  whileTap={{ scale: prefersReducedMotion ? 1 : 0.95 }}
-                  style={{
-                    border: "none",
-                    background: "rgba(30, 41, 59, 0.8)",
-                    color: "#e2e8f0",
-                    width: "42px",
-                    height: "42px",
-                    borderRadius: "50%",
-                    cursor: "pointer",
-                    fontSize: "1.4rem",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  ×
-                </motion.button>
-              </div>
-
-              {mergedNearbyPlace.heroImage && (
-                <motion.img
-                  initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
-                  src={mergedNearbyPlace.heroImage}
-                  alt={mergedNearbyPlace.name}
-                  style={{
-                    width: "100%",
-                    maxHeight: "240px",
-                    objectFit: "cover",
-                    borderRadius: "16px",
-                    border: "1px solid rgba(59, 130, 246, 0.35)",
-                  }}
-                  loading="lazy"
-                />
-              )}
-
-              {nearbyPlaceStatus === "loading" && (
-                <p style={{ color: "#60a5fa", margin: "12px 0 0" }}>Fetching more details…</p>
-              )}
-              {nearbyPlaceStatus === "error" && (
-                <p style={{ color: "#f87171", margin: "12px 0 0" }}>{nearbyPlaceError}</p>
-              )}
-
-              {mergedNearbyPlace && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div
-                    style={{
-                      display: "grid",
-                      gap: "12px",
-                      gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-                    }}
-                  >
-                    {mergedNearbyPlace.rating != null && (
-                      <div
-                        style={{
-                          background: "rgba(251, 191, 36, 0.15)",
-                          borderRadius: "14px",
-                          border: "1px solid rgba(251, 191, 36, 0.25)",
-                          padding: "12px",
-                        }}
-                      >
-                        <p style={{ margin: 0, color: "#fbbf24", fontSize: "0.75rem" }}>Rating</p>
-                        <p
-                          style={{
-                            margin: "4px 0 0",
-                            color: "#fde68a",
-                            fontSize: "1.05rem",
-                            fontWeight: 600,
-                          }}
-                        >
-                          {" "}
-                          {mergedNearbyPlace.rating}{" "}
-                        </p>
-                        {mergedNearbyPlace.ratingCount && (
-                          <p style={{ margin: "4px 0 0", color: "#facc15", fontSize: "0.75rem" }}>
-                            {" "}
-                            {mergedNearbyPlace.ratingCount} reviews{" "}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                    {mergedNearbyPlace.priceLevel != null && (
-                      <div
-                        style={{
-                          background: "rgba(134, 239, 172, 0.12)",
-                          borderRadius: "14px",
-                          border: "1px solid rgba(52, 211, 153, 0.28)",
-                          padding: "12px",
-                        }}
-                      >
-                        <p style={{ margin: 0, color: "#4ade80", fontSize: "0.75rem" }}>
-                          {" "}
-                          Price Level{" "}
-                        </p>
-                        <p
-                          style={{
-                            margin: "4px 0 0",
-                            color: "#bbf7d0",
-                            fontSize: "1rem",
-                            fontWeight: 600,
-                          }}
-                        >
-                          {" "}
-                          {"₹".repeat(
-                            Math.min(Math.max(Number(mergedNearbyPlace.priceLevel) || 0, 1), 4)
-                          )}{" "}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {mergedNearbyPlace.description && (
-                    <div>
-                      {" "}
-                      <p style={{ color: "#e5e7eb", fontWeight: 600, marginBottom: "6px" }}>
-                        {" "}
-                        About this place{" "}
-                      </p>{" "}
-                      <p style={{ color: "#cbd5f5", lineHeight: 1.6 }}>
-                        {" "}
-                        {mergedNearbyPlace.description}{" "}
-                      </p>{" "}
-                    </div>
-                  )}
-
-                  {mergedNearbyPlace.website ||
-                  mergedNearbyPlace.phone ||
-                  mergedNearbyPlace.googleMapsLink ? (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                      {mergedNearbyPlace.website && (
-                        <a
-                          href={mergedNearbyPlace.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            background: "linear-gradient(135deg, #38bdf8, #3b82f6)",
-                            color: "#0f172a",
-                            borderRadius: "999px",
-                            padding: "10px 18px",
-                            fontWeight: 600,
-                            fontSize: "0.85rem",
-                            textDecoration: "none",
-                            boxShadow: "0 14px 28px rgba(56, 189, 248, 0.25)",
-                          }}
-                        >
-                          {" "}
-                          Visit Website{" "}
-                        </a>
-                      )}
-                      {mergedNearbyPlace.googleMapsLink && (
-                        <a
-                          href={mergedNearbyPlace.googleMapsLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            background: "linear-gradient(135deg, #f472b6, #ec4899)",
-                            color: "#0f172a",
-                            borderRadius: "999px",
-                            padding: "10px 18px",
-                            fontWeight: 600,
-                            fontSize: "0.85rem",
-                            textDecoration: "none",
-                            boxShadow: "0 14px 28px rgba(236, 72, 153, 0.25)",
-                          }}
-                        >
-                          {" "}
-                          View on Maps{" "}
-                        </a>
-                      )}
-                      {mergedNearbyPlace.phone && (
-                        <a
-                          href={`tel:${mergedNearbyPlace.phone.replace(/\s+/g, "")}`}
-                          style={{
-                            background: "linear-gradient(135deg, #34d399, #10b981)",
-                            color: "#022c22",
-                            borderRadius: "999px",
-                            padding: "10px 18px",
-                            fontWeight: 600,
-                            fontSize: "0.85rem",
-                            textDecoration: "none",
-                            boxShadow: "0 14px 28px rgba(16, 185, 129, 0.28)",
-                          }}
-                        >
-                          {" "}
-                          Call Now{" "}
-                        </a>
-                      )}
-                    </div>
-                  ) : null}
-
-                  {Array.isArray(mergedNearbyPlace.openingHours) &&
-                    mergedNearbyPlace.openingHours.length > 0 && (
-                      <div>
-                        <p style={{ color: "#60a5fa", marginBottom: "6px", fontWeight: 600 }}>
-                          {" "}
-                          Opening Hours{" "}
-                        </p>
-                        <div style={{ display: "grid", gap: "4px" }}>
-                          {mergedNearbyPlace.openingHours.map((line, index) => (
-                            <span key={index} style={{ color: "#cbd5f5", fontSize: "0.85rem" }}>
-                              {line}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* --- REMOVED all the old AnimatePresence/modal JSX --- */}
     </div>
   );
 };
