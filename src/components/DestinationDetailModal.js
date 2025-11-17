@@ -1,15 +1,11 @@
 // /client/src/components/DestinationDetailModal.js
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"; // <-- FIX: Removed stray 'M'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose } from "react-icons/io5";
 import { placesAPI } from "../utils/api";
 import { extractCoordinates } from "../utils/locationHelpers";
-
-// --- FIX: Import the InteractiveMap component ---
 import InteractiveMap from "./InteractiveMap";
-// --- END OF FIX ---
-
 import { useAuth } from "../App";
 import {
   normalizeDbDestination,
@@ -45,17 +41,14 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
       return;
     }
 
-    // 1. Normalize the destination object (this now finds all nearby data)
     const normalized = normalizeDbDestination(destination);
     setNormalizedDestination(normalized);
 
-    // 2. Reset all sub-states
     setSelectedNearbyPlace(null);
     setNearbyPlaceDetails(null);
     setNearbyPlaceStatus("idle");
     setNearbyPlaceError("");
 
-    // 3. Derive nearby places from the normalized data
     const derivedTourist = deriveNearbyPlaces(normalized.nearby.tourist, normalized, "attraction");
     const derivedRestaurants = deriveNearbyPlaces(
       normalized.nearby.restaurants,
@@ -72,7 +65,6 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
     setRestaurants(derivedRestaurants);
     setHotels(derivedAccommodations);
 
-    // 4. Handle weather data
     const loadWeather = async (coordinates) => {
       if (!coordinates || coordinates.lat == null || coordinates.lng == null) {
         setWeather(null);
@@ -98,7 +90,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
       if (coords) loadWeather(coords);
       else setWeather(null);
     }
-  }, [destination]); // This effect re-runs whenever the destination prop changes
+  }, [destination]);
 
   // Close modal on 'Escape' key press
   useEffect(() => {
@@ -221,11 +213,11 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
 
     const mapQueryParts = [selectedNearbyPlace.name, selectedNearbyPlace.address].filter(Boolean);
     const placeId = details.placeId || selectedNearbyPlace.placeId;
-    const googleMapsLink = mapQueryParts.length
-      ? `http://googleusercontent.com/maps/google.com/0{encodeURIComponent(
-          mapQueryParts.join(" ")
-        )}${placeId ? `&query_place_id=${encodeURIComponent(placeId)}` : ""}`
-      : "";
+
+    // --- BOSS FIX: Correct Google Maps URL ---
+    const query = encodeURIComponent(mapQueryParts.join(", "));
+    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=$${query}${placeId ? `&query_place_id=${encodeURIComponent(placeId)}` : ""}`;
+    // --- END OF FIX ---
 
     return {
       ...selectedNearbyPlace,
@@ -535,7 +527,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
 
   // --- Main Render ---
   if (!normalizedDestination) {
-    return null; // Don't render anything if there's no destination
+    return null;
   }
 
   return (
@@ -828,7 +820,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
             accentGlow: "0 22px 48px rgba(45, 212, 191, 0.32)",
           })}
 
-          {/* --- FIX: Add the map component back --- */}
+          {/* --- Map --- */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -840,7 +832,6 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
               address={normalizedDestination.formatted_address}
             />
           </motion.div>
-          {/* --- END OF FIX --- */}
         </motion.div>
       </motion.div>
 
