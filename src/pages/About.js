@@ -39,20 +39,21 @@ html, body, #root {
 /* Base font-family is now part of the main reset above */
 html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
 
-/* CULPRIT FIX 1 (cont.): Added explicit margin/padding reset to the page container */
+/* FIX: This is the fix for the top gap.
+  This negative margin cancels the 90px padding from App.css.
+*/
 .about-page{
-  margin: 0;
-  padding: -90px;
+  margin: -90px 0 0 0; /* This is the fix */
+  padding: 0;
   background:linear-gradient(180deg,var(--deep) 0%, #071122 70%);
   color:var(--muted);
   min-height:100vh
 }
 
-/* CULPRIT FIX 2: Moved bottom padding from .content-wrapper to here */
+/* This padding is for the bottom gap */
 .about-shell{
   max-width:1200px;
   margin:0 auto;
-  /* This now controls the final padding at the bottom of the page */
   padding: 0 16px 80px 16px; 
 }
 
@@ -72,10 +73,8 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .hero-particles span:nth-child(10){left:50%;animation-duration:15s}
 @keyframes floatUp{0%{transform:translateY(120vh) scale(0.6);opacity:0}20%{opacity:0.9}100%{transform:translateY(-20vh) scale(1.1);opacity:0}}
 
-/* FIX: Using negative margin as requested.
-  - 'margin-top: -90px' cancels the 'padding-top: 90px' from App.css.
-  - 'padding-top: var(--nav-height)' remains, pushing content down by
-    the navbar's height as originally intended.
+/* This padding is correct. It pushes the *content* down so the navbar
+  doesn't hide it.
 */
 .hero-section{
   position: relative;
@@ -83,7 +82,7 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   display: grid;
   place-items: center;
   padding: var(--nav-height, 70px) 20px 80px;
-  margin-top: 0px; /* This is the fix */
+  margin-top: 0; 
   top: 0 !important;
 }
 
@@ -108,10 +107,8 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .btn-ghost:hover{box-shadow:0 10px 28px rgba(0,0,0,0.28);transform:translateY(-3px)}
 
 
-/* CULPRIT FIX 2 (cont.): Removed padding-bottom from here */
 .content-wrapper{
   max-width:1200px;  
-  /* padding-bottom: 80px; <-- REMOVED */
 }
 
 /* Founder / profile section - split layout */
@@ -151,7 +148,6 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   border:1px solid rgba(255,255,255,0.06);
 }
 .cta-panel h3{color:var(--gold);font-weight:800}
-/* This fix was correct and remains: adds space between CTA text and buttons */
 .cta-panel p{
   max-width:860px;  
   margin-bottom: 24px; 
@@ -390,7 +386,7 @@ const About = () => {
                 </motion.a>
                 <motion.a
                   whileHover={{ y: -2 }}
-                  className="btn btn-ghost"
+                  className="btn-ghost"
                   href={`mailto:shridhars@example.com`}
                 >
                   Contact me
