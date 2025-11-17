@@ -129,8 +129,18 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   line-height: 1;
 }
 
+/* --- NEW: CSS FOR SECTION HEADING --- */
+.section-heading {
+  text-align: center;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 800;
+  color: var(--muted);
+  margin-top: 60px; /* Space above the heading */
+  margin-bottom: 40px; /* Space between heading and grid */
+}
+
 /* Feature grid */
-.features{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin:60px 0;padding:0;list-style:none}
+.features{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin: 0 0 60px 0;padding:0;list-style:none} /* MODIFIED: margin from 60px 0 */
 .feature{background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);padding:24px;border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,0.18);transition:transform 0.35s cubic-bezier(.2,.9,.2,1),box-shadow 0.35s ease,opacity 0.6s ease;opacity:0;transform:translateY(18px)}
 .feature.visible{opacity:1;transform:none}
 .feature:hover{transform:translateY(-8px) scale(1.02);box-shadow:0 22px 44px rgba(0,0,0,0.26)}
@@ -456,6 +466,9 @@ const About = () => {
               </div>
             </motion.div>
           </motion.div>
+
+          {/* --- NEW: HEADING ADDED HERE --- */}
+          <h2 className="section-heading">Our Services</h2>
 
           {/* --- FEATURES SECTION UPDATED WITH ICONS --- */}
           <motion.div
