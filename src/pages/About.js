@@ -47,9 +47,32 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .about-page{
   margin: -90px 0 0 0; /* This is the fix */
   padding: 0;
-  background:linear-gradient(180deg,var(--deep) 0%, #071122 70%);
+  /* background: linear-gradient...; <-- REMOVED to allow video bg */
   color:var(--muted);
-  min-height:100vh
+  min-height:100vh;
+  position: relative; /* For z-index stacking */
+}
+
+/* --- NEW: FULL PAGE VIDEO BACKGROUND --- */
+.page-video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2; /* Behind all content */
+}
+.page-video-background video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.36) contrast(1.03);
+}
+.page-video-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(2,6,23,0.32) 0%, rgba(2,6,23,0.65) 60%, rgba(2,6,23,0.82) 100%);
+  z-index: -1; /* On top of video, behind content */
 }
 
 /* This padding is for the bottom gap */
@@ -57,6 +80,8 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   max-width:1200px;
   margin:0 auto;
   padding: 0 16px 80px 16px; 
+  position: relative; /* Ensure content stays on top */
+  z-index: 2;
 }
 
 
@@ -88,9 +113,10 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   top: 0 !important;
 }
 
-.hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:brightness(0.36) contrast(1.03);transition:opacity 0.8s ease,transform 1.2s ease}
-/* overlay reduces top darkness so title always visible */
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg, rgba(2,6,23,0.32) 0%, rgba(2,6,23,0.65) 60%, rgba(2,6,23,0.82) 100%);z-index:1;pointer-events:none}
+/* OLD VIDEO STYLES (REMOVED/DISABLED) */
+.hero-video{ display: none; }
+.hero-overlay{ display: none; }
+
 .hero-content{position:relative;z-index:3;text-align:center;max-width:980px;padding:28px;border-radius:18px;margin-top:12px;backdrop-filter:blur(10px);background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);opacity:0;transform:translateY(12px);transition:opacity 0.7s ease, transform 0.7s ease}
 .hero-content.visible{opacity:1;transform:none}
 .pretitle{display:inline-block;padding:8px 18px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);letter-spacing:0.12em;text-transform:uppercase;font-size:0.78rem;color:var(--gold)}
@@ -201,13 +227,13 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 `;
 
 const About = () => {
-  // hero video kept as variable — replace with uploaded filename when ready
-  const heroVideoSrc = "/assets/hero-bg.mp4"; // <-- update this to your provided video path
+  // hero video kept as variable — UPDATED TO INTRO.MKV
+  const heroVideoSrc = "/assets/intro.mkv"; // <-- update this to your provided video path
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
     document.body.classList.add("about-page-active");
-    const video = document.querySelector(".hero-video");
+    const video = document.querySelector(".page-video-background video");
     const handleVisibilityChange = () => {
       if (document.hidden) video?.pause();
       else video?.play().catch(() => {});
@@ -220,7 +246,7 @@ const About = () => {
   }, []);
 
   useEffect(() => {
-    const video = document.querySelector(".hero-video");
+    const video = document.querySelector(".page-video-background video");
     const loadVideo = () => {
       if (!video) return;
       const src = video.getAttribute("data-src");
@@ -295,8 +321,29 @@ const About = () => {
   return (
     <div className="about-page">
       <style>{aboutStyles}</style>
+
+      {/* --- NEW FULLPAGE VIDEO BACKGROUND --- */}
+      <div className="page-video-background">
+        <motion.video
+          poster="/assets/hero-poster.jpg"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+          data-src={heroVideoSrc}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.1 }}
+        >
+          {/* UPDATED VIDEO TYPE */}
+          <source src={heroVideoSrc} type="video/mkv" />
+        </motion.video>
+        <motion.div className="page-video-overlay" />
+      </div>
+
       <div className="about-shell">
-        {/* <Navbar /> */}
+        {/* ScrollProgressBar is active here */}
         <ScrollProgressBar />
         <Navbar />
 
@@ -308,23 +355,7 @@ const About = () => {
           whileInView="show"
           viewport={{ once: false, amount: 0.25 }}
         >
-          <motion.video
-            className="hero-video"
-            poster="/assets/hero-poster.jpg"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="none"
-            data-src={heroVideoSrc}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.1 }}
-          >
-            <source src={heroVideoSrc} type="video/mp4" />
-          </motion.video>
-
-          <motion.div className="hero-overlay" aria-hidden />
+          {/* Video and overlay removed from here */}
 
           <motion.div className="hero-content" variants={container}>
             <motion.span className="pretitle" variants={item}>
