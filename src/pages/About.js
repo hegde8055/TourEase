@@ -42,7 +42,7 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 /* CULPRIT FIX 1 (cont.): Added explicit margin/padding reset to the page container */
 .about-page{
   margin: 0;
-  padding: 0;
+  padding: -90px;
   background:linear-gradient(180deg,var(--deep) 0%, #071122 70%);
   color:var(--muted);
   min-height:100vh
