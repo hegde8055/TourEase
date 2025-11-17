@@ -72,91 +72,110 @@ export const deriveNearbyPlaces = (items = [], destination, fallbackKey) => {
   if (!Array.isArray(items) || items.length === 0) return [];
   const baseKey =
     destination?._id || destination?.id || destination?.slug || destination?.name || fallbackKey;
-  return items
-    .map((item = {}, index) => {
-      const placeId = extractPlaceId(item);
-      const textualDistance =
-        typeof item.distance === "string" && item.distance.trim()
-          ? item.distance.trim()
-          : typeof item.distanceText === "string" && item.distanceText.trim()
-            ? item.distanceText.trim()
-            : typeof item.raw?.distanceText === "string" && item.raw.distanceText.trim()
-              ? item.raw.distanceText.trim()
-              : typeof item.vicinity === "string" && item.vicinity.trim()
-                ? item.vicinity.trim()
-                : "";
-      const ratingCandidates = [
-        item.rating,
-        item.rank?.importance,
-        item.rank?.confidence,
-        item.raw?.rank?.importance,
-        item.raw?.rank?.confidence,
-        item.details?.rating,
-        item.details?.rank?.popularity,
-        item.details?.datasource?.raw?.rating,
-      ];
-      const ratingSource = ratingCandidates.find((score) => typeof score === "number");
-      const normalizedRating = normalizePlaceRating(ratingSource);
-      const categories = Array.isArray(item.categories)
-        ? item.categories
-        : Array.isArray(item.raw?.categories)
-          ? item.raw.categories
-          : [];
-      const reviewCount =
-        item.raw?.rating?.count ||
-        item.raw?.datasource?.raw?.user_ratings_total ||
-        item.details?.user_ratings_total ||
-        item.details?.datasource?.raw?.user_ratings_total ||
-        item.reviewCount ||
-        null;
-      const priceLevel =
-        item.raw?.price_level ??
-        item.details?.price_level ??
-        item.raw?.datasource?.raw?.price_level ??
-        null;
-      return {
-        key: placeId || `${baseKey || "destination"}-nearby-${index}`,
-        placeId,
-        name: item.name || item.title || item.address || `Nearby place ${index + 1}`,
-        address:
-          item.address ||
-          item.formatted ||
-          item.vicinity ||
-          item.description ||
-          item.raw?.address_line1 ||
-          item.raw?.formatted ||
-          "",
-        distanceText: textualDistance,
-        rating: normalizedRating != null ? normalizedRating : null,
-        ratingCount: reviewCount,
-        priceLevel,
-        categories,
-        website: item.website || item.raw?.website || item.details?.website || "",
-        phone: item.phone || item.raw?.phone || item.details?.contact?.phone || "",
-        heroImage: resolveNearbyImage(item),
-        heroImageSource: item.heroImageSource || item.raw?.heroImageSource || "",
-        heroImageAttribution:
-          item.heroImageAttribution ||
-          item.raw?.heroImageAttribution ||
-          item.details?.imageCredits ||
-          "",
-        description:
-          item.description ||
-          item.summary ||
-          item.raw?.description ||
-          item.raw?.datasource?.raw?.description ||
-          item.details?.description ||
-          "",
-        openingHours:
-          item.details?.opening_hours?.weekday_text ||
-          item.raw?.opening_hours?.weekday_text ||
-          item.raw?.datasource?.raw?.opening_hours ||
-          null,
-        coordinates: item.coordinates || item.raw?.coordinates || null,
-        raw: item,
-      };
-    })
-    .filter((entry) => Boolean(entry.name));
+
+  const processedEntries = items.map((item = {}, index) => {
+    const placeId = extractPlaceId(item);
+    const textualDistance =
+      typeof item.distance === "string" && item.distance.trim()
+        ? item.distance.trim()
+        : typeof item.distanceText === "string" && item.distanceText.trim()
+          ? item.distanceText.trim()
+          : typeof item.raw?.distanceText === "string" && item.raw.distanceText.trim()
+            ? item.raw.distanceText.trim()
+            : typeof item.vicinity === "string" && item.vicinity.trim()
+              ? item.vicinity.trim()
+              : "";
+    const ratingCandidates = [
+      item.rating,
+      item.rank?.importance,
+      item.rank?.confidence,
+      item.raw?.rank?.importance,
+      item.raw?.rank?.confidence,
+      item.details?.rating,
+      item.details?.rank?.popularity,
+      item.details?.datasource?.raw?.rating,
+    ];
+    const ratingSource = ratingCandidates.find((score) => typeof score === "number");
+    const normalizedRating = normalizePlaceRating(ratingSource);
+    const categories = Array.isArray(item.categories)
+      ? item.categories
+      : Array.isArray(item.raw?.categories)
+        ? item.raw.categories
+        : [];
+    const reviewCount =
+      item.raw?.rating?.count ||
+      item.raw?.datasource?.raw?.user_ratings_total ||
+      item.details?.user_ratings_total ||
+      item.details?.datasource?.raw?.user_ratings_total ||
+      item.reviewCount ||
+      null;
+    const priceLevel =
+      item.raw?.price_level ??
+      item.details?.price_level ??
+      item.raw?.datasource?.raw?.price_level ??
+      null;
+    return {
+      key: placeId || `${baseKey || "destination"}-nearby-${index}`,
+      placeId,
+      name: item.name || item.title || item.address || `Nearby place ${index + 1}`,
+      address:
+        item.address ||
+        item.formatted ||
+        item.vicinity ||
+        item.description ||
+        item.raw?.address_line1 ||
+        item.raw?.formatted ||
+        "",
+      distanceText: textualDistance,
+      rating: normalizedRating != null ? normalizedRating : null,
+      ratingCount: reviewCount,
+      priceLevel,
+      categories,
+      website: item.website || item.raw?.website || item.details?.website || "",
+      phone: item.phone || item.raw?.phone || item.details?.contact?.phone || "",
+      heroImage: resolveNearbyImage(item),
+      heroImageSource: item.heroImageSource || item.raw?.heroImageSource || "",
+      heroImageAttribution:
+        item.heroImageAttribution ||
+        item.raw?.heroImageAttribution ||
+        item.details?.imageCredits ||
+        "",
+      description:
+        item.description ||
+        item.summary ||
+        item.raw?.description ||
+        item.raw?.datasource?.raw?.description ||
+        item.details?.description ||
+        "",
+      openingHours:
+        item.details?.opening_hours?.weekday_text ||
+        item.raw?.opening_hours?.weekday_text ||
+        item.raw?.datasource?.raw?.opening_hours ||
+        null,
+      coordinates: item.coordinates || item.raw?.coordinates || null,
+      raw: item,
+    };
+  });
+
+  // --- BOSS FIX: Add filtering for highways and duplicate names ---
+  const seenNames = new Set();
+  return processedEntries.filter((entry) => {
+    if (!entry.name) return false; // Filter out entries with no name
+
+    // Filter out highways (as requested)
+    const lowerName = entry.name.toLowerCase();
+    if (lowerName.includes("highway") || lowerName.includes(" nh ") || lowerName.includes(" sh ")) {
+      return false;
+    }
+
+    // Filter out redundant names (as requested)
+    if (seenNames.has(lowerName)) {
+      return false;
+    }
+    seenNames.add(lowerName);
+    return true;
+  });
+  // --- END OF FIX ---
 };
 
 export const normalizeDbDestination = (destination) => {
@@ -185,16 +204,30 @@ export const normalizeDbDestination = (destination) => {
     location: destination.location,
     highlights: destination.highlights || [],
     activities: destination.activities || [],
-    nearbyAttractions: destination.nearbyAttractions || [],
+    nearbyAttractions: destination.nearbyAttractions || [], // Keep this for backward compatibility
+
+    // --- BOSS FIX: Correctly find all nearby arrays from all possible data structures ---
     nearby: {
-      tourist: Array.isArray(destination.nearby?.tourist) ? destination.nearby.tourist : [],
+      tourist: Array.isArray(destination.nearby?.tourist)
+        ? destination.nearby.tourist
+        : Array.isArray(destination.nearbyAttractions)
+          ? destination.nearbyAttractions
+          : [],
       restaurants: Array.isArray(destination.nearby?.restaurants)
         ? destination.nearby.restaurants
-        : [],
+        : Array.isArray(destination.restaurants)
+          ? destination.restaurants
+          : [],
       accommodations: Array.isArray(destination.nearby?.accommodations)
         ? destination.nearby.accommodations
-        : [],
+        : Array.isArray(destination.hotels)
+          ? destination.hotels
+          : Array.isArray(destination.accommodations)
+            ? destination.accommodations
+            : [],
     },
+    // --- END OF FIX ---
+
     tips: destination.tips || [],
     howToReach: destination.howToReach || "",
     weather: destination.weather || null,

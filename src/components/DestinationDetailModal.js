@@ -1,5 +1,6 @@
 // /client/src/components/DestinationDetailModal.js
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { IoClose } from "react-icons/io5";
 import { placesAPI } from "../utils/api";
@@ -17,11 +18,7 @@ import {
  * This is the refactored, reusable modal for displaying destination details.
  * It is now self-contained and manages its own internal state for nearby places.
  */
-const DestinationDetailModal = ({
-  destination,
-  onClose,
-  onGenerateItinerary,
-}) => {
+const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) => {
   const { user } = useAuth(); // Get user for auth checks
   const navigate = useNavigate();
   const [normalizedDestination, setNormalizedDestination] = useState(null);
@@ -48,7 +45,7 @@ const DestinationDetailModal = ({
       return;
     }
 
-    // 1. Normalize the destination object
+    // 1. Normalize the destination object (this now finds all nearby data)
     const normalized = normalizeDbDestination(destination);
     setNormalizedDestination(normalized);
 
@@ -58,22 +55,21 @@ const DestinationDetailModal = ({
     setNearbyPlaceStatus("idle");
     setNearbyPlaceError("");
 
+    // --- BOSS FIX: This section is now simpler ---
     // 3. Derive nearby places from the normalized data
-    const derivedTourist = deriveNearbyPlaces(
-      normalized.nearby?.tourist || normalized.nearbyAttractions || [],
-      normalized,
-      "attraction"
-    );
+    // Our normalizeDbDestination function now correctly prepares the 'nearby' object
+    const derivedTourist = deriveNearbyPlaces(normalized.nearby.tourist, normalized, "attraction");
     const derivedRestaurants = deriveNearbyPlaces(
-      normalized.nearby?.restaurants || normalized.restaurants || [],
+      normalized.nearby.restaurants,
       normalized,
       "restaurant"
     );
     const derivedAccommodations = deriveNearbyPlaces(
-      normalized.nearby?.accommodations || normalized.hotels || normalized.accommodations || [],
+      normalized.nearby.accommodations,
       normalized,
       "stay"
     );
+    // --- END OF FIX ---
 
     setTouristPlaces(derivedTourist);
     setRestaurants(derivedRestaurants);
@@ -578,8 +574,7 @@ const DestinationDetailModal = ({
             maxWidth: "1100px",
             maxHeight: "90vh",
             overflowY: "auto",
-            background:
-              "linear-gradient(180deg, rgba(11,14,20,0.95) 0%, rgba(17,24,39,0.98) 100%)",
+            background: "linear-gradient(180deg, rgba(11,14,20,0.95) 0%, rgba(17,24,39,0.98) 100%)",
             borderRadius: "28px",
             border: "1px solid rgba(212, 175, 55, 0.25)",
             boxShadow: "0 30px 60px rgba(0,0,0,0.35)",
@@ -646,9 +641,7 @@ const DestinationDetailModal = ({
               marginBottom: "30px",
             }}
           >
-            <div
-              style={{ display: "flex", gap: "26px", flexWrap: "wrap", alignItems: "center" }}
-            >
+            <div style={{ display: "flex", gap: "26px", flexWrap: "wrap", alignItems: "center" }}>
               <motion.img
                 src={normalizedDestination.photo}
                 alt={normalizedDestination.name}
@@ -779,8 +772,7 @@ const DestinationDetailModal = ({
                   {" "}
                   Feels like {weather.feels_like ?? weather.feelsLike ?? "—"}{" "}
                   {weather.feels_like != null || weather.feelsLike != null ? "°C" : ""}{" "}
-                  {" • Humidity: "}{" "}
-                  {weather.humidity != null ? `${weather.humidity}%` : "—"}{" "}
+                  {" • Humidity: "} {weather.humidity != null ? `${weather.humidity}%` : "—"}{" "}
                 </p>{" "}
               </div>{" "}
             </motion.div>
