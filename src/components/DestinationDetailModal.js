@@ -215,8 +215,9 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
     const placeId = details.placeId || selectedNearbyPlace.placeId;
 
     // --- BOSS FIX: Correct Google Maps URL ---
+    // This is the one, correct URL structure
     const query = encodeURIComponent(mapQueryParts.join(", "));
-    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=$${query}${placeId ? `&query_place_id=${encodeURIComponent(placeId)}` : ""}`;
+    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=$$?q=${query}${placeId ? `&query_place_id=${encodeURIComponent(placeId)}` : ""}`;
     // --- END OF FIX ---
 
     return {
