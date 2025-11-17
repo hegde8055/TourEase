@@ -1,29 +1,6 @@
 // /client/src/utils/api.js
 import axios from "axios";
-import { getToken, getSessionKey } from "./auth";
-
-export const AUTH_EXPIRED_EVENT = "tourease:auth-expired";
-
-const clearStoredAuth = () => {
-  if (typeof window === "undefined") {
-    return;
-  }
-  try {
-    window.localStorage.removeItem("token");
-    window.localStorage.removeItem("username");
-    window.localStorage.removeItem("rememberMe");
-    window.localStorage.removeItem("sessionKey");
-  } catch (err) {
-    console.warn("Failed to clear local auth storage", err);
-  }
-  try {
-    window.sessionStorage.removeItem("token");
-    window.sessionStorage.removeItem("username");
-    window.sessionStorage.removeItem("sessionKey");
-  } catch (err) {
-    console.warn("Failed to clear session auth storage", err);
-  }
-};
+import { getToken, getSessionKey, clearStoredAuth, AUTH_EXPIRED_EVENT } from "./auth";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000";
 
@@ -62,106 +39,17 @@ export const enhancedPlacesAPI = {
     axios.get(`${API_BASE}/api/places/map`, {
       params: { location: `${location.lat},${location.lng}`, zoom, size },
     }),
-  searchPlaces: async (data) => postPlaces("search", data),
-  clearSessionCache: async () => {
-    try {
-      const res = await axios.delete(`${API_BASE}/api/places/cache`);
-      return res.data;
-    } catch (error) {
-      console.error("Clear Destination Cache Error:", error.response?.data || error.message);
-      throw new Error(error.response?.data?.error || "Failed to clear destination cache");
-    }
-  },
 };
 
 export const enhancedItineraryAPI = {
   saveCompletePlan: async (data) => {
-    return await axios.post(`${API_BASE}/api/itinerary/save`, data);
+    return await axios.post(`${API_BASE}/api/itinerary/complete-plan`, data);
   },
   getCompleteItinerary: async () => {
     return await axios.get(`${API_BASE}/api/itinerary/complete`);
   },
-  getAll: async () => {
-    return await axios.get(`${API_BASE}/api/itinerary`);
-  },
   removeCompletePlan: async (planId) => {
     return await axios.delete(`${API_BASE}/api/itinerary/complete-plan/${planId}`);
-  },
-  delete: async (id) => {
-    return await axios.delete(`${API_BASE}/api/itinerary/${id}`);
-  },
-  updateItinerary: async (planId, data) => {
-    return await axios.put(`${API_BASE}/api/itinerary/complete-plan/${planId}`, data);
-  },
-  getItineraryDetails: async (planId) => {
-    return await axios.get(`${API_BASE}/api/itinerary/complete-plan/${planId}`);
-  },
-};
-
-export const aiItineraryAPI = {
-  generatePlan: async (payload) => {
-    // Modified to accept a single payload object
-    return await axios.post(`${API_BASE}/api/itinerary/ai/plan`, payload);
-  },
-  estimateCosts: async ({
-    basePerPerson,
-    passengers,
-    nights,
-    travelClass,
-    season,
-    addOns,
-    taxesPct,
-    destination,
-    interests,
-  }) => {
-    const res = await axios.post(`${API_BASE}/api/itinerary/ai/cost`, {
-      basePerPerson,
-      passengers,
-      nights,
-      travelClass,
-      season,
-      addOns,
-      taxesPct,
-      destination,
-      interests,
-    });
-    return res.data;
-  },
-};
-
-// === THIS IS THE FIX ===
-// The paths are changed back to /api/places/
-export const geoAPI = {
-  distance: async ({ from, to, mode = "drive", itineraryId }) => {
-    try {
-      const res = await axios.post(`${API_BASE}/api/places/distance`, {
-        from,
-        to,
-        mode,
-        itineraryId,
-      });
-      return res.data;
-    } catch (error) {
-      console.error("Secure Distance Error:", error.response?.data || error.message);
-      throw new Error(error.response?.data?.error || "Failed to calculate distance");
-    }
-  },
-  geocode: async ({ query }) => {
-    try {
-      const res = await axios.post(`${API_BASE}/api/places/geocode`, { query });
-      return res.data;
-    } catch (error) {
-      console.error("Secure Geocode Error:", error.response?.data || error.message);
-      throw new Error(error.response?.data?.error || "Failed to geocode location");
-    }
-  },
-};
-// === END OF FIX ===
-
-// --- NEW API FOR IMAGES ---
-export const imageAPI = {
-  getDestinationImage: async (query) => {
-    return await axios.get(`${API_BASE}/api/images/destination`, { params: { query } });
   },
 };
 
@@ -176,144 +64,145 @@ export const enhancedProfileAPI = {
   updateProfile: async (data) => {
     return await axios.put(`${API_BASE}/api/profile/update`, data);
   },
-  getProfile: async () => {
-    return await axios.get(`${API_BASE}/api/profile`);
-  },
-  deleteProfilePhoto: async () => {
-    return await axios.delete(`${API_BASE}/api/profile/photo`);
-  },
 };
 
 export const authAPI = {
-  signin: async (data) => {
-    return await axios.post(`${API_BASE}/api/signin`, data);
+  login: async (credentials) => {
+    return await axios.post(`${API_BASE}/api/auth/login`, credentials);
   },
-  signup: async (data) => {
-    return await axios.post(`${API_BASE}/api/signup`, data);
+  register: async (userData) => {
+    return await axios.post(`${API_BASE}/api/auth/register`, userData);
   },
-  login: async (data) => {
-    return await axios.post(`${API_BASE}/api/signin`, data);
+  verifyOtp: async (otpData) => {
+    return await axios.post(`${API_BASE}/api/auth/verify-otp`, otpData);
   },
-  register: async (data) => {
-    return await axios.post(`${API_BASE}/api/signup`, data);
+  requestPasswordReset: async (email) => {
+    return await axios.post(`${API_BASE}/api/auth/request-password-reset`, { email });
   },
-  forgotPassword: async (data) => {
-    return await axios.post(`${API_BASE}/api/forgot-password`, data);
+  verifyResetToken: async (token) => {
+    return await axios.get(`${API_BASE}/api/auth/verify-reset-token/${token}`);
   },
-  resetPassword: async (data) => {
-    return await axios.post(`${API_BASE}/api/reset-password`, data);
+  resetPassword: async (token, newPassword) => {
+    return await axios.post(`${API_BASE}/api/auth/reset-password`, {
+      token,
+      newPassword,
+    });
   },
-  getMe: async () => {
-    return await axios.get(`${API_BASE}/api/auth/me`);
+  getProfile: async () => {
+    return await axios.get(`${API_BASE}/api/auth/profile`);
+  },
+  checkAdmin: async () => {
+    return await axios.get(`${API_BASE}/api/auth/check-admin`);
   },
 };
 
 export const destinationAPI = {
   getAll: async (params = {}) => {
-    return await axios.get(`${API_BASE}/api/destinations`, { params });
+    const response = await axios.get(`${API_BASE}/api/destinations`, { params });
+    return response.data;
   },
   getById: async (id) => {
     return await axios.get(`${API_BASE}/api/destinations/${id}`);
-  },
-  create: async (data) => {
-    return await axios.post(`${API_BASE}/api/destinations`, data);
-  },
-  getTrending: async (limit = 10) => {
-    const response = await axios.get(`${API_BASE}/api/trending`, {
-      params: { limit },
-    });
-    return response.data?.destinations || [];
-  },
-  ingestFromGeoapify: async (payload) => {
-    return await axios.post(`${API_BASE}/api/destinations/ingest`, payload);
-  },
-};
-
-export const itineraryAPI = {
-  get: async () => {
-    return await axios.get(`${API_BASE}/api/itinerary/complete`);
-  },
-  add: async (data) => {
-    return await axios.post(`${API_BASE}/api/itinerary/complete-plan`, data);
-  },
-  remove: async (id) => {
-    return await axios.delete(`${API_BASE}/api/itinerary/remove/${id}`);
-  },
-  delete: async (planId) => {
-    return await axios.delete(`${API_BASE}/api/itinerary/complete-plan/${planId}`);
-  },
-  update: async (planId, data) => {
-    return await axios.put(`${API_BASE}/api/itinerary/complete-plan/${planId}`, data);
-  },
-  share: async (planId) => {
-    return await axios.post(`${API_BASE}/api/itinerary/share/${planId}`);
-  },
-  unshare: async (planId) => {
-    return await axios.delete(`${API_BASE}/api/itinerary/share/${planId}`);
-  },
-  getShared: async (shareToken) => {
-    return await axios.get(`${API_BASE}/api/itinerary/shared/${shareToken}`);
-  },
-};
-
-export const destinationsAPI = {
-  getAll: async (params = {}) => {
-    return await axios.get(`${API_BASE}/api/destinations`, { params });
-  },
-  getById: async (id) => {
-    return await axios.get(`${API_BASE}/api/destinations/${id}`);
-  },
-  getByCategory: async (category) => {
-    return await axios.get(`${API_BASE}/api/destinations/category/${category}`);
   },
   getCategories: async () => {
     return await axios.get(`${API_BASE}/api/destinations/meta/categories`);
   },
   search: async (query, filters = {}) => {
-    return await axios.post(`${API_BASE}/api/destinations/search`, { query, filters });
+    const response = await axios.post(`${API_BASE}/api/destinations/search`, {
+      query,
+      filters,
+    });
+    return response.data;
   },
-  ingestFromGeoapify: async (payload) => {
-    return await axios.post(`${API_BASE}/api/destinations/ingest`, payload);
+  ingestFromGeoapify: async (data) => {
+    return await axios.post(`${API_BASE}/api/destinations/ingest`, data);
+  },
+  getTrending: async (limit = 10) => {
+    const response = await axios.get(`${API_BASE}/api/trending`, { params: { limit } });
+    return response.data?.destinations;
+  },
+};
+
+export const itineraryAPI = {
+  generate: async (data) => {
+    return await axios.post(`${API_BASE}/api/itinerary/generate`, data);
+  },
+  save: async (data) => {
+    return await axios.post(`${API_BASE}/api/itinerary/save`, data);
+  },
+  getAll: async () => {
+    return await axios.get(`${API_BASE}/api/itinerary/saved`);
+  },
+  getById: async (id) => {
+    return await axios.get(`${API_BASE}/api/itinerary/saved/${id}`);
+  },
+  delete: async (id) => {
+    return await axios.delete(`${API_BASE}/api/itinerary/saved/${id}`);
+  },
+  update: async (id, data) => {
+    return await axios.put(`${API_BASE}/api/itinerary/saved/${id}`, data);
+  },
+  getPopular: async (limit = 5) => {
+    const response = await axios.get(`${API_BASE}/api/itinerary/popular`, {
+      params: { limit },
+    });
+    return response.data?.itineraries;
   },
 };
 
 export const profileAPI = {
-  get: async () => {
+  getProfile: async () => {
     return await axios.get(`${API_BASE}/api/profile`);
   },
-  update: async (data) => {
-    return await axios.put(`${API_BASE}/api/profile/update`, data);
+  updateProfile: async (data) => {
+    return await axios.put(`${API_BASE}/api/profile`, data);
   },
-  uploadPhoto: async (data) => {
-    return await axios.post(`${API_BASE}/api/profile/upload-photo`, data);
+  uploadPhoto: async (formData) => {
+    return await axios.post(`${API_BASE}/api/profile/photo`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  getSavedDestinations: async () => {
+    return await axios.get(`${API_BASE}/api/profile/saved-destinations`);
+  },
+  saveDestination: async (destinationId) => {
+    return await axios.post(`${API_BASE}/api/profile/saved-destinations`, {
+      destinationId,
+    });
+  },
+  unsaveDestination: async (destinationId) => {
+    return await axios.delete(`${API_BASE}/api/profile/saved-destinations/${destinationId}`);
   },
 };
 
-// This is the NEW, upgraded code
-export const placesAPI = {
+// This is the object that was in your `enhancedApi.js`
+// We keep it separate for clarity, but export it as `placesAPI` for `Explore.js`
+const geoapifyPlacesAPI = {
   validateDestination: async (data) => postPlaces("validate", data),
   getTouristPlaces: async (data) => postPlaces("tourist", data),
   getNearbyPlaces: async (data) => postPlaces("nearby", data),
   search: async (data) => postPlaces("search", data),
 
-  // --- FIX: Added from enhancedPlacesAPI so Explore.js can use them ---
   getPlaceDetails: async (payload) => {
     const placeId = typeof payload === "string" ? payload : payload?.placeId;
     return postPlaces("details", { placeId });
   },
   getWeather: async (lat, lng) =>
     axios.get(`${API_BASE}/api/places/weather`, { params: { lat, lng } }),
-  // --- END OF FIX ---
 
-  // --- THIS IS THE NEW FEATURE ---
+  // --- THIS IS THE FUNCTION WE BUILT ---
   /**
    * Fetches autocomplete suggestions from Geoapify.
    * We bias results towards India and prefer cities/tourist spots.
    */
   getAutocomplete: async (text) => {
-    // !!! IMPORTANT: Replace this with your actual API key !!!
-    const GEOAPIFY_API_KEY = "YOUR_GEOAPIFY_API_KEY";
+    // --- BOSS FIX: Read the key from the .env file ---
+    const GEOAPIFY_API_KEY = process.env.REACT_APP_GEOAPIFY_API_KEY;
+    // --- END OF FIX ---
 
+    // This check now correctly reads the variable
     if (!GEOAPIFY_API_KEY || GEOAPIFY_API_KEY === "YOUR_GEOAPIFY_API_KEY") {
       console.warn("Geoapify API key is missing. Autocomplete will not work.");
       return Promise.reject(new Error("Missing Geoapify API key"));
@@ -337,16 +226,20 @@ export const placesAPI = {
       limit: 5,
     });
 
-    // Use axios.get() for external Geoapify URLs
+    // We use axios.get() here because we are calling an external URL
     const citySearch = axios.get(`https://api.geoapify.com/v1/geocode/autocomplete?${params}`);
     const touristSearch = axios.get(`https://api.geoapify.com/v2/places?${touristParams}`);
 
     return Promise.allSettled([citySearch, touristSearch]);
   },
-  // --- END OF NEW FEATURE ---
+  // --- END OF NEW FUNCTION ---
 };
-export const chatAPI = {
-  send: async ({ message, history = [] }) => {
+
+// Export the APIs for use in components
+export { geoapifyPlacesAPI as placesAPI };
+
+export const chatbotAPI = {
+  sendMessage: async (message, history = []) => {
     const response = await axios.post(`${API_BASE}/api/chatbot`, {
       message,
       history,
@@ -366,20 +259,6 @@ export const getImageUrl = (imagePath) => {
   if (imagePath.startsWith("http")) return imagePath;
   return `${API_BASE}${imagePath}`;
 };
-
-// This interceptor was duplicated, it's already defined at the top.
-// axios.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
 
 axios.interceptors.response.use(
   (response) => response,
@@ -418,12 +297,9 @@ const api = {
   destinationAPI,
   itineraryAPI,
   profileAPI,
-  placesAPI,
-  aiItineraryAPI,
-  geoAPI,
-  chatAPI,
+  placesAPI: geoapifyPlacesAPI, // Ensure default export includes the right one
+  chatbotAPI,
   contactAPI,
-  imageAPI, // <-- EXPORT THE NEW API
   getImageUrl,
 };
 
