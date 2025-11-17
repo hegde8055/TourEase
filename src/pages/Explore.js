@@ -254,11 +254,15 @@ const Explore = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const heroRef = useRef(null);
-  const suggestionRefs = useRef([]);
-  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  // --- MODIFIED: Removed old suggestion refs ---
+  // const suggestionRefs = useRef([]);
+  // const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [suggestionNames, setSuggestionNames] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // --- MODIFIED: Removed old suggestion states ---
+  // const [suggestionNames, setSuggestionNames] = useState([]);
+  // const [showSuggestions, setShowSuggestions] = useState(false);
+
   const searchInputRef = useRef(null); // for outside-click handling
   const [loading, setLoading] = useState(false);
   const [dbDestinations, setDbDestinations] = useState([]);
@@ -277,6 +281,14 @@ const Explore = () => {
   const [nearbyPlaceStatus, setNearbyPlaceStatus] = useState("idle");
   const [nearbyPlaceError, setNearbyPlaceError] = useState("");
   const [addedPlaces, setAddedPlaces] = useState(new Set());
+
+  // --- NEW: State for hybrid autosuggest ---
+  const [localSuggestions, setLocalSuggestions] = useState([]);
+  const [apiSuggestions, setApiSuggestions] = useState([]);
+  const [isApiLoading, setIsApiLoading] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const debounceTimeoutRef = useRef(null);
+  // --- END OF NEW STATE ---
 
   const mergedNearbyPlace = useMemo(() => {
     if (!selectedNearbyPlace) return null;
@@ -402,34 +414,13 @@ const Explore = () => {
       isMounted = false;
     };
   }, []);
-  useEffect(() => {
-    const q = (searchQuery || "").trim().toLowerCase();
-    if (!q) {
-      setSuggestionNames([]);
-      setShowSuggestions(false);
-      return;
-    }
 
-    const matches = dbDestinations
-      .filter((d) => {
-        if (!d?.name) return false;
-        // ✅ Match only Indian locations
-        const isIndian = !d.location?.country || d.location.country.toLowerCase() === "india";
-
-        // ✅ Match name prefix and only clean names (city, district, etc.)
-        const nameMatch = d.name.toLowerCase().startsWith(q);
-        const isGeneralPlace =
-          !d.category ||
-          ["city", "place", "town", "district", "region"].includes(d.category.toLowerCase());
-
-        return isIndian && nameMatch && isGeneralPlace;
-      })
-      .map((d) => d.name.split(",")[0].trim()); // ✅ Only show the place name, no suffix
-
-    const unique = [...new Set(matches)].slice(0, 8);
-    setSuggestionNames(unique);
-    setShowSuggestions(unique.length > 0);
-  }, [searchQuery, dbDestinations]);
+  // --- MODIFIED: This old suggestion logic is REMOVED ---
+  // useEffect(() => {
+  //   const q = (searchQuery || "").trim().toLowerCase();
+  // ...
+  //   setShowSuggestions(unique.length > 0);
+  // }, [searchQuery, dbDestinations]);
 
   const filteredDestinations = useMemo(() => {
     if (selectedCategory === "All") return dbDestinations;
@@ -442,6 +433,8 @@ const Explore = () => {
       return;
     }
     try {
+      // --- FIX: Ensure placesAPI.getWeather is called correctly ---
+      // This relies on the api.js fix
       const weatherResponse = await placesAPI.getWeather(coordinates.lat, coordinates.lng);
       setWeather(weatherResponse.data?.weather || null);
     } catch (err) {
@@ -449,21 +442,24 @@ const Explore = () => {
       setWeather(null);
     }
   };
+
+  // --- MODIFIED: This listener now controls isInputFocused ---
   useEffect(() => {
     const onDoc = (e) => {
-      if (!searchInputRef.current?.contains(e.target)) setShowSuggestions(false);
+      if (!searchInputRef.current?.contains(e.target)) {
+        setIsInputFocused(false);
+      }
     };
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
-  useEffect(() => {
-    if (activeSuggestionIndex >= 0 && suggestionRefs.current[activeSuggestionIndex]) {
-      suggestionRefs.current[activeSuggestionIndex].scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-  }, [activeSuggestionIndex]);
+
+  // --- MODIFIED: Removed old suggestion keyboard logic ---
+  // useEffect(() => {
+  //   if (activeSuggestionIndex >= 0 && suggestionRefs.current[activeSuggestionIndex]) {
+  //     ...
+  //   }
+  // }, [activeSuggestionIndex]);
 
   const handleNearbyPlaceClick = async (place) => {
     if (!place) return;
@@ -478,6 +474,8 @@ const Explore = () => {
     nearbyDetailsRequestRef.current = requestId;
     setNearbyPlaceStatus("loading");
     try {
+      // --- FIX: Ensure placesAPI.getPlaceDetails is called correctly ---
+      // This relies on the api.js fix
       const response = await placesAPI.getPlaceDetails(place.placeId);
       if (nearbyDetailsRequestRef.current !== requestId) return;
       const props = response.data?.place || {};
@@ -569,17 +567,22 @@ const Explore = () => {
     }
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
+  // --- MODIFIED: handleSearch now accepts an argument ---
+  const handleSearch = async (queryToSearch) => {
+    // Use argument if provided, otherwise fall back to state
+    const query = (typeof queryToSearch === "string" ? queryToSearch : searchQuery).trim();
+
+    if (!query) {
       setSearchError("Please enter a destination to search.");
       return;
     }
+
     setLoading(true);
     setSearchError("");
     try {
-      // ✅ Restrict API lookup to India only
       const ingestResponse = await destinationsAPI.ingestFromGeoapify({
-        query: `${searchQuery.trim()}, India`,
+        // Use the validated query variable
+        query: `${query}, India`,
         country: "IN",
       });
 
@@ -623,6 +626,7 @@ const Explore = () => {
       setSearchError(err.response?.data?.error || "Search failed. Please try again.");
     } finally {
       setLoading(false);
+      setIsInputFocused(false); // Close suggestions
     }
   };
 
@@ -668,33 +672,115 @@ const Explore = () => {
     };
   }, [selectedDestination, closeDetails]);
 
+  // --- NEW: Replaced all old suggestion logic with hybrid logic ---
+
   const handleKeyDown = (event) => {
-    if (!showSuggestions || suggestionNames.length === 0) {
-      if (event.key === "Enter") handleSearch();
+    if (event.key === "Enter") {
+      // Pass the current query to handleSearch
+      handleSearch(searchQuery);
+      // Prevent form submission and close suggestions
+      event.preventDefault();
+      setIsInputFocused(false);
+      setLocalSuggestions([]);
+      setApiSuggestions([]);
+    }
+  };
+
+  // New logic for HYBRID autosuggest (local + API)
+  useEffect(() => {
+    // 1. Clear any pending API call
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // 2. Handle empty query
+    if (!searchQuery.trim()) {
+      setLocalSuggestions([]);
+      setApiSuggestions([]);
+      setIsApiLoading(false);
       return;
     }
 
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      setActiveSuggestionIndex((prev) => (prev < suggestionNames.length - 1 ? prev + 1 : 0));
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setActiveSuggestionIndex((prev) => (prev > 0 ? prev - 1 : suggestionNames.length - 1));
-    } else if (event.key === "Enter") {
-      event.preventDefault();
-      if (activeSuggestionIndex >= 0) {
-        const name = suggestionNames[activeSuggestionIndex];
-        setSearchQuery(name);
-        setShowSuggestions(false);
-        const found = dbDestinations.find((d) => d.name.toLowerCase() === name.toLowerCase());
-        if (found) handleCardClick(found);
-      } else {
-        handleSearch();
+    // 3. Set Local Suggestions (Instant)
+    const filteredLocal = dbDestinations
+      .filter((destination) => destination.name.toLowerCase().startsWith(searchQuery.toLowerCase()))
+      .slice(0, 3); // Show top 3 local matches
+    setLocalSuggestions(filteredLocal);
+
+    // 4. Set API Suggestions (Debounced)
+    setIsApiLoading(true); // Show loading spinner
+    setApiSuggestions([]); // Clear old API results
+
+    debounceTimeoutRef.current = setTimeout(async () => {
+      try {
+        const [cityResults, touristResults] = await placesAPI.getAutocomplete(searchQuery);
+
+        let combinedFeatures = [];
+        if (cityResults.status === "fulfilled" && cityResults.value.data.features) {
+          combinedFeatures.push(...cityResults.value.data.features);
+        }
+        if (touristResults.status === "fulfilled" && touristResults.value.data.features) {
+          combinedFeatures.push(...touristResults.value.data.features);
+        }
+
+        // Process and deduplicate results
+        const seen = new Set(filteredLocal.map((d) => d.name.toLowerCase()));
+        const processedApiResults = combinedFeatures
+          .map((feature) => ({
+            text:
+              feature.properties.name ||
+              feature.properties.formatted ||
+              feature.properties.address_line1,
+            data: feature.properties,
+          }))
+          .filter((suggestion) => {
+            if (!suggestion.text || seen.has(suggestion.text.toLowerCase())) {
+              return false; // Skip if no text or if it's already in local list
+            }
+            seen.add(suggestion.text.toLowerCase());
+            return true;
+          });
+
+        setApiSuggestions(processedApiResults.slice(0, 5)); // Show top 5 API matches
+      } catch (error) {
+        console.warn("Autocomplete API fetch failed:", error);
+        setApiSuggestions([]); // Clear on error
+      } finally {
+        setIsApiLoading(false); // Hide loading spinner
       }
-    } else if (event.key === "Escape") {
-      setShowSuggestions(false);
-    }
+    }, 400); // 400ms debounce
+
+    // Cleanup function
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, dbDestinations]); // Re-run when query or destination list changes
+
+  // Handler for when a user clicks a LOCAL suggestion
+  const handleLocalSuggestionClick = (destination) => {
+    setSearchQuery(destination.name); // Set the input text
+    setIsInputFocused(false); // Close the suggestion box
+    setLocalSuggestions([]);
+    setApiSuggestions([]);
+
+    // This function is already built to select a destination
+    handleCardClick(destination);
   };
+
+  // Handler for when a user clicks an API suggestion
+  const handleApiSuggestionClick = (suggestionText) => {
+    setSearchQuery(suggestionText); // Set the input text
+    setIsInputFocused(false); // Close the suggestion box
+    setLocalSuggestions([]);
+    setApiSuggestions([]);
+
+    // Call handleSearch *with the specific query* to trigger the ingest
+    handleSearch(suggestionText);
+  };
+
+  // --- END OF NEW LOGIC ---
 
   // --- MODIFIED FUNCTION ---
   // This function now handles navigation to the planner page
@@ -1117,6 +1203,7 @@ const Explore = () => {
           </motion.p>
         </div>
 
+        {/* --- MODIFIED: Search Bar and Button --- */}
         <motion.div
           initial={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.94 }}
           animate={
@@ -1157,6 +1244,8 @@ const Explore = () => {
             backdropFilter: "blur(22px)",
             overflow: "hidden",
             zIndex: 1,
+            // --- NEW: Using min-width to match original style ---
+            minWidth: "min(90%, 650px)",
           }}
         >
           {!prefersReducedMotion && (
@@ -1175,19 +1264,26 @@ const Explore = () => {
               }}
             />
           )}
-          <div style={{ position: "relative", width: "100%", maxWidth: "420px" }}>
+
+          {/* --- NEW: Replaced old input/ul with this wrapper div --- */}
+          <div style={{ flex: "1 1 300px", minWidth: "280px", position: "relative", zIndex: 10 }}>
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search destinations..."
+              placeholder="Search destinations, cities, or experiences..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setShowSuggestions(true)}
               onKeyDown={handleKeyDown}
+              onFocus={() => setIsInputFocused(true)}
+              onBlur={() => {
+                // Delay closing to allow click events to fire
+                setTimeout(() => setIsInputFocused(false), 200);
+              }}
+              autoComplete="off"
               style={{
                 width: "100%",
-                padding: "12px 18px",
-                borderRadius: "24px",
+                padding: "14px 18px",
+                borderRadius: "12px",
                 border: "1px solid rgba(212,175,55,0.4)",
                 background: "rgba(15,23,42,0.9)",
                 color: "#f3f4f6",
@@ -1198,71 +1294,134 @@ const Explore = () => {
               }}
             />
 
-            {showSuggestions && suggestionNames.length > 0 && (
-              <ul
-                style={{
-                  position: "absolute",
-                  top: "110%",
-                  left: 0,
-                  right: 0,
-                  background: "rgba(15,23,42,0.98)",
-                  borderRadius: "14px",
-                  boxShadow: "0 6px 20px rgba(0, 0, 0, 0.3)",
-                  border: "1px solid rgba(212,175,55,0.2)",
-                  listStyle: "none",
-                  padding: "6px 0",
-                  margin: 0,
-                  zIndex: 50,
-                }}
-              >
-                {suggestionNames.map((name, index) => {
-                  const query = searchQuery.trim().toLowerCase();
-                  const lowerName = name.toLowerCase();
-                  const startIndex = lowerName.indexOf(query);
-                  const endIndex = startIndex + query.length;
+            {/* --- NEW: The HYBRID Suggestions Dropdown --- */}
+            <AnimatePresence>
+              {isInputFocused &&
+                (localSuggestions.length > 0 || apiSuggestions.length > 0 || isApiLoading) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 4px)",
+                      left: 0,
+                      width: "100%",
+                      background: "rgba(17, 24, 39, 0.98)",
+                      border: "1px solid rgba(212, 175, 55, 0.35)",
+                      borderRadius: "12px",
+                      backdropFilter: "blur(10px)",
+                      overflow: "hidden",
+                      boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+                      maxHeight: "40vh",
+                      overflowY: "auto",
+                      padding: "8px",
+                      zIndex: 50,
+                    }}
+                  >
+                    {/* Local Suggestions */}
+                    {localSuggestions.length > 0 && (
+                      <>
+                        <h4
+                          style={{
+                            padding: "8px 12px",
+                            color: "#fcd34d",
+                            fontSize: "0.8rem",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                            margin: 0,
+                          }}
+                        >
+                          Curated Destinations
+                        </h4>
+                        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                          {localSuggestions.map((destination) => (
+                            <li
+                              key={destination._id}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleLocalSuggestionClick(destination);
+                              }}
+                              style={{
+                                padding: "12px 16px",
+                                color: "#f3f4f6",
+                                cursor: "pointer",
+                                borderRadius: "8px",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.background = "rgba(212, 175, 55, 0.2)")
+                              }
+                              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                            >
+                              {destination.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
 
-                  const before = name.slice(0, startIndex);
-                  const match = name.slice(startIndex, endIndex);
-                  const after = name.slice(endIndex);
-
-                  const isActive = index === activeSuggestionIndex;
-
-                  return (
-                    <li
-                      key={name}
-                      ref={(el) => (suggestionRefs.current[index] = el)} // 👈 add this line
-                      onClick={() => {
-                        setSearchQuery(name);
-                        setShowSuggestions(false);
-                        const found = dbDestinations.find(
-                          (d) => d.name.toLowerCase() === name.toLowerCase()
-                        );
-                        if (found) handleCardClick(found);
-                      }}
-                      style={{
-                        padding: "10px 18px",
-                        cursor: "pointer",
-                        color: "#fef9c3",
-                        fontSize: "0.95rem",
-                        background: isActive ? "rgba(212,175,55,0.15)" : "transparent",
-                        transition: "background 0.15s ease",
-                      }}
-                      onMouseEnter={() => setActiveSuggestionIndex(index)}
-                      onMouseLeave={() => setActiveSuggestionIndex(-1)}
-                    >
-                      {before}
-                      <span style={{ color: "#d4af37", fontWeight: 700 }}>{match}</span>
-                      {after}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+                    {/* API Suggestions */}
+                    {(apiSuggestions.length > 0 || isApiLoading) && (
+                      <>
+                        <h4
+                          style={{
+                            padding: "8px 12px",
+                            color: "#60a5fa",
+                            fontSize: "0.8rem",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                            margin: localSuggestions.length > 0 ? "8px 0 0" : "0",
+                          }}
+                        >
+                          Search Results
+                        </h4>
+                        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                          {isApiLoading && (
+                            <li
+                              style={{
+                                padding: "12px 16px",
+                                color: "#94a3b8",
+                                fontStyle: "italic",
+                              }}
+                            >
+                              Searching...
+                            </li>
+                          )}
+                          {apiSuggestions.map((suggestion) => (
+                            <li
+                              key={suggestion.text}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleApiSuggestionClick(suggestion.text);
+                              }}
+                              style={{
+                                padding: "12px 16px",
+                                color: "#f3f4f6",
+                                cursor: "pointer",
+                                borderRadius: "8px",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.background = "rgba(59, 130, 246, 0.2)")
+                              }
+                              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                            >
+                              {suggestion.text}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </motion.div>
+                )}
+            </AnimatePresence>
+            {/* --- END OF NEW FEATURE --- */}
           </div>
 
           <motion.button
             type="button"
-            onClick={handleSearch}
+            // --- MODIFIED: onClick now uses the function correctly ---
+            onClick={() => handleSearch()}
             disabled={loading}
             whileHover={{ scale: loading ? 1 : 1.05 }}
             whileTap={{ scale: loading ? 1 : 0.96 }}
@@ -1278,12 +1437,14 @@ const Explore = () => {
               boxShadow: "0 14px 28px rgba(212, 175, 55, 0.35)",
               position: "relative",
               zIndex: 1,
-              minWidth: "160px",
+              minWidth: "120px", // Give it a min-width
+              flexShrink: 0, // Prevent button from shrinking
             }}
           >
             {loading ? "Searching..." : "Search"}
           </motion.button>
         </motion.div>
+        {/* --- END OF MODIFIED SEARCH BAR --- */}
 
         {!prefersReducedMotion && (
           <motion.div

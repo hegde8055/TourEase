@@ -289,14 +289,62 @@ export const profileAPI = {
   },
 };
 
+// This is the NEW, upgraded code
 export const placesAPI = {
   validateDestination: async (data) => postPlaces("validate", data),
   getTouristPlaces: async (data) => postPlaces("tourist", data),
   getNearbyPlaces: async (data) => postPlaces("nearby", data),
-  getPlaceDetails: async (data) => postPlaces("details", data),
   search: async (data) => postPlaces("search", data),
-};
 
+  // --- FIX: Added from enhancedPlacesAPI so Explore.js can use them ---
+  getPlaceDetails: async (payload) => {
+    const placeId = typeof payload === "string" ? payload : payload?.placeId;
+    return postPlaces("details", { placeId });
+  },
+  getWeather: async (lat, lng) =>
+    axios.get(`${API_BASE}/api/places/weather`, { params: { lat, lng } }),
+  // --- END OF FIX ---
+
+  // --- THIS IS THE NEW FEATURE ---
+  /**
+   * Fetches autocomplete suggestions from Geoapify.
+   * We bias results towards India and prefer cities/tourist spots.
+   */
+  getAutocomplete: async (text) => {
+    // !!! IMPORTANT: Replace this with your actual API key !!!
+    const GEOAPIFY_API_KEY = "YOUR_GEOAPIFY_API_KEY";
+
+    if (!GEOAPIFY_API_KEY || GEOAPIFY_API_KEY === "YOUR_GEOAPIFY_API_KEY") {
+      console.warn("Geoapify API key is missing. Autocomplete will not work.");
+      return Promise.reject(new Error("Missing Geoapify API key"));
+    }
+
+    const params = new URLSearchParams({
+      text: text,
+      apiKey: GEOAPIFY_API_KEY,
+      type: "city",
+      filter: "countrycode:in",
+      bias: "countrycode:in",
+      limit: 5,
+    });
+
+    const touristParams = new URLSearchParams({
+      text: text,
+      apiKey: GEOAPIFY_API_KEY,
+      categories: "tourism.attraction",
+      filter: "countrycode:in",
+      bias: "countrycode:in",
+      limit: 5,
+    });
+
+    // Use axios.get() for external Geoapify URLs
+    const citySearch = axios.get(`https://api.geoapify.com/v1/geocode/autocomplete?${params}`);
+    const touristSearch = axios.get(`https://api.geoapify.com/v2/places?${touristParams}`);
+
+    return Promise.allSettled([citySearch, touristSearch]);
+  },
+  // --- END OF NEW FEATURE ---
+};
 export const chatAPI = {
   send: async ({ message, history = [] }) => {
     const response = await axios.post(`${API_BASE}/api/chatbot`, {
