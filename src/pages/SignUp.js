@@ -189,7 +189,7 @@ const SignUp = () => {
   );
 
   return (
-    <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
+    <div style={{ display: "flex", height: "100vh", width: "100vw", marginTop: "-90px" }}>
       <div className="left">
         <div className="form-container">
           <div className="logo">
