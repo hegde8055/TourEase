@@ -10,11 +10,13 @@ import {
   getToken,
   getSessionKey,
   setSessionKey,
-  // 'isRememberMe' was removed (unused)
+  // 'isRememberMe' was removed because it was unused
   logout as authLogout,
-  AUTH_EXPIRED_EVENT,
 } from "./utils/auth";
-// 'enhancedPlacesAPI' was removed (unused)
+import {
+  AUTH_EXPIRED_EVENT, // <-- Correct: This is imported
+  // --- BOSS FIX: Removed 'enhancedPlacesAPI' (it was unused) ---
+} from "./utils/api";
 import Footer from "./components/Footer";
 import AIChatbot from "./components/AIChatbot";
 import Navbar from "./components/Navbar";
