@@ -109,14 +109,20 @@ const Explore = () => {
         ]);
         if (!isMounted) return;
         if (destinationsRes.status === "fulfilled") {
-          const list = destinationsRes.value.data?.destinations || destinationsRes.value.data || [];
-          setDbDestinations(list);
+          const apiValue = destinationsRes.value;
+          const list =
+            apiValue?.destinations ||
+            apiValue?.data?.destinations ||
+            (Array.isArray(apiValue) ? apiValue : apiValue?.data) ||
+            [];
+          setDbDestinations(Array.isArray(list) ? list : []);
         } else {
           setDbDestinations([]);
           setDbError("We couldn't load curated destinations just now.");
         }
         if (categoriesRes.status === "fulfilled") {
-          const fetched = categoriesRes.value.data?.categories || [];
+          const categoryValue = categoriesRes.value;
+          const fetched = categoryValue?.categories || categoryValue?.data?.categories || [];
           setCategories(["All", ...fetched]);
         }
       } catch (err) {
