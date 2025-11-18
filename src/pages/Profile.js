@@ -404,9 +404,8 @@ const Profile = () => {
       <div
         style={{
           minHeight: "100vh",
-          paddingTop: "100px",
+          paddingTop: "140px",
           paddingBottom: "60px",
-          marginTop: "-100px",
           background:
             "radial-gradient(ellipse at top, rgba(59,130,246,0.15), transparent 50%), radial-gradient(ellipse at bottom, rgba(212,175,55,0.15), transparent 50%)",
         }}
