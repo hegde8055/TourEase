@@ -46,7 +46,7 @@ const Profile = () => {
   const handleTabChange = useCallback(
     (tabId) => {
       if (tabId === "about") {
-        window.location.href = "/about";
+        navigate("/about");
         return;
       }
 
