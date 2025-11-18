@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
 // --- REMOVED InteractiveMap import ---
-import { placesAPI, destinationsAPI } from "../utils/api";
+import { placesAPI, destinationsAPI, geoAPI } from "../utils/api";
 // --- REMOVED extractCoordinates import ---
 import { getDestinationHeroImage } from "../utils/imageHelpers";
 import { useAuth } from "../App";
@@ -274,34 +274,57 @@ const Explore = () => {
     setApiSuggestions([]);
 
     debounceTimeoutRef.current = setTimeout(async () => {
+      const seen = new Set(filteredLocal.map((d) => d.name.toLowerCase()));
+      const combinedSuggestions = [];
+
       try {
-        const [cityResults, touristResults] = await placesAPI.getAutocomplete(searchQuery);
-        let combinedFeatures = [];
-        if (cityResults.status === "fulfilled" && cityResults.value.data.features) {
-          combinedFeatures.push(...cityResults.value.data.features);
+        const [historySettled, geoapifySettled] = await Promise.allSettled([
+          geoAPI.suggest(searchQuery),
+          placesAPI.getAutocomplete(searchQuery),
+        ]);
+
+        if (historySettled.status === "fulfilled") {
+          const historyPayload = historySettled.value?.data?.suggestions || [];
+          historyPayload.forEach((item) => {
+            const text = (item?.text || item?.formattedAddress || "").trim();
+            if (!text) return;
+            const key = text.toLowerCase();
+            if (seen.has(key)) return;
+            seen.add(key);
+            combinedSuggestions.push({
+              text,
+              source: "history",
+              city: item.city,
+              state: item.state,
+            });
+          });
         }
-        if (touristResults.status === "fulfilled" && touristResults.value.data.features) {
-          combinedFeatures.push(...touristResults.value.data.features);
-        }
-        const seen = new Set(filteredLocal.map((d) => d.name.toLowerCase()));
-        const processedApiResults = combinedFeatures
-          .map((feature) => ({
-            text:
+
+        if (geoapifySettled.status === "fulfilled" && Array.isArray(geoapifySettled.value)) {
+          const [cityResults, touristResults] = geoapifySettled.value;
+          let combinedFeatures = [];
+          if (cityResults.status === "fulfilled" && cityResults.value.data.features) {
+            combinedFeatures.push(...cityResults.value.data.features);
+          }
+          if (touristResults.status === "fulfilled" && touristResults.value.data.features) {
+            combinedFeatures.push(...touristResults.value.data.features);
+          }
+          combinedFeatures.forEach((feature) => {
+            const text =
               feature.properties.name ||
               feature.properties.formatted ||
-              feature.properties.address_line1,
-            data: feature.properties,
-          }))
-          .filter((suggestion) => {
-            if (!suggestion.text || seen.has(suggestion.text.toLowerCase())) {
-              return false;
-            }
-            seen.add(suggestion.text.toLowerCase());
-            return true;
+              feature.properties.address_line1;
+            if (!text) return;
+            const key = text.toLowerCase();
+            if (seen.has(key)) return;
+            seen.add(key);
+            combinedSuggestions.push({ text, source: "geoapify" });
           });
-        setApiSuggestions(processedApiResults.slice(0, 5));
+        }
+
+        setApiSuggestions(combinedSuggestions.slice(0, 8));
       } catch (error) {
-        console.warn("Autocomplete API fetch failed:", error);
+        console.warn("Autocomplete fetch failed:", error);
         setApiSuggestions([]);
       } finally {
         setIsApiLoading(false);

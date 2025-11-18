@@ -244,6 +244,10 @@ export { geoapifyPlacesAPI as placesAPI };
 export const geoAPI = {
   geocode: async (payload) => axios.post(`${API_BASE}/api/places/geocode`, payload),
   distance: async (payload) => axios.post(`${API_BASE}/api/places/distance`, payload),
+  suggest: async (query) =>
+    axios.get(`${API_BASE}/api/places/suggest`, {
+      params: { query },
+    }),
 };
 
 export const chatbotAPI = {
