@@ -3,13 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import InteractiveMap from "../components/InteractiveMap";
-import {
-  enhancedItineraryAPI,
-  aiItineraryAPI,
-  geoAPI,
-  enhancedPlacesAPI,
-  imageAPI,
-} from "../utils/api";
+import { itineraryAPI, aiItineraryAPI, geoAPI, enhancedPlacesAPI, imageAPI } from "../utils/api";
 import { calculateMultiPointRoute } from "../utils/routingUtils";
 import { useAuth } from "../App";
 import {
@@ -481,7 +475,7 @@ const ItineraryPlanner = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await enhancedItineraryAPI.getAll();
+      const response = await itineraryAPI.getAll();
       // === CONSOLE LOG REMOVED ===
       // console.log("Fetched itineraries response:", response.data);
       setItineraries(response.data?.itineraries || response.data || []);
@@ -1699,7 +1693,7 @@ const ItineraryPlanner = () => {
       // --- ADDED CONSOLE LOG FOR DEBUGGING SAVE ---
       console.log("--- Payload being sent to save API:", JSON.stringify(payload, null, 2));
 
-      await enhancedItineraryAPI.saveCompletePlan(payload);
+      await itineraryAPI.save(payload);
       setSaveSuccess(true);
       await fetchItineraries();
       setActiveTab("dashboard");
@@ -1727,7 +1721,7 @@ const ItineraryPlanner = () => {
   const handleDeleteItinerary = useCallback(
     async (id) => {
       try {
-        await enhancedItineraryAPI.delete(id);
+        await itineraryAPI.delete(id);
         await fetchItineraries();
         setShowDeleteConfirm(false);
         setItineraryToDelete(null);
