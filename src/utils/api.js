@@ -30,6 +30,7 @@ export const enhancedPlacesAPI = {
   validateDestination: async (data) => postPlaces("validate", data),
   getTouristPlaces: async (data) => postPlaces("tourist", data),
   getNearbyPlaces: async (data) => postPlaces("nearby", data),
+  search: async (data) => postPlaces("search", data),
   getPlaceDetails: async (payload) => {
     const placeId = typeof payload === "string" ? payload : payload?.placeId;
     return postPlaces("details", { placeId });
