@@ -72,3 +72,7 @@ export const logout = () => {
 export const isRememberMe = () => {
   return localStorage.getItem(REMEMBER_KEY) === "true";
 };
+
+export const clearStoredAuth = logout;
+
+export const AUTH_EXPIRED_EVENT = "authExpired";

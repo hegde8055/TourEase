@@ -54,6 +54,18 @@ export const enhancedItineraryAPI = {
   },
 };
 
+export const aiItineraryAPI = {
+  generatePlan: async (data) => {
+    return await axios.post(`${API_BASE}/api/itinerary/ai/plan`, data);
+  },
+  estimateCosts: async (data) => {
+    return await axios.post(`${API_BASE}/api/itinerary/ai/cost`, data);
+  },
+  calculateRoute: async (data) => {
+    return await axios.post(`${API_BASE}/api/itinerary/calculate-route`, data);
+  },
+};
+
 export const enhancedProfileAPI = {
   uploadProfilePhoto: async (formData) => {
     return await axios.post(`${API_BASE}/api/profile/upload-photo`, formData, {
@@ -123,6 +135,8 @@ export const destinationAPI = {
     return response.data?.destinations;
   },
 };
+
+export const destinationsAPI = destinationAPI;
 
 export const itineraryAPI = {
   generate: async (data) => {
@@ -227,6 +241,11 @@ const geoapifyPlacesAPI = {
 
 export { geoapifyPlacesAPI as placesAPI };
 
+export const geoAPI = {
+  geocode: async (payload) => axios.post(`${API_BASE}/api/places/geocode`, payload),
+  distance: async (payload) => axios.post(`${API_BASE}/api/places/distance`, payload),
+};
+
 export const chatbotAPI = {
   sendMessage: async (message, history = []) => {
     const response = await axios.post(`${API_BASE}/api/chatbot`, {
@@ -235,6 +254,13 @@ export const chatbotAPI = {
     });
     return response.data;
   },
+};
+
+export const chatAPI = chatbotAPI;
+
+export const imageAPI = {
+  getDestinationImage: async (query) =>
+    axios.get(`${API_BASE}/api/images/destination`, { params: { query } }),
 };
 
 export const contactAPI = {
@@ -284,15 +310,22 @@ axios.interceptors.response.use(
 const api = {
   enhancedPlacesAPI,
   enhancedItineraryAPI,
+  aiItineraryAPI,
   enhancedProfileAPI,
   authAPI,
   destinationAPI,
+  destinationsAPI,
   itineraryAPI,
   profileAPI,
   placesAPI: geoapifyPlacesAPI,
+  geoAPI,
   chatbotAPI,
+  chatAPI,
+  imageAPI,
   contactAPI,
   getImageUrl,
 };
+
+export { AUTH_EXPIRED_EVENT, clearStoredAuth };
 
 export default api;
