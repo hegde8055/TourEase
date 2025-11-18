@@ -146,16 +146,16 @@ export const itineraryAPI = {
     return await axios.post(`${API_BASE}/api/itinerary/save`, data);
   },
   getAll: async () => {
-    return await axios.get(`${API_BASE}/api/itinerary/saved`);
+    return await axios.get(`${API_BASE}/api/itinerary`);
   },
   getById: async (id) => {
-    return await axios.get(`${API_BASE}/api/itinerary/saved/${id}`);
+    return await axios.get(`${API_BASE}/api/itinerary/${id}`);
   },
   delete: async (id) => {
-    return await axios.delete(`${API_BASE}/api/itinerary/saved/${id}`);
+    return await axios.delete(`${API_BASE}/api/itinerary/${id}`);
   },
   update: async (id, data) => {
-    return await axios.put(`${API_BASE}/api/itinerary/saved/${id}`, data);
+    return await axios.put(`${API_BASE}/api/itinerary/${id}`, data);
   },
   getPopular: async (limit = 5) => {
     const response = await axios.get(`${API_BASE}/api/itinerary/popular`, {
