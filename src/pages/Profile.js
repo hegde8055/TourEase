@@ -97,7 +97,7 @@ const Profile = () => {
   const loadProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await profileAPI.get();
+      const response = await profileAPI.getProfile();
       const userProfile = response.data;
       setProfile(userProfile);
       setFormData({ username: userProfile.username || "", about: userProfile.about || "" });
@@ -143,7 +143,7 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await profileAPI.update(formData);
+      await profileAPI.updateProfile(formData);
       setEditing(false);
       loadProfile();
     } catch (error) {
