@@ -48,7 +48,7 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      const response = await authAPI.signin(formData);
+      const response = await authAPI.login(formData);
       setToken(response.data.token, rememberMe);
       if (response.data.username) {
         setUsername(response.data.username, rememberMe);

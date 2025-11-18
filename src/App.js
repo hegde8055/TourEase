@@ -79,16 +79,21 @@ export const AuthProvider = ({ children }) => {
     };
   }, [sessionKey]);
 
-  const login = (token, name, rememberMe) => {
-    authLogout(rememberMe, token, name); // This function is from auth.js, it sets the new tokens
-    setIsAuthenticated(true);
-    setUsername(name);
+  const login = ({ username: name, sessionKey: providedSessionKey } = {}) => {
+    const resolvedName = name || getUsername();
+    setUsername(resolvedName);
+    setIsAuthenticated(!!getToken());
+    const nextSessionKey = providedSessionKey || getSessionKey();
+    if (nextSessionKey) {
+      setSessionKeyState(nextSessionKey);
+    }
   };
 
   const logout = () => {
     authLogout();
     setIsAuthenticated(false);
     setUsername(null);
+    setSessionKeyState(null);
   };
 
   const value = {
@@ -96,6 +101,7 @@ export const AuthProvider = ({ children }) => {
     username,
     sessionKey,
     login,
+    user: username ? { username } : null,
     logout,
   };
 

@@ -143,7 +143,7 @@ const SignUp = () => {
     }
 
     try {
-      const response = await authAPI.signup({
+      const response = await authAPI.register({
         username: formData.username,
         email: formData.email,
         password: formData.password,
