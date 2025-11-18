@@ -1306,12 +1306,12 @@ const ItineraryPlanner = () => {
     setPlaceSearchError("");
     setPlaceSearchResults([]);
     try {
-      const response = await enhancedPlacesAPI.searchPlaces({
+      const response = await enhancedPlacesAPI.search({
         query: placeSearchQuery,
         location: destinationDetails.location.coordinates,
         limit: 5,
       });
-      const results = response.data?.suggestions || [];
+      const results = response.data?.suggestions || response.data?.places || [];
       if (results.length === 0) {
         setPlaceSearchError("No results found for that search.");
       }
@@ -1419,6 +1419,21 @@ const ItineraryPlanner = () => {
   const handleDragLeave = useCallback((dayIndex) => {
     setDragOverDayIndex(null);
   }, []);
+
+  const handleMapRouteCalculated = useCallback(
+    (metrics) => {
+      if (
+        metrics &&
+        typeof metrics.distanceKm === "number" &&
+        Number.isFinite(metrics.distanceKm) &&
+        typeof metrics.durationMinutes === "number" &&
+        Number.isFinite(metrics.durationMinutes)
+      ) {
+        setMapRouteMetrics(metrics);
+      }
+    },
+    [setMapRouteMetrics]
+  );
 
   const handleGeneratePlan = useCallback(
     async (autoSave = false) => {
@@ -2815,17 +2830,7 @@ const ItineraryPlanner = () => {
                                   legs={routeSummary?.legs || []}
                                   userLocation={userLocation}
                                   nearbyPlaces={suggestedPlaces}
-                                  onRouteCalculated={(metrics) => {
-                                    if (
-                                      metrics &&
-                                      typeof metrics.distanceKm === "number" &&
-                                      Number.isFinite(metrics.distanceKm) &&
-                                      typeof metrics.durationMinutes === "number" &&
-                                      Number.isFinite(metrics.durationMinutes)
-                                    ) {
-                                      setMapRouteMetrics(metrics);
-                                    }
-                                  }}
+                                  onRouteCalculated={handleMapRouteCalculated}
                                   precomputedRoute={geoRouteData}
                                 />
                               </>
