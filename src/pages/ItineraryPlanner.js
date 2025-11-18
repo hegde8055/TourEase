@@ -1446,7 +1446,40 @@ const ItineraryPlanner = () => {
           throw new Error("End date cannot be earlier than the start date.");
         }
 
-        const geoRes = await geoAPI.geocode({ query: aiForm.destinationName });
+        let geoRes;
+
+        try {
+          geoRes = await geoAPI.geocode({ query: aiForm.destinationName });
+        } catch (geoError) {
+          console.warn("Primary geocode failed, attempting fallback search", geoError);
+        }
+
+        if (!geoRes || !geoRes.coordinates) {
+          try {
+            const altRes = await enhancedPlacesAPI.search({ query: aiForm.destinationName });
+            const altPayload = altRes?.data || altRes;
+            const suggestion = Array.isArray(altPayload?.suggestions)
+              ? altPayload.suggestions[0]
+              : null;
+
+            if (suggestion) {
+              const lat = suggestion.location?.lat ?? suggestion.location?.latitude;
+              const lng = suggestion.location?.lng ?? suggestion.location?.longitude;
+              if (lat != null && lng != null) {
+                geoRes = {
+                  coordinates: { lat, lng },
+                  formattedAddress: suggestion.formattedAddress || suggestion.name,
+                  city: suggestion.city,
+                  state: suggestion.state,
+                  country: suggestion.country,
+                };
+              }
+            }
+          } catch (fallbackError) {
+            console.warn("Fallback places search failed", fallbackError);
+          }
+        }
+
         if (!geoRes || !geoRes.coordinates) {
           throw new Error("Could not find coordinates for the destination.");
         }

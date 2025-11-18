@@ -6,6 +6,83 @@ import { isAuthenticated, getUsername, logout as clearStoredAuth } from "../util
 import { FaHome, FaCompass, FaFireAlt, FaRoute, FaUserCircle } from "react-icons/fa";
 import ConfirmModal from "./ConfirmModal";
 
+// --- ENTIRE FROSTED GLASS THEME ---
+const glassStyles = `
+  /* 1. MAIN NAVBAR CONTAINER */
+  nav {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* High z-index to float over everything */
+    
+    /* THE GLASS EFFECT */
+    background: rgba(15, 23, 42, 0.65) !important; /* Dark slate tint */
+    backdrop-filter: blur(16px) !important;         /* Heavy blur */
+    -webkit-backdrop-filter: blur(16px) !important; /* Safari support */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Subtle icy border */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);      /* Soft shadow */
+    
+    transition: all 0.3s ease-in-out;
+  }
+
+  /* 2. NAV LINKS & ICONS (HOVER EFFECT) */
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 12px; /* Smooth rounded corners */
+    transition: all 0.3s ease;
+    color: rgba(255, 255, 255, 0.9); /* Bright text for contrast */
+    border: 1px solid transparent; /* Prevent layout shift */
+  }
+
+  /* The "Glass Tile" effect on Hover */
+  .nav-link:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+
+  /* Active Link State */
+  .nav-active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff !important;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* 3. BUTTONS (Sign In / Sign Out) */
+  .nav-link-button {
+    padding: 8px 20px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .nav-link-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  }
+
+  /* 4. MOBILE MENU GLASS EFFECT */
+  @media (max-width: 960px) {
+    .nav-menu {
+      background: rgba(15, 23, 42, 0.95) !important; /* Darker glass for menu legibility */
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  }
+`;
+
 const Navbar = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -102,7 +179,7 @@ const Navbar = () => {
   const closeMenu = () => setMenuActive(false);
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-  // 🚀 Simplified Navbar (About Us + Contact Us removed)
+  // 🚀 Simplified Navbar Items
   const navItems = [
     { to: "/", label: "Home", icon: FaHome },
     { to: "/explore", label: "Explore", icon: FaCompass },
@@ -112,6 +189,9 @@ const Navbar = () => {
 
   return (
     <header>
+      {/* INJECT THE FROSTED GLASS CSS */}
+      <style>{glassStyles}</style>
+
       <nav>
         <Link to="/" className="nav-logo" onClick={scrollToTop}>
           Tourease
