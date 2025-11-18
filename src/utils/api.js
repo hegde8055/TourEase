@@ -171,10 +171,10 @@ export const profileAPI = {
     return await axios.get(`${API_BASE}/api/profile`);
   },
   updateProfile: async (data) => {
-    return await axios.put(`${API_BASE}/api/profile`, data);
+    return await axios.put(`${API_BASE}/api/profile/update`, data);
   },
   uploadPhoto: async (formData) => {
-    return await axios.post(`${API_BASE}/api/profile/photo`, formData, {
+    return await axios.post(`${API_BASE}/api/profile/upload-photo`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

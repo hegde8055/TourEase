@@ -297,17 +297,28 @@ const Profile = () => {
     return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.9));
   };
 
-  const convertBlobToBase64 = (blob) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
+  const dataUrlToBlob = (dataUrl) => {
+    try {
+      const [header, base64] = dataUrl.split(",");
+      if (!base64) return null;
+      const mimeMatch = header.match(/:(.*?);/);
+      const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
+      const binary = atob(base64);
+      const length = binary.length;
+      const bytes = new Uint8Array(length);
+      for (let i = 0; i < length; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new Blob([bytes], { type: mimeType });
+    } catch (error) {
+      console.error("Failed to convert data URL to blob", error);
+      return null;
+    }
+  };
 
   const handlePhotoUpload = async (useCrop = false) => {
     try {
-      let base64data = null;
+      let blobToUpload = null;
 
       if (useCrop) {
         const croppedBlob = await getCroppedImg();
@@ -315,7 +326,7 @@ const Profile = () => {
           alert("Please crop the image first");
           return;
         }
-        base64data = await convertBlobToBase64(croppedBlob);
+        blobToUpload = croppedBlob;
       } else {
         if (!imageSrc) {
           alert("No image found to upload. Please try again.");
@@ -323,12 +334,16 @@ const Profile = () => {
         }
 
         if (imageSrc.startsWith("data:")) {
-          base64data = imageSrc;
+          blobToUpload = dataUrlToBlob(imageSrc);
+          if (!blobToUpload) {
+            alert("Couldn't prepare the image for upload. Please try cropping it first.");
+            return;
+          }
         } else {
           try {
             const response = await fetch(imageSrc);
             const blob = await response.blob();
-            base64data = await convertBlobToBase64(blob);
+            blobToUpload = blob;
           } catch (error) {
             console.error("Unable to prepare image for upload:", error);
             alert("Couldn't prepare the image for upload. Please try cropping it first.");
@@ -337,12 +352,17 @@ const Profile = () => {
         }
       }
 
-      if (!base64data) {
+      if (!blobToUpload) {
         alert("Could not prepare the image. Please try again.");
         return;
       }
 
-      await profileAPI.uploadPhoto({ photo: base64data });
+      const formData = new FormData();
+      const fileType = blobToUpload.type || "image/jpeg";
+      const extension = fileType.split("/")[1] || "jpg";
+      formData.append("photo", blobToUpload, `profile-${Date.now()}.${extension}`);
+
+      await profileAPI.uploadPhoto(formData);
       closeUploadModal();
       loadProfile();
     } catch (error) {
