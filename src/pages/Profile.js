@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { profileAPI, contactAPI, getImageUrl } from "../utils/api";
+import { profileAPI, getImageUrl } from "../utils/api";
 import { isAuthenticated } from "../utils/auth";
 import Navbar from "../components/Navbar";
 //import { aboutFeatures } from "../utils/aboutContent";
@@ -374,32 +374,37 @@ const Profile = () => {
     }
   };
 
-  const handleContactSubmit = async (e) => {
+  const handleContactSubmit = (e) => {
     e.preventDefault();
     setContactLoading(true);
     setContactStatus({ type: "", message: "" });
 
-    try {
-      const response = await contactAPI.send(contactForm);
+    const { name, email, subject, message } = contactForm;
+    const safeSubject = subject?.trim() ? subject.trim() : "TourEase Contact";
+    const bodyLines = [
+      name?.trim() ? `Name: ${name.trim()}` : "Name: (not provided)",
+      email?.trim() ? `Email: ${email.trim()}` : "Email: (not provided)",
+      "",
+      message?.trim() ? message.trim() : "",
+    ].join("\n");
+    const encodedSubject = encodeURIComponent(safeSubject);
+    const encodedBody = encodeURIComponent(bodyLines);
+    const gmailUrl =
+      "https://mail.google.com/mail/?view=cm&fs=1&to=shridharh303@gmail.com&su=" +
+      `${encodedSubject}&body=${encodedBody}`;
+    const mailtoUrl = `mailto:shridharh303@gmail.com?subject=${encodedSubject}&body=${encodedBody}`;
 
-      // ✅ Show animated toast feedback
-      setContactStatus({
-        type: "success",
-        message: response.data.message || "Message sent successfully!",
-      });
-
-      // ✨ Clear form after success (small delay)
-      setTimeout(() => {
-        setContactForm({ name: "", email: "", subject: "", message: "" });
-      }, 800);
-    } catch (error) {
-      setContactStatus({
-        type: "error",
-        message: error.response?.data?.error || "Failed to send message. Please try again.",
-      });
-    } finally {
-      setContactLoading(false);
+    const popup = window.open(gmailUrl, "_blank", "noopener,noreferrer");
+    if (!popup) {
+      window.location.href = mailtoUrl;
     }
+
+    setContactStatus({
+      type: "success",
+      message: "Opening Gmail compose window. If it doesn't open, email us at shridharh303@gmail.com.",
+    });
+    setContactForm({ name: "", email: "", subject: "", message: "" });
+    setContactLoading(false);
   };
 
   const handleLogout = async () => {
