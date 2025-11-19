@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { profileAPI, contactAPI } from "../utils/api";
+import { profileAPI, contactAPI, getImageUrl } from "../utils/api";
 import { isAuthenticated } from "../utils/auth";
 import Navbar from "../components/Navbar";
 //import { aboutFeatures } from "../utils/aboutContent";
@@ -42,6 +42,9 @@ const Profile = () => {
   const [contactStatus, setContactStatus] = useState({ type: "", message: "" });
   const [contactLoading, setContactLoading] = useState(false);
   const [stats, setStats] = useState({ visited: 0, reviews: 0, photos: 0 });
+  const profileImageSrc = profile?.profile_photo_url
+    ? getImageUrl(profile.profile_photo_url)
+    : profile?.profile_photo_base64 || null;
 
   const handleTabChange = useCallback(
     (tabId) => {
@@ -485,9 +488,9 @@ const Profile = () => {
                     transition={{ type: "spring", stiffness: 300 }}
                     style={{ position: "relative" }}
                   >
-                    {profile.profile_photo_base64 ? (
+                    {profileImageSrc ? (
                       <img
-                        src={profile.profile_photo_base64}
+                        src={profileImageSrc}
                         alt="Profile"
                         onClick={() => setShowPhotoPreview(true)}
                         style={{
@@ -517,7 +520,7 @@ const Profile = () => {
                           boxShadow: "0 10px 40px rgba(212, 175, 55, 0.4)",
                         }}
                       >
-                        {profile.username?.charAt(0).toUpperCase() || "U"}
+                        {profile?.username?.charAt(0).toUpperCase() || "U"}
                       </div>
                     )}
                     <motion.button
@@ -1221,7 +1224,7 @@ const Profile = () => {
         </div>
       </div>
       <AnimatePresence>
-        {showPhotoPreview && profile?.profile_photo_base64 && (
+        {showPhotoPreview && profileImageSrc && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -1259,7 +1262,7 @@ const Profile = () => {
               }}
             >
               <img
-                src={profile.profile_photo_base64}
+                src={profileImageSrc}
                 alt="Profile preview"
                 style={{
                   width: "100%",

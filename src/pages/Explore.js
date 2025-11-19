@@ -300,25 +300,21 @@ const Explore = () => {
           });
         }
 
-        if (geoapifySettled.status === "fulfilled" && Array.isArray(geoapifySettled.value)) {
-          const [cityResults, touristResults] = geoapifySettled.value;
-          let combinedFeatures = [];
-          if (cityResults.status === "fulfilled" && cityResults.value.data.features) {
-            combinedFeatures.push(...cityResults.value.data.features);
-          }
-          if (touristResults.status === "fulfilled" && touristResults.value.data.features) {
-            combinedFeatures.push(...touristResults.value.data.features);
-          }
-          combinedFeatures.forEach((feature) => {
+        if (geoapifySettled.status === "fulfilled") {
+          const suggestionPayload = geoapifySettled.value?.data?.suggestions || [];
+          suggestionPayload.forEach((item) => {
             const text =
-              feature.properties.name ||
-              feature.properties.formatted ||
-              feature.properties.address_line1;
+              item.name || item.formattedAddress || item.city || item.state || item.country;
             if (!text) return;
             const key = text.toLowerCase();
             if (seen.has(key)) return;
             seen.add(key);
-            combinedSuggestions.push({ text, source: "geoapify" });
+            combinedSuggestions.push({
+              text,
+              source: "geoapify",
+              city: item.city,
+              state: item.state,
+            });
           });
         }
 

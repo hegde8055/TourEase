@@ -206,38 +206,11 @@ const geoapifyPlacesAPI = {
   getWeather: async (lat, lng) =>
     axios.get(`${API_BASE}/api/places/weather`, { params: { lat, lng } }),
 
-  getAutocomplete: async (text) => {
-    // This now correctly reads your .env file
-    const GEOAPIFY_API_KEY = process.env.REACT_APP_GEOAPIFY_API_KEY;
-
-    if (!GEOAPIFY_API_KEY || GEOAPIFY_API_KEY === "YOUR_GEOAPIFY_API_KEY") {
-      console.warn("Geoapify API key is missing. Autocomplete will not work.");
-      return Promise.reject(new Error("Missing Geoapify API key"));
-    }
-
-    const params = new URLSearchParams({
-      text: text,
-      apiKey: GEOAPIFY_API_KEY,
-      type: "city",
-      filter: "countrycode:in",
-      bias: "countrycode:in",
-      limit: 5,
-    });
-
-    const touristParams = new URLSearchParams({
-      text: text,
-      apiKey: GEOAPIFY_API_KEY,
-      categories: "tourism.attraction",
-      filter: "countrycode:in",
-      bias: "countrycode:in",
-      limit: 5,
-    });
-
-    const citySearch = axios.get(`https://api.geoapify.com/v1/geocode/autocomplete?${params}`);
-    const touristSearch = axios.get(`https://api.geoapify.com/v2/places?${touristParams}`);
-
-    return Promise.allSettled([citySearch, touristSearch]);
-  },
+  getAutocomplete: async (text) =>
+    axios.post(`${API_BASE}/api/places/search`, {
+      query: text,
+      limit: 8,
+    }),
 };
 
 export { geoapifyPlacesAPI as placesAPI };
