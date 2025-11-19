@@ -110,150 +110,155 @@ const SignIn = () => {
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
-      <div className="left">
-        <div className="form-container">
-          <div className="logo">
-            <span>Tour</span>
-            <span>Ease</span>
-          </div>
-
-          {error && (
-            <div
-              style={{
-                background: "rgba(239, 68, 68, 0.1)",
-                border: "1px solid rgba(239, 68, 68, 0.3)",
-                color: "#fca5a5",
-                padding: "12px",
-                borderRadius: "10px",
-                marginBottom: "15px",
-                textAlign: "center",
-              }}
-            >
-              {error}
+    <div className="auth-page">
+      <div className="auth-layout">
+        <div className="left">
+          <div className="form-container signin-form-container">
+            <div className="logo">
+              <span>Tour</span>
+              <span>Ease</span>
             </div>
-          )}
 
-          <form id="signinForm" onSubmit={handleSubmit}>
-            <label>Email address</label>
-            <input
-              id="signinEmail"
-              type="email"
-              name="email"
-              placeholder="Email address"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              aria-label="Email"
-            />
-            <label>Password</label>
-            <div style={{ position: "relative" }}>
-              <input
-                id="signinPassword"
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                aria-label="Password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
+            {error && (
+              <div
                 style={{
-                  position: "absolute",
-                  right: "10px",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "transparent",
-                  border: "none",
-                  color: "#94a3b8",
-                  cursor: "pointer",
-                  fontSize: "0.85rem",
+                  background: "rgba(239, 68, 68, 0.1)",
+                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                  color: "#fca5a5",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  marginBottom: "15px",
+                  textAlign: "center",
                 }}
               >
-                {showPassword ? "Hide" : "Show"}
+                {error}
+              </div>
+            )}
+
+            <form id="signinForm" onSubmit={handleSubmit}>
+              <label>Email address</label>
+              <input
+                id="signinEmail"
+                type="email"
+                name="email"
+                placeholder="Email address"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                aria-label="Email"
+              />
+              <label>Password</label>
+              <div style={{ position: "relative" }}>
+                <input
+                  id="signinPassword"
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  aria-label="Password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: "absolute",
+                    right: "10px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "transparent",
+                    border: "none",
+                    color: "#94a3b8",
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                  }}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+
+              <div className="checkbox">
+                <div className="checkbox-left">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <label htmlFor="rememberMe">Remember me</label>
+                </div>
+                <Link
+                  to="/forgot-password"
+                  id="forgotLink"
+                  style={{
+                    color: "#60a5fa",
+                    textDecoration: "none",
+                    fontSize: "0.9rem",
+                    fontWeight: "500",
+                    transition: "all 0.3s ease",
+                    padding: "4px 8px",
+                    borderRadius: "4px",
+                    display: "inline-block",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.color = "#93c5fd";
+                    e.target.style.backgroundColor = "rgba(96, 165, 250, 0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.color = "#60a5fa";
+                    e.target.style.backgroundColor = "transparent";
+                  }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              <button type="submit" className="btn" disabled={loading}>
+                {loading ? "Signing In..." : "Sign In"}
+              </button>
+            </form>
+
+            <div className="divider">or</div>
+
+            <div className="social-buttons">
+              <button>
+                <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" />
+                Sign in with Google
+              </button>
+              <button>
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
+                  alt="Facebook"
+                  style={{ height: "18px" }}
+                />
+                Sign in with Facebook
               </button>
             </div>
 
-            <div className="checkbox">
-              <div className="checkbox-left">
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                />
-                <label htmlFor="rememberMe">Remember me</label>
-              </div>
-              <Link
-                to="/forgot-password"
-                id="forgotLink"
-                style={{
-                  color: "#60a5fa",
-                  textDecoration: "none",
-                  fontSize: "0.9rem",
-                  fontWeight: "500",
-                  transition: "all 0.3s ease",
-                  padding: "4px 8px",
-                  borderRadius: "4px",
-                  display: "inline-block",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = "#93c5fd";
-                  e.target.style.backgroundColor = "rgba(96, 165, 250, 0.1)";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = "#60a5fa";
-                  e.target.style.backgroundColor = "transparent";
-                }}
-              >
-                Forgot password?
-              </Link>
+            <div className="signin">
+              Don't have an account? <Link to="/signup">Sign Up</Link>
             </div>
-
-            <button type="submit" className="btn" disabled={loading}>
-              {loading ? "Signing In..." : "Sign In"}
-            </button>
-          </form>
-
-          <div className="divider">or</div>
-
-          <div className="social-buttons">
-            <button>
-              <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" />
-              Sign in with Google
-            </button>
-            <button>
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
-                alt="Facebook"
-                style={{ height: "18px" }}
-              />
-              Sign in with Facebook
-            </button>
-          </div>
-
-          <div className="signin">
-            Don't have an account? <Link to="/signup">Sign Up</Link>
           </div>
         </div>
-      </div>
 
-      <div className="right">
-        <video
-          className="hero-video"
-          autoPlay
-          loop
-          playsInline
-          volume="0.5"
-          onLoadedMetadata={(e) => (e.target.volume = 0.5)}
-        >
-          <source src="/assets/Welcome to Karnataka _ One State Many Worlds.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-        <div className="video-overlay"></div>
+        <div className="right">
+          <video
+            className="hero-video"
+            autoPlay
+            loop
+            playsInline
+            volume="0.5"
+            onLoadedMetadata={(e) => (e.target.volume = 0.5)}
+          >
+            <source
+              src="/assets/Welcome to Karnataka _ One State Many Worlds.mp4"
+              type="video/mp4"
+            />
+            Your browser does not support the video tag.
+          </video>
+          <div className="video-overlay"></div>
+        </div>
       </div>
     </div>
   );

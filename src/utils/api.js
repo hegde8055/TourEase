@@ -82,10 +82,10 @@ export const enhancedProfileAPI = {
 
 export const authAPI = {
   login: async (credentials) => {
-    return await axios.post(`${API_BASE}/api/auth/login`, credentials);
+    return await axios.post(`${API_BASE}/api/signin`, credentials);
   },
   register: async (userData) => {
-    return await axios.post(`${API_BASE}/api/auth/register`, userData);
+    return await axios.post(`${API_BASE}/api/signup`, userData);
   },
   verifyOtp: async (otpData) => {
     return await axios.post(`${API_BASE}/api/auth/verify-otp`, otpData);
