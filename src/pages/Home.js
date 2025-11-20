@@ -590,7 +590,7 @@ const Home = () => {
           style={{
             position: "relative",
             maxWidth: "680px",
-            margin: "160px auto 0",
+            margin: "190px auto 0",
             textAlign: "center",
             padding: "36px 40px",
             borderRadius: "28px",
