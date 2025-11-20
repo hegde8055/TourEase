@@ -55,18 +55,36 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .page-video-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(2,6,23,0.32) 0%, rgba(2,6,23,0.65) 60%, rgba(2,6,23,0.82) 100%);
-  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 10, 20, 0.70) 0%,
+    rgba(5, 10, 20, 0.85) 40%,
+    rgba(5, 10, 20, 0.90) 100%
+  );
+  z-index: 1;
 }
 
+
 /* MAIN CONTAINER */
-.about-shell{
-  max-width:1200px;
-  margin:0 auto;
-  padding: 0 16px 80px 16px; 
+.about-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px 80px 16px;
   position: relative;
   z-index: 2;
+
+  /* NEW for Option 2 */
+  background: linear-gradient(
+    180deg,
+    rgba(8, 12, 20, 0.60) 0%, 
+    rgba(8, 12, 20, 0.78) 20%,
+    rgba(8, 12, 20, 0.92) 60%,
+    rgba(8, 12, 20, 1) 100%
+  );
+  border-radius: 0 0 18px 18px;
+  backdrop-filter: blur(10px);
 }
+
 
 /* PARTICLES */
 .hero-particles{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none}
