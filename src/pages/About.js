@@ -139,12 +139,14 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 
 /* Founder / profile section - split layout */
 /* --- FIX: Added margin-top: 40px to create space below the hero section --- */
-.profile-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 24px;background:linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));border-radius:18px;margin-top:40px;box-shadow:0 20px 45px rgba(0,0,0,0.25);overflow:visible;border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(16px)}
-.profile-photo{width:100%;height:420px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.16);box-shadow:0 10px 30px rgba(0,0,0,0.28);backdrop-filter:blur(6px)}
-.profile-meta{color:rgba(226,232,240,0.86)}
-.profile-name{font-size:1.8rem;font-weight:800;color:rgba(255,255,255,0.95)}
-.profile-role{color:rgba(255,255,255,0.7);margin-bottom:12px}
-.profile-bio{color:rgba(226,232,240,0.82);line-height:1.7}
+.profile-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 24px;background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025));border-radius:18px;margin-top:40px;box-shadow:0 20px 45px rgba(0,0,0,0.25);overflow:visible;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(18px);transition:transform 0.45s ease, box-shadow 0.45s ease, border 0.45s ease}
+.profile-wrap:hover{transform:translateY(-8px) scale(1.01);box-shadow:0 28px 65px rgba(0,0,0,0.35);border-color:rgba(227,184,165,0.45)}
+.profile-photo{width:100%;height:420px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.18);box-shadow:0 10px 30px rgba(0,0,0,0.28);backdrop-filter:blur(6px);transition:transform 0.45s ease}
+.profile-wrap:hover .profile-photo{transform:scale(1.02)}
+.profile-meta{color:#e3b8a5}
+.profile-name{font-size:1.8rem;font-weight:800;color:#f5c6b8}
+.profile-role{color:#eac2b2;margin-bottom:12px}
+.profile-bio{color:#e8c5b6;line-height:1.7}
 
 /* --- CSS FOR ICONS ADDED HERE --- */
 .feature-icon {
@@ -173,10 +175,11 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .feature p{font-size:0.95rem;color:rgba(226,232,240,0.9)}
 
 /* Services band */
-.services-band{background:linear-gradient(135deg,#81d8d0 0%,#b0f0ea 100%);color:#071122;padding:36px 18px;margin-top:32px;border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,0.18)}
+.services-band{background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));color:#0abab5;padding:36px 18px;margin-top:32px;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(18px);transition:transform 0.45s ease, box-shadow 0.45s ease, border 0.45s ease}
+.services-band:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 26px 60px rgba(0,0,0,0.3);border-color:rgba(10,186,181,0.45)}
 .services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1100px;margin:0 auto}
-.services-grid h3{font-weight:800;margin-bottom:6px}
-.services-list{font-size:0.92rem;color:#081225;line-height:1.6}
+.services-grid h3{font-weight:800;margin-bottom:6px;color:#76e0db}
+.services-list{font-size:0.92rem;color:rgba(180,255,250,0.88);line-height:1.6}
 
 /* Clients */
 .clients{padding:44px 20px 10px 20px;text-align:center}
