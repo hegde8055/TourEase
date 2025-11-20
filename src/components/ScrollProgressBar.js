@@ -4,10 +4,27 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 const BAR_GRADIENT = "linear-gradient(90deg,#d4af37 0%,#f5c6b8 50%,#0abab5 100%)";
 
 const readScrollProgress = () => {
-  const scrollingElement = document.scrollingElement || document.documentElement || document.body;
-  const maxScrollable = Math.max(scrollingElement.scrollHeight - scrollingElement.clientHeight, 1);
-  const ratio = scrollingElement.scrollTop / maxScrollable;
-  if (!Number.isFinite(ratio)) return 0;
+  const scrollTop =
+    window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1;
+
+  const documentHeight = Math.max(
+    document.body.scrollHeight,
+    document.documentElement.scrollHeight,
+    document.body.offsetHeight,
+    document.documentElement.offsetHeight,
+    document.body.clientHeight,
+    document.documentElement.clientHeight
+  );
+
+  const maxScrollable = Math.max(documentHeight - viewportHeight, 1);
+  const ratio = scrollTop / maxScrollable;
+
+  if (!Number.isFinite(ratio)) {
+    return 0;
+  }
+
   return Math.min(Math.max(ratio, 0), 1);
 };
 
