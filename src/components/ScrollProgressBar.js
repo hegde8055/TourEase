@@ -18,39 +18,37 @@ const ScrollProgressBar = () => {
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
+    const scrollingElement = document.scrollingElement || document.documentElement || document.body;
+
     let animationFrameId;
 
     const updateProgress = () => {
-      const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1;
-      const scrollHeight = document.documentElement.scrollHeight || 1;
-      const maxScrollable = Math.max(scrollHeight - viewportHeight, 1);
-      const rawValue = scrollTop / maxScrollable;
-      const clampedValue = Math.min(Math.max(rawValue, 0), 1);
-      progress.set(Number.isFinite(clampedValue) ? clampedValue : 0);
+      const scrollTop = scrollingElement.scrollTop;
+      const maxScrollable = Math.max(
+        scrollingElement.scrollHeight - scrollingElement.clientHeight,
+        1
+      );
+      const ratio = scrollTop / maxScrollable;
+      const clamped = Math.min(Math.max(ratio, 0), 1);
+      progress.set(Number.isFinite(clamped) ? clamped : 0);
     };
 
     const scheduleUpdate = () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-      animationFrameId = requestAnimationFrame(updateProgress);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = window.requestAnimationFrame(updateProgress);
     };
 
-    // Add event listeners for both scroll and resize
+    scrollingElement.addEventListener("scroll", scheduleUpdate, { passive: true });
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
     window.addEventListener("resize", scheduleUpdate, { passive: true });
 
-    // Set initial progress
     updateProgress();
 
-    // Cleanup function
     return () => {
+      scrollingElement.removeEventListener("scroll", scheduleUpdate);
       window.removeEventListener("scroll", scheduleUpdate);
       window.removeEventListener("resize", scheduleUpdate);
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
   }, [progress]);
 
