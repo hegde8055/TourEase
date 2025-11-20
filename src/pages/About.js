@@ -1,23 +1,34 @@
 import React, { useEffect } from "react";
 import { useScroll, useTransform, motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+// --- ICONS ADDED HERE ---
 import { BsCloudSun, BsSignpostSplit, BsGeoAlt, BsLightbulb } from "react-icons/bs";
 
+// -----------------------------------------------------------------------------
+// Redesigned About.js — cleaned, fixed imports, corrected CSS and animations
+// All frontend logic (styles, layout, animations) is contained in this file
+// Replace '/assets/founder.jpg' and heroVideoSrc with your actual assets when deploying
+// -----------------------------------------------------------------------------
+
 const aboutStyles = `
+/* CULPRIT FIX 1: Made resets more aggressive with !important */
 html, body, #root {
   margin: 0 !important;
   padding: 0 !important;
   height: 100%;
 }
+/* safety: hide any leftover spacer elements that use classnames containing 'spacer' */
 [class*="spacer"], [id*="spacer"] {
   display: none !important;
   height: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
 }
+/* ensure hero content visually starts under/at the very top */
 .hero-content {
   margin-top: 50px !important;
 }
+
 
 :root{
   --gold: #caa72b;
@@ -25,26 +36,29 @@ html, body, #root {
   --muted: rgba(226,232,240,0.92);
 }
 *{box-sizing:border-box}
+/* Base font-family is now part of the main reset above */
 html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
 
-/* PAGE SHELL */
+/* FIX: This is the fix for the top gap.
+  This negative margin cancels the 90px padding from App.css.
+*/
 .about-page{
-  margin: -90px 0 0 0;
+  margin: -90px 0 0 0; /* This is the fix */
   padding: 0;
+  /* background: linear-gradient...; <-- REMOVED to allow video bg */
   color:var(--muted);
   min-height:100vh;
-  position: relative;
-  will-change: opacity, transform, filter;
+  position: relative; /* For z-index stacking */
 }
 
-/* FULL PAGE VIDEO BACKGROUND */
+/* --- NEW: FULL PAGE VIDEO BACKGROUND --- */
 .page-video-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  z-index: -2;
+  z-index: -2; /* Behind all content */
 }
 .page-video-background video {
   width: 100%;
@@ -55,34 +69,17 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .page-video-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(5, 10, 20, 0.70) 0%,
-    rgba(5, 10, 20, 0.85) 40%,
-    rgba(5, 10, 20, 0.90) 100%
-  );
-  z-index: 1;
+  background: linear-gradient(180deg, rgba(2,6,23,0.32) 0%, rgba(2,6,23,0.65) 60%, rgba(2,6,23,0.82) 100%);
+  z-index: -1; /* On top of video, behind content */
 }
 
-
-/* MAIN CONTAINER */
-.about-shell {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 16px 80px 16px;
-  position: relative;
+/* This padding is for the bottom gap */
+.about-shell{
+  max-width:1200px;
+  margin:0 auto;
+  padding: 0 16px 80px 16px; 
+  position: relative; /* Ensure content stays on top */
   z-index: 2;
-
-  /* NEW for Option 2 */
-  background: linear-gradient(
-    180deg,
-    rgba(8, 12, 20, 0.60) 0%, 
-    rgba(8, 12, 20, 0.78) 20%,
-    rgba(8, 12, 20, 0.92) 60%,
-    rgba(8, 12, 20, 1) 100%
-  );
-  border-radius: 0 0 18px 18px;
-  backdrop-filter: blur(10px);
 }
 
 
@@ -102,7 +99,9 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 @keyframes floatUp{0%{transform:translateY(120vh) scale(0.6);opacity:0}20%{opacity:0.9}100%{transform:translateY(-20vh) scale(1.1);opacity:0}}
 @keyframes heroGlowSweep{0%{background-position:-150% 50%;filter:drop-shadow(0 0 24px rgba(236,198,180,0.65));}100%{background-position:170% 50%;filter:drop-shadow(0 0 0 rgba(236,198,180,0));}}
 
-/* HERO SECTION */
+/* This padding is correct. It pushes the *content* down so the navbar
+  doesn't hide it.
+*/
 .hero-section{
   position: relative;
   min-height: 70vh;
@@ -112,258 +111,90 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   margin: 50px 0px 0px 0px ;
   top: 0 !important;
 }
+
+/* OLD VIDEO STYLES (REMOVED/DISABLED) */
 .hero-video{ display: none; }
 .hero-overlay{ display: none; }
 
-.hero-content{
-  position:relative;
-  z-index:3;
-  text-align:center;
-  max-width:980px;
-  padding:28px;
-  border-radius:18px;
-  margin-top:12px;
-  backdrop-filter:blur(10px);
-  background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
-  border:1px solid rgba(255,255,255,0.06);
-  opacity:0;
-  transform:translateY(24px) scale(0.98);
-  filter: blur(14px);
-}
-.pretitle{
-  display:inline-block;
-  padding:8px 18px;
-  border-radius:999px;
-  background:rgba(255,255,255,0.02);
-  border:1px solid rgba(255,255,255,0.03);
-  letter-spacing:0.12em;
-  text-transform:uppercase;
-  font-size:0.78rem;
-  color:var(--gold);
-}
-.hero-title{
-  font-weight:800;
-  font-size:clamp(2rem,5vw,3.6rem);
-  line-height:1.04;
-  margin:18px 0;
-  background:linear-gradient(120deg,var(--gold),#f7d36b);
-  -webkit-background-clip:text;
-  color:transparent;
-  background-size:120%;
-}
-.hero-title.hero-title-glow{
-  animation:heroGlowSweep 1.8s ease-out forwards;
-  background-size:220%;
-  filter:drop-shadow(0 0 18px rgba(236,198,180,0.55));
-}
-.hero-blurb{
-  max-width:760px;
-  margin:10px auto 18px;
-  color:rgba(226,232,240,0.9);
-  font-size:1.04rem
-}
-.hero-cta{
-  display:flex;
-  gap:14px;
-  justify-content:center;
-  flex-wrap:wrap
-}
-
-/* BUTTONS */
-.btn{
-  padding:12px 30px;
-  border-radius:999px;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:0.06em;
-  border:none;
-  cursor:pointer;
-  outline:none
-}
-.btn-primary{
-  background:linear-gradient(135deg,#e3b8a5 0%,#f6d4c8 100%);
-  color:#2a0e12;
-  border:1px solid rgba(255,255,255,0.18);
-  transition:transform 0.28s cubic-bezier(.2,.9,.2,1), box-shadow 0.35s ease;
-  position:relative;
-  overflow:hidden
-}
-.btn-primary:hover{
-  transform:translateY(-4px) scale(1.03);
-  box-shadow:0 14px 40px rgba(227,146,146,0.12)
-}
-.btn-primary::after{
-  content:'';
-  position:absolute;
-  left:-60%;
-  top:0;
-  height:100%;
-  width:60%;
-  background:linear-gradient(120deg, rgba(255,255,255,0.25), rgba(255,255,255,0.06), rgba(255,255,255,0.18));
-  transform:skewX(-18deg);
-  transition:all 0.9s ease;
-  opacity:0
-}
-.btn-primary:hover::after{
-  left:120%;
-  opacity:1
-}
-@keyframes neonPulse{0%{box-shadow:0 0 0 rgba(231,150,150,0)}50%{box-shadow:0 0 24px rgba(231,150,150,0.18)}100%{box-shadow:0 0 0 rgba(231,150,150,0)}}
+.hero-content{position:relative;z-index:3;text-align:center;max-width:980px;padding:28px;border-radius:18px;margin-top:12px;backdrop-filter:blur(10px);background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);opacity:0;transform:translateY(12px);transition:opacity 0.7s ease, transform 0.7s ease}
+.hero-content.visible{opacity:1;transform:none}
+.pretitle{display:inline-block;padding:8px 18px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);letter-spacing:0.12em;text-transform:uppercase;font-size:0.78rem;color:var(--gold)}
+.hero-title{font-weight:800;font-size:clamp(2rem,5vw,3.6rem);line-height:1.04;margin:18px 0;background:linear-gradient(120deg,var(--gold),#f7d36b);-webkit-background-clip:text;color:transparent;background-size:120%;}
+.hero-title.hero-title-glow{animation:heroGlowSweep 1.8s ease-out forwards;background-size:220%;filter:drop-shadow(0 0 18px rgba(236,198,180,0.55));}
+.hero-blurb{max-width:760px;margin:10px auto 18px;color:rgba(226,232,240,0.9);font-size:1.04rem}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{padding:12px 30px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border:none;cursor:pointer;outline:none}
+/* Primary button clean */
+.btn-primary{background:linear-gradient(135deg,#e3b8a5 0%,#f6d4c8 100%);color:#2a0e12;border:1px solid rgba(255,255,255,0.18);transition:transform 0.28s cubic-bezier(.2,.9,.2,1), box-shadow 0.35s ease;position:relative;overflow:hidden}
+.btn-primary:hover{transform:translateY(-4px) scale(1.03);box-shadow:0 14px 40px rgba(227,146,146,0.12)}
+.btn-primary::after{content:'';position:absolute;left:-60%;top:0;height:100%;width:60%;background:linear-gradient(120deg, rgba(255,255,255,0.25), rgba(255,255,255,0.06), rgba(255,255,255,0.18));transform:skewX(-18deg);transition:all 0.9s ease;opacity:0}
+.btn-primary:hover::after{left:120%;opacity:1}
 .btn-primary.neon{animation:neonPulse 2.8s ease-in-out infinite}
-.btn-ghost{
-  background:rgba(255,255,255,0.12);
-  border:1px solid rgba(255,255,255,0.12);
-  color:var(--muted);
-  transition:box-shadow 0.3s ease, transform 0.3s ease
-}
-.btn-ghost:hover{
-  box-shadow:0 10px 28px rgba(0,0,0,0.28);
-  transform:translateY(-3px)
-}
+@keyframes neonPulse{0%{box-shadow:0 0 0 rgba(231,150,150,0)}50%{box-shadow:0 0 24px rgba(231,150,150,0.18)}100%{box-shadow:0 0 0 rgba(231,150,150,0)}}
+.btn-ghost{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.12);color:var(--muted);transition:box-shadow 0.3s ease}
+.btn-ghost:hover{box-shadow:0 10px 28px rgba(0,0,0,0.28);transform:translateY(-3px)}
 
-/* CONTENT WRAPPER */
+
 .content-wrapper{
   max-width:1200px;  
 }
 
-/* PROFILE SECTION */
-.profile-wrap{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:40px;
-  align-items:center;
-  padding:40px 24px;
-  background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025));
-  border-radius:18px;
-  margin-top:40px;
-  box-shadow:0 20px 45px rgba(0,0,0,0.25);
-  overflow:visible;
-  border:1px solid rgba(255,255,255,0.1);
-  backdrop-filter:blur(18px);
-}
-.profile-photo{
-  width:100%;
-  height:420px;
-  object-fit:cover;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,0.18);
-  box-shadow:0 10px 30px rgba(0,0,0,0.28);
-  backdrop-filter:blur(6px);
-}
+/* Founder / profile section - split layout */
+/* --- FIX: Added margin-top: 40px to create space below the hero section --- */
+.profile-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 24px;background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025));border-radius:18px;margin-top:40px;box-shadow:0 20px 45px rgba(0,0,0,0.25);overflow:visible;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(18px);transition:transform 0.45s ease, box-shadow 0.45s ease, border 0.45s ease}
+.profile-wrap:hover{transform:translateY(-8px) scale(1.01);box-shadow:0 28px 65px rgba(0,0,0,0.35);border-color:rgba(227,184,165,0.45)}
+.profile-photo{width:100%;height:420px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.18);box-shadow:0 10px 30px rgba(0,0,0,0.28);backdrop-filter:blur(6px);transition:transform 0.45s ease}
+.profile-wrap:hover .profile-photo{transform:scale(1.02)}
 .profile-meta{color:#e3b8a5}
-.profile-name{
-  font-size:1.8rem;
-  font-weight:800;
-  color:#f5c6b8;
-  display:inline-block;
-  position:relative
-}
-.profile-name.shimmer-once{
-  background:linear-gradient(120deg,#fde6dc,#f5c6b8,#fee9df);
-  background-size:220%;
-  -webkit-background-clip:text;
-  color:transparent;
-  animation:roseGoldShimmer 1.7s ease-out forwards
-}
-.profile-role{
-  color:#eac2b2;
-  margin-bottom:12px;
-  display:inline-block;
-  position:relative;
-  font-size:0.92rem;
-  font-weight:600
-}
-.profile-role.shimmer-once{
-  background:linear-gradient(120deg,#fde6dc,#f7d2c2,#fee9df);
-  background-size:220%;
-  -webkit-background-clip:text;
-  color:transparent;
-  animation:roseGoldShimmer 1.6s ease-out forwards
-}
+.profile-name{font-size:1.8rem;font-weight:800;color:#f5c6b8;display:inline-block;position:relative}
+.profile-name.shimmer-once{background:linear-gradient(120deg,#fde6dc,#f5c6b8,#fee9df);background-size:220%;-webkit-background-clip:text;color:transparent;animation:roseGoldShimmer 1.7s ease-out forwards}
+.profile-role{color:#eac2b2;margin-bottom:12px;display:inline-block;position:relative}
+.profile-role.shimmer-once{background:linear-gradient(120deg,#fde6dc,#f7d2c2,#fee9df);background-size:220%;-webkit-background-clip:text;color:transparent;animation:roseGoldShimmer 1.6s ease-out forwards}
 .profile-bio{color:#e8c5b6;line-height:1.7}
 @keyframes roseGoldShimmer{0%{background-position:-160% 50%;filter:drop-shadow(0 0 12px rgba(236,198,180,0.55));}100%{background-position:160% 50%;filter:drop-shadow(0 0 0 rgba(236,198,180,0));}}
 
-/* ICONS */
+/* --- CSS FOR ICONS ADDED HERE --- */
 .feature-icon {
-  font-size: 2.5rem;
+  font-size: 2.5rem; /* 40px */
   color: var(--gold);
   margin-bottom: 16px;
   line-height: 1;
 }
 
-/* SECTION HEADING */
+/* --- NEW: CSS FOR SECTION HEADING --- */
 .section-heading {
   text-align: center;
   font-size: clamp(1.8rem, 4vw, 2.5rem);
   font-weight: 800;
   color: var(--muted);
-  margin-top: 60px;
-  margin-bottom: 40px;
+  margin-top: 60px; /* Space above the heading */
+  margin-bottom: 40px; /* Space between heading and grid */
 }
 
-/* FEATURES GRID */
-.features{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:28px;
-  margin: 0 0 60px 0;
-  padding:0;
-  list-style:none
-}
-.feature{
-  background:rgba(255,255,255,0.06);
-  backdrop-filter:blur(12px);
-  padding:24px;
-  border-radius:14px;
-  box-shadow:0 10px 24px rgba(0,0,0,0.18);
-  opacity:0;
-  transform:translateY(24px) scale(0.97);
-  filter: blur(10px);
-  will-change: transform, opacity, filter;
-  transition: box-shadow 0.35s ease, transform 0.35s ease;
-}
-.feature:hover{
-  transform:translateY(-8px) scale(1.02);
-  box-shadow:0 22px 44px rgba(0,0,0,0.26)
-}
+/* Feature grid */
+.features{display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin: 0 0 60px 0;padding:0;list-style:none} /* MODIFIED: margin from 60px 0 */
+.feature{background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);padding:24px;border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,0.18);transition:transform 0.35s cubic-bezier(.2,.9,.2,1),box-shadow 0.35s ease,opacity 0.6s ease;opacity:0;transform:translateY(18px)}
+.feature.visible{opacity:1;transform:none}
+.feature:hover{transform:translateY(-8px) scale(1.02);box-shadow:0 22px 44px rgba(0,0,0,0.26)}
 .feature h4{margin:6px 0;color:#e9b94a}
 .feature p{font-size:0.95rem;color:rgba(226,232,240,0.9)}
 
-/* SERVICES BAND */
-.services-band{
-  background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-  color:#0abab5;
-  padding:36px 18px;
-  margin-top:32px;
-  border-radius:16px;
-  box-shadow:0 20px 40px rgba(0,0,0,0.25);
-  border:1px solid rgba(255,255,255,0.1);
-  backdrop-filter:blur(18px);
-}
-.services-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:18px;
-  max-width:1100px;
-  margin:0 auto
-}
+/* Services band */
+.services-band{background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));color:#0abab5;padding:36px 18px;margin-top:32px;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(18px);transition:transform 0.45s ease, box-shadow 0.45s ease, border 0.45s ease}
+.services-band.in-view{animation:servicesGlassReveal 0.85s ease-out forwards}
+.services-band:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 26px 60px rgba(0,0,0,0.3);border-color:rgba(10,186,181,0.45)}
+.services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1100px;margin:0 auto}
 .services-grid h3{font-weight:800;margin-bottom:6px;color:#76e0db}
 .services-list{font-size:0.92rem;color:rgba(180,255,250,0.88);line-height:1.6}
+@keyframes servicesGlassReveal{0%{opacity:0;transform:translateY(28px) scale(0.95);filter:blur(12px);}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0);}}
 .services-heading{text-align:center;color:#7de3dc;font-weight:900;margin-bottom:8px}
 .services-subheading{text-align:center;color:rgba(125,227,220,0.85);margin-bottom:18px}
 
-/* CLIENTS */
-.clients{
-  padding:44px 20px 10px 20px;
-  text-align:center
-}
-.clients img{
-  max-height:40px;
-  opacity:0.45;
-  margin:0 24px
-}
+/* Clients */
+.clients{padding:44px 20px 10px 20px;text-align:center}
+.clients img{max-height:40px;opacity:0.45;margin:0 24px}
 
-/* CTA PANEL */
+/* CTA panel */
 .cta-panel{
   padding:38px 20px;
   background:linear-gradient(180deg, rgba(8,12,24,0.48), rgba(8,12,24,0.6));
@@ -373,27 +204,28 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   text-align:center;
   border:1px solid rgba(255,255,255,0.06);
 }
+.cta-panel.in-view{animation:ctaPanelRise 0.9s ease-out forwards}
 .cta-panel h3{color:var(--gold);font-weight:800}
 .cta-panel p{
   max-width:860px;  
   margin-bottom: 24px; 
   color:rgba(226,232,240,0.95);
 }
+.cta-panel.in-view .btn-primary{animation:ctaRipple 1.15s ease-out 0.45s forwards}
+@keyframes ctaPanelRise{0%{opacity:0;transform:translateY(30px);}100%{opacity:1;transform:translateY(0);}}
+@keyframes ctaRipple{0%{box-shadow:0 0 0 0 rgba(243,205,189,0.55);}70%{box-shadow:0 0 0 18px rgba(243,205,189,0);}100%{box-shadow:0 0 0 0 rgba(243,205,189,0);}}
 
-/* REVEAL LINE */
-.reveal-line{
-  height:3px;
-  width:140px;
-  background:linear-gradient(90deg,#ffd6c2,#e6b0a0);
-  transform-origin:left;
-  transform:scaleX(0);
-  margin:40px auto 40px;
-  border-radius:4px;
-  z-index:5;
-  position:relative
-}
+/* NEON ROSE-GOLD & SHIMMER */
+.btn-primary{position:relative;overflow:hidden}
+.btn-primary::after{content:'';position:absolute;left:-60%;top:0;height:100%;width:60%;background:linear-gradient(120deg, rgba(255,255,255,0.25), rgba(255,255,255,0.06), rgba(255,255,255,0.18));transform:skewX(-18deg);transition:all 0.9s ease;opacity:0}
+.btn-primary:hover::after{left:120%;opacity:1}
+@keyframes neonPulse{0%{box-shadow:0 0 0 rgba(231,150,150,0)}50%{box-shadow:0 0 24px rgba(231,150,150,0.18)}100%{box-shadow:0 0 0 rgba(231,150,150,0)}}
+.btn-primary.neon{animation:neonPulse 2.8s ease-in-out infinite}
 
-/* RESPONSIVE */
+/* Reveal line */
+.reveal-line{height:3px;width:140px;background:linear-gradient(90deg,#ffd6c2,#e6b0a0);transform-origin:left;transform:scaleX(0);margin:40px auto 40px;border-radius:4px;z-index:5;position:relative}
+
+/* responsive breakpoint follows */
 @media (max-width:980px){
   .profile-wrap{grid-template-columns:1fr;padding:28px}
   .features{grid-template-columns:repeat(2,1fr)}
@@ -408,264 +240,9 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 }
 `;
 
-/* === FRAMER-MOTION VARIANTS (APPLE-STYLE LAYERED REVEAL) === */
-
-const pageVariants = {
-  hidden: { opacity: 0, filter: "blur(12px)" },
-  show: {
-    opacity: 1,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.8,
-      ease: "easeOut",
-    },
-  },
-};
-
-const heroContainer = {
-  hidden: {
-    opacity: 0,
-    y: 40,
-    scale: 0.98,
-    filter: "blur(16px)",
-  },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.85,
-      ease: "easeOut",
-      staggerChildren: 0.16,
-      delayChildren: 0.18,
-    },
-  },
-};
-
-const heroItemTop = {
-  hidden: { opacity: 0, y: 26 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-};
-
-const heroItemMid = {
-  hidden: { opacity: 0, y: 30 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.65, ease: "easeOut" },
-  },
-};
-
-const heroItemBottom = {
-  hidden: { opacity: 0, y: 32 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, ease: "easeOut" },
-  },
-};
-
-const profileContainer = {
-  hidden: {
-    opacity: 0,
-    y: 46,
-    scale: 0.96,
-    filter: "blur(18px)",
-  },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.8,
-      ease: "easeOut",
-      staggerChildren: 0.18,
-      delayChildren: 0.18,
-    },
-  },
-};
-
-const profileImageVariant = {
-  hidden: { opacity: 0, x: -40, filter: "blur(14px)" },
-  show: {
-    opacity: 1,
-    x: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.75, ease: "easeOut" },
-  },
-};
-
-const profileTextVariant = {
-  hidden: { opacity: 0, x: 40, filter: "blur(14px)" },
-  show: {
-    opacity: 1,
-    x: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.8, ease: "easeOut" },
-  },
-};
-
-const featuresContainer = {
-  hidden: {
-    opacity: 0,
-    y: 40,
-    filter: "blur(16px)",
-  },
-  show: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.8,
-      ease: "easeOut",
-      staggerChildren: 0.12,
-      delayChildren: 0.14,
-    },
-  },
-};
-
-const featureItem = {
-  hidden: { opacity: 0, y: 26, scale: 0.96, filter: "blur(10px)" },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    filter: "blur(0px)",
-    transition: { duration: 0.65, ease: "easeOut" },
-  },
-};
-
-const servicesVariants = {
-  hidden: {
-    opacity: 0,
-    y: 40,
-    scale: 0.97,
-    filter: "blur(16px)",
-  },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.75,
-      ease: "easeOut",
-      staggerChildren: 0.16,
-    },
-  },
-};
-
-const servicesTextVariant = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-};
-
-const servicesGridItemVariant = {
-  hidden: { opacity: 0, y: 28 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.65, ease: "easeOut" },
-  },
-};
-
-const clientsSectionVariant = {
-  hidden: {
-    opacity: 0,
-    y: 40,
-    filter: "blur(16px)",
-  },
-  show: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.75,
-      ease: "easeOut",
-      staggerChildren: 0.12,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-const clientsHeadingVariant = {
-  hidden: { opacity: 0, y: 22 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.55, ease: "easeOut" },
-  },
-};
-
-const clientsLogoVariant = {
-  hidden: { opacity: 0, y: 26 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-};
-
-const ctaVariants = {
-  hidden: {
-    opacity: 0,
-    y: 40,
-    scale: 0.97,
-    filter: "blur(16px)",
-  },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    filter: "blur(0px)",
-    transition: {
-      duration: 0.8,
-      ease: "easeOut",
-      staggerChildren: 0.16,
-      delayChildren: 0.14,
-    },
-  },
-};
-
-const ctaHeadingVariant = {
-  hidden: { opacity: 0, y: 24 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: "easeOut" },
-  },
-};
-
-const ctaTextVariant = {
-  hidden: { opacity: 0, y: 26 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.65, ease: "easeOut" },
-  },
-};
-
-const ctaButtonsVariant = {
-  hidden: { opacity: 0, y: 30 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.7, ease: "easeOut" },
-  },
-};
-
 const About = () => {
-  const heroVideoSrc = "/assets/intro.mkv";
+  // hero video kept as variable — UPDATED TO INTRO.MKV
+  const heroVideoSrc = "/assets/intro.mkv"; // <-- update this to your provided video path
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -700,6 +277,7 @@ const About = () => {
     }
   }, []);
 
+  // This JS is still needed to calculate the padding-top for the hero section
   useEffect(() => {
     const computeHeight = () => {
       const nav = document.querySelector("nav, .navbar, header");
@@ -710,7 +288,6 @@ const About = () => {
     window.addEventListener("resize", computeHeight);
     return () => window.removeEventListener("resize", computeHeight);
   }, []);
-
   useEffect(() => {
     const computeNavHeight = () => {
       if (typeof document === "undefined") return;
@@ -727,16 +304,71 @@ const About = () => {
     };
   }, []);
 
+  // motion + scroll effects
   const { scrollYProgress } = useScroll();
   const parallax = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
+
+  const container = {
+    hidden: { opacity: 0, y: 24 },
+    show: { opacity: 1, y: 0, transition: { staggerChildren: 0.12 } },
+  };
+  const item = {
+    hidden: { opacity: 0, y: 12 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  };
+  const profileContainer = {
+    hidden: { opacity: 0, y: 40 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut", staggerChildren: 0.18 },
+    },
+  };
+  const profileItem = {
+    hidden: { opacity: 0, y: 38, scale: 0.94 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.75, ease: "easeOut" },
+    },
+  };
+  const featuresContainer = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.16, delayChildren: 0.1 } },
+  };
+  const featureItem = {
+    hidden: { opacity: 0, y: 30, scale: 0.94 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.65, ease: "easeOut" },
+    },
+  };
+  const servicesVariants = {
+    hidden: { opacity: 0, y: 32, scale: 0.95 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.7, ease: "easeOut" },
+    },
+  };
+  const ctaVariants = {
+    hidden: { opacity: 0, y: 26 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
+  };
 
   const [refProfile, inViewProfile] = useInView({ threshold: 0.2, triggerOnce: true });
   const [refFeatures, inViewFeatures] = useInView({ threshold: 0.15, triggerOnce: true });
   const [heroTitleRef, heroTitleInView] = useInView({ threshold: 0.6, triggerOnce: true });
   const [refServices, inViewServices] = useInView({ threshold: 0.25, triggerOnce: true });
   const [refCTA, inViewCTA] = useInView({ threshold: 0.35, triggerOnce: true });
-  const [refClients, inViewClients] = useInView({ threshold: 0.15, triggerOnce: true });
 
+  // ----------------
+  // Founder details (user provided)
+  // ----------------
   const founder = {
     name: "Shridhar Sharatkumar Hegde",
     role: "Founder & Full-Stack Developer",
@@ -747,10 +379,10 @@ const About = () => {
   };
 
   return (
-    <motion.div className="about-page" variants={pageVariants} initial="hidden" animate="show">
+    <div className="about-page">
       <style>{aboutStyles}</style>
 
-      {/* FULLPAGE BACKGROUND VIDEO */}
+      {/* --- NEW FULLPAGE VIDEO BACKGROUND --- */}
       <div className="page-video-background">
         <motion.video
           poster="/assets/hero-poster.jpg"
@@ -760,18 +392,14 @@ const About = () => {
           playsInline
           preload="none"
           data-src={heroVideoSrc}
-          initial={{ opacity: 0, scale: 1.02 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.1, ease: "easeOut" }}
-        >
-          <source src={heroVideoSrc} type="video/mkv" />
-        </motion.video>
-        <motion.div
-          className="page-video-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1.0, ease: "easeOut" }}
-        />
+          transition={{ duration: 1.1 }}
+        >
+          {/* UPDATED VIDEO TYPE */}
+          <source src={heroVideoSrc} type="video/mkv" />
+        </motion.video>
+        <motion.div className="page-video-overlay" />
       </div>
 
       <div className="about-shell">
@@ -781,10 +409,12 @@ const About = () => {
           style={{ y: parallax }}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, amount: 0.4 }}
+          viewport={{ once: false, amount: 0.25 }}
         >
-          <motion.div className="hero-content" variants={heroContainer}>
-            <motion.span className="pretitle" variants={heroItemTop}>
+          {/* Video and overlay removed from here */}
+
+          <motion.div className="hero-content" variants={container}>
+            <motion.span className="pretitle" variants={item}>
               Guided journeys · Smart planning · One person behind the code
             </motion.span>
 
@@ -792,20 +422,20 @@ const About = () => {
               ref={heroTitleRef}
               className={`hero-title ${heroTitleInView ? "hero-title-glow" : ""}`}
               style={{ marginTop: 12 }}
-              variants={heroItemMid}
+              variants={item}
             >
               TourEase — travel planning that keeps the adventure, loses the friction.
             </motion.h1>
 
-            <motion.p className="hero-blurb" variants={heroItemMid}>
+            <motion.p className="hero-blurb" variants={item}>
               A compact, friendly tool to plan trips, collect memories and hand off the logistics to
               a simple, predictable system. Built with care by one developer who wanted fewer tabs,
               less stress, and more time in the sun.
             </motion.p>
 
-            <motion.div className="hero-cta" variants={heroItemBottom}>
+            <motion.div className="hero-cta" variants={item}>
               <motion.a
-                whileHover={{ scale: 1.03, y: -2 }}
+                whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 className="btn btn-primary"
                 href="/planner"
@@ -813,7 +443,7 @@ const About = () => {
                 Start your itinerary
               </motion.a>
               <motion.a
-                whileHover={{ scale: 1.02, y: -1 }}
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="btn btn-ghost"
                 href="/explore"
@@ -822,7 +452,6 @@ const About = () => {
               </motion.a>
             </motion.div>
           </motion.div>
-
           <div className="hero-particles">
             <span></span>
             <span></span>
@@ -837,9 +466,8 @@ const About = () => {
           </div>
         </motion.section>
 
-        {/* MAIN CONTENT */}
+        {/* Founder / Profile Section */}
         <section className="content-wrapper">
-          {/* PROFILE SECTION */}
           <motion.div
             ref={refProfile}
             className={`profile-wrap ${inViewProfile ? "in-view" : ""}`}
@@ -847,10 +475,10 @@ const About = () => {
             animate={inViewProfile ? "show" : "hidden"}
             variants={profileContainer}
           >
-            <motion.div variants={profileImageVariant}>
+            <motion.div variants={profileItem}>
               <img src={founder.photo} alt={founder.name} className="profile-photo" />
             </motion.div>
-            <motion.div className="profile-meta" variants={profileTextVariant}>
+            <motion.div className="profile-meta" variants={profileItem}>
               <div style={{ display: "flex", gap: 12, alignItems: "baseline" }}>
                 <h2 className={`profile-name ${inViewProfile ? "shimmer-once" : ""}`}>
                   {founder.name}
@@ -867,7 +495,6 @@ const About = () => {
               <div style={{ marginTop: 18 }}>
                 <motion.a
                   whileHover={{ y: -4 }}
-                  whileTap={{ scale: 0.98 }}
                   className="btn btn-primary"
                   href="mailto:shridhars@example.com"
                   style={{ marginRight: 12 }}
@@ -876,57 +503,71 @@ const About = () => {
                 </motion.a>
                 <motion.a
                   whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.98 }}
                   className="btn btn-ghost"
-                  href="mailto:shridhars@example.com"
+                  href={`mailto:shridhars@example.com`}
                 >
                   Contact me
                 </motion.a>
               </div>
 
               <div style={{ marginTop: 22, display: "flex", gap: 14, alignItems: "center" }}>
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: "rgba(7,18,34,0.6)",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                  }}
-                >
+                <div style={{ fontSize: 13, color: "rgba(7,18,34,0.6)", fontWeight: 700 }}>
                   Skills:
                 </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {["React", "Node.js", "MongoDB", "Framer Motion"].map((skill) => (
-                    <span
-                      key={skill}
-                      style={{
-                        background: "#e9e6dd",
-                        color: "#071122",
-                        padding: "6px 10px",
-                        borderRadius: 8,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {skill}
-                    </span>
-                  ))}
+                  <span
+                    style={{
+                      background: "#e9e6dd",
+                      color: "#071122",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                    }}
+                  >
+                    React
+                  </span>
+                  <span
+                    style={{
+                      background: "#e9e6dd",
+                      color: "#071122",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                    }}
+                  >
+                    Node.js
+                  </span>
+                  <span
+                    style={{
+                      background: "#e9e6dd",
+                      color: "#071122",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                    }}
+                  >
+                    MongoDB
+                  </span>
+                  <span
+                    style={{
+                      background: "#e9e6dd",
+                      color: "#071122",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                    }}
+                  >
+                    Framer Motion
+                  </span>
                 </div>
               </div>
             </motion.div>
           </motion.div>
 
-          {/* SERVICES TITLE */}
-          <motion.h2
-            className="section-heading"
-            initial={{ opacity: 0, y: 32, filter: "blur(10px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            viewport={{ once: true, amount: 0.4 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          >
-            Our Services
-          </motion.h2>
+          {/* --- NEW: HEADING ADDED HERE --- */}
+          <h2 className="section-heading">Our Services</h2>
 
-          {/* FEATURES GRID */}
+          {/* --- FEATURES SECTION UPDATED WITH ICONS --- */}
           <motion.div
             ref={refFeatures}
             className="features"
@@ -942,7 +583,7 @@ const About = () => {
             >
               <BsCloudSun className="feature-icon" />
               <h4>Live Weather</h4>
-              <p>Get real-time weather updates for any destination before and during your trip.</p>
+              <p>Get real‑time weather updates for any destination before and during your trip.</p>
             </motion.div>
             <motion.div className="feature" variants={featureItem}>
               <BsSignpostSplit className="feature-icon" />
@@ -957,11 +598,11 @@ const About = () => {
             <motion.div className="feature" variants={featureItem}>
               <BsLightbulb className="feature-icon" />
               <h4>Trip Insights</h4>
-              <p>Auto-generated trip insights based on your itinerary and behavior.</p>
+              <p>Auto‑generated trip insights based on your itinerary and behavior.</p>
             </motion.div>
           </motion.div>
 
-          {/* REVEAL LINE */}
+          {/* Services band */}
           <motion.div
             className="reveal-line"
             initial={{ scaleX: 0 }}
@@ -970,8 +611,6 @@ const About = () => {
             viewport={{ once: true }}
             style={{ transformOrigin: "left" }}
           />
-
-          {/* SERVICES BAND */}
           <motion.section
             ref={refServices}
             className={`services-band ${inViewServices ? "in-view" : ""}`}
@@ -981,58 +620,47 @@ const About = () => {
             viewport={{ once: true, amount: 0.3 }}
           >
             <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-              <motion.h2 className="services-heading" variants={servicesTextVariant}>
-                Our Capabilities
-              </motion.h2>
-              <motion.p className="services-subheading" variants={servicesTextVariant}>
+              <h2 className="services-heading">Our Capabilities</h2>
+              <p className="services-subheading">
                 TourEase is lightweight but focused — here are the building blocks that power the
                 site.
-              </motion.p>
+              </p>
 
-              <motion.div className="services-grid">
-                <motion.div variants={servicesGridItemVariant}>
+              <div className="services-grid">
+                <div>
                   <h3>Planner</h3>
                   <div className="services-list">
                     Itinerary creator · Day split automation · Shared links
                   </div>
-                </motion.div>
-                <motion.div variants={servicesGridItemVariant}>
+                </div>
+                <div>
                   <h3>Uploads</h3>
                   <div className="services-list">
                     Assignment & receipts upload · File previews · Versioned attachments
                   </div>
-                </motion.div>
-                <motion.div variants={servicesGridItemVariant}>
+                </div>
+                <div>
                   <h3>Profile & History</h3>
                   <div className="services-list">
                     Track your past trips · Personal notes · Export to PDF
                   </div>
-                </motion.div>
-                <motion.div variants={servicesGridItemVariant}>
+                </div>
+                <div>
                   <h3>Smarts</h3>
                   <div className="services-list">
                     Basic recommendations · Priority sorting · Lightweight caching
                   </div>
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
             </div>
           </motion.section>
 
-          {/* CLIENTS SECTION */}
-          <motion.section
-            ref={refClients}
-            className="clients"
-            initial="hidden"
-            animate={inViewClients ? "show" : "hidden"}
-            variants={clientsSectionVariant}
-          >
-            <motion.h3
-              style={{ color: "#9aa0ab", marginBottom: 24 }}
-              variants={clientsHeadingVariant}
-            >
+          {/* Clients / partners (placeholder logos) */}
+          <section className="clients">
+            <h3 style={{ color: "#9aa0ab", marginBottom: 24 }}>
               Trusted by early users & test trips
-            </motion.h3>
-            <motion.div
+            </h3>
+            <div
               style={{
                 display: "flex",
                 justifyContent: "center",
@@ -1040,7 +668,6 @@ const About = () => {
                 gap: 20,
                 flexWrap: "wrap",
               }}
-              variants={clientsLogoVariant}
             >
               <img
                 src="/assets/clients/amc.svg"
@@ -1063,10 +690,10 @@ const About = () => {
                   e.currentTarget.style.display = "none";
                 }}
               />
-            </motion.div>
-          </motion.section>
+            </div>
+          </section>
 
-          {/* CTA PANEL */}
+          {/* CTA panel */}
           <motion.section
             ref={refCTA}
             className={`cta-panel ${inViewCTA ? "in-view" : ""}`}
@@ -1075,36 +702,23 @@ const About = () => {
             variants={ctaVariants}
             viewport={{ once: true, amount: 0.35 }}
           >
-            <motion.h3 variants={ctaHeadingVariant}>Ready to plan something memorable?</motion.h3>
-            <motion.p variants={ctaTextVariant}>
+            <h3>Ready to plan something memorable?</h3>
+            <p>
               Tell me where you want to go and how many days you have — I’ll show you a simple
               itinerary and the next steps.
-            </motion.p>
-            <motion.div
-              style={{ display: "flex", gap: 12, justifyContent: "center" }}
-              variants={ctaButtonsVariant}
-            >
-              <motion.a
-                className="btn btn-primary"
-                href="/planner"
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-              >
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+              <a className="btn btn-primary" href="/planner">
                 Create my trip
-              </motion.a>
-              <motion.a
-                className="btn btn-ghost"
-                href="mailto:shridhars@example.com"
-                whileHover={{ scale: 1.02, y: -1 }}
-                whileTap={{ scale: 0.98 }}
-              >
+              </a>
+              <a className="btn btn-ghost" href="mailto:shridhars@example.com">
                 Talk to the creator
-              </motion.a>
-            </motion.div>
+              </a>
+            </div>
           </motion.section>
         </section>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
