@@ -141,12 +141,12 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 
 /* Founder / profile section - split layout */
 /* --- FIX: Added margin-top: 40px to create space below the hero section --- */
-.profile-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 24px;background:linear-gradient(135deg,#b76e79 0%,#eec9d2 100%);border-radius:12px;margin-top:40px;box-shadow:0 20px 45px rgba(0,0,0,0.25);overflow:visible}
-.profile-photo{width:100%;height:420px;object-fit:cover;border-radius:10px;border:2px solid rgba(255,255,255,0.22);box-shadow:0 10px 30px rgba(0,0,0,0.28);backdrop-filter:blur(6px)}
-.profile-meta{color:#3a1f21}
-.profile-name{font-size:1.8rem;font-weight:800;color:#3a1f21}
-.profile-role{color:#5a2e31;margin-bottom:12px}
-.profile-bio{color:#4b272a;line-height:1.7}
+.profile-wrap{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;padding:40px 24px;background:linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));border-radius:18px;margin-top:40px;box-shadow:0 20px 45px rgba(0,0,0,0.25);overflow:visible;border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(16px)}
+.profile-photo{width:100%;height:420px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.16);box-shadow:0 10px 30px rgba(0,0,0,0.28);backdrop-filter:blur(6px)}
+.profile-meta{color:rgba(226,232,240,0.86)}
+.profile-name{font-size:1.8rem;font-weight:800;color:rgba(255,255,255,0.95)}
+.profile-role{color:rgba(255,255,255,0.7);margin-bottom:12px}
+.profile-bio{color:rgba(226,232,240,0.82);line-height:1.7}
 
 /* --- CSS FOR ICONS ADDED HERE --- */
 .feature-icon {
