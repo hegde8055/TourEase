@@ -93,10 +93,7 @@ const AIChatbot = () => {
       }));
 
     try {
-      const { reply } = await chatAPI.send({
-        message: userMessage,
-        history: historyPayload,
-      });
+      const { reply } = await chatAPI.sendMessage(userMessage, historyPayload);
 
       if (reply && reply.trim()) {
         return reply.trim();
