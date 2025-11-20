@@ -46,7 +46,7 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    marginTop: "-100px",
+    marginTop: "-80px",
   },
   mainContent: {
     width: "100%",

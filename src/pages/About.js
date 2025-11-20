@@ -97,6 +97,7 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .hero-particles span:nth-child(9){left:75%;animation-duration:9s}
 .hero-particles span:nth-child(10){left:50%;animation-duration:15s}
 @keyframes floatUp{0%{transform:translateY(120vh) scale(0.6);opacity:0}20%{opacity:0.9}100%{transform:translateY(-20vh) scale(1.1);opacity:0}}
+@keyframes heroGlowSweep{0%{background-position:-150% 50%;filter:drop-shadow(0 0 24px rgba(236,198,180,0.65));}100%{background-position:170% 50%;filter:drop-shadow(0 0 0 rgba(236,198,180,0));}}
 
 /* This padding is correct. It pushes the *content* down so the navbar
   doesn't hide it.
@@ -118,7 +119,8 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .hero-content{position:relative;z-index:3;text-align:center;max-width:980px;padding:28px;border-radius:18px;margin-top:12px;backdrop-filter:blur(10px);background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);opacity:0;transform:translateY(12px);transition:opacity 0.7s ease, transform 0.7s ease}
 .hero-content.visible{opacity:1;transform:none}
 .pretitle{display:inline-block;padding:8px 18px;border-radius:999px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);letter-spacing:0.12em;text-transform:uppercase;font-size:0.78rem;color:var(--gold)}
-.hero-title{font-weight:800;font-size:clamp(2rem,5vw,3.6rem);line-height:1.04;margin:18px 0;background:linear-gradient(120deg,var(--gold),#f7d36b);-webkit-background-clip:text;color:transparent}
+.hero-title{font-weight:800;font-size:clamp(2rem,5vw,3.6rem);line-height:1.04;margin:18px 0;background:linear-gradient(120deg,var(--gold),#f7d36b);-webkit-background-clip:text;color:transparent;background-size:120%;}
+.hero-title.hero-title-glow{animation:heroGlowSweep 1.8s ease-out forwards;background-size:220%;filter:drop-shadow(0 0 18px rgba(236,198,180,0.55));}
 .hero-blurb{max-width:760px;margin:10px auto 18px;color:rgba(226,232,240,0.9);font-size:1.04rem}
 .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .btn{padding:12px 30px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border:none;cursor:pointer;outline:none}
@@ -144,9 +146,12 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .profile-photo{width:100%;height:420px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.18);box-shadow:0 10px 30px rgba(0,0,0,0.28);backdrop-filter:blur(6px);transition:transform 0.45s ease}
 .profile-wrap:hover .profile-photo{transform:scale(1.02)}
 .profile-meta{color:#e3b8a5}
-.profile-name{font-size:1.8rem;font-weight:800;color:#f5c6b8}
-.profile-role{color:#eac2b2;margin-bottom:12px}
+.profile-name{font-size:1.8rem;font-weight:800;color:#f5c6b8;display:inline-block;position:relative}
+.profile-name.shimmer-once{background:linear-gradient(120deg,#fde6dc,#f5c6b8,#fee9df);background-size:220%;-webkit-background-clip:text;color:transparent;animation:roseGoldShimmer 1.7s ease-out forwards}
+.profile-role{color:#eac2b2;margin-bottom:12px;display:inline-block;position:relative}
+.profile-role.shimmer-once{background:linear-gradient(120deg,#fde6dc,#f7d2c2,#fee9df);background-size:220%;-webkit-background-clip:text;color:transparent;animation:roseGoldShimmer 1.6s ease-out forwards}
 .profile-bio{color:#e8c5b6;line-height:1.7}
+@keyframes roseGoldShimmer{0%{background-position:-160% 50%;filter:drop-shadow(0 0 12px rgba(236,198,180,0.55));}100%{background-position:160% 50%;filter:drop-shadow(0 0 0 rgba(236,198,180,0));}}
 
 /* --- CSS FOR ICONS ADDED HERE --- */
 .feature-icon {
@@ -176,10 +181,14 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 
 /* Services band */
 .services-band{background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));color:#0abab5;padding:36px 18px;margin-top:32px;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(18px);transition:transform 0.45s ease, box-shadow 0.45s ease, border 0.45s ease}
+.services-band.in-view{animation:servicesGlassReveal 0.85s ease-out forwards}
 .services-band:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 26px 60px rgba(0,0,0,0.3);border-color:rgba(10,186,181,0.45)}
 .services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;max-width:1100px;margin:0 auto}
 .services-grid h3{font-weight:800;margin-bottom:6px;color:#76e0db}
 .services-list{font-size:0.92rem;color:rgba(180,255,250,0.88);line-height:1.6}
+@keyframes servicesGlassReveal{0%{opacity:0;transform:translateY(28px) scale(0.95);filter:blur(12px);}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0);}}
+.services-heading{text-align:center;color:#7de3dc;font-weight:900;margin-bottom:8px}
+.services-subheading{text-align:center;color:rgba(125,227,220,0.85);margin-bottom:18px}
 
 /* Clients */
 .clients{padding:44px 20px 10px 20px;text-align:center}
@@ -195,12 +204,16 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   text-align:center;
   border:1px solid rgba(255,255,255,0.06);
 }
+.cta-panel.in-view{animation:ctaPanelRise 0.9s ease-out forwards}
 .cta-panel h3{color:var(--gold);font-weight:800}
 .cta-panel p{
   max-width:860px;  
   margin-bottom: 24px; 
   color:rgba(226,232,240,0.95);
 }
+.cta-panel.in-view .btn-primary{animation:ctaRipple 1.15s ease-out 0.45s forwards}
+@keyframes ctaPanelRise{0%{opacity:0;transform:translateY(30px);}100%{opacity:1;transform:translateY(0);}}
+@keyframes ctaRipple{0%{box-shadow:0 0 0 0 rgba(243,205,189,0.55);}70%{box-shadow:0 0 0 18px rgba(243,205,189,0);}100%{box-shadow:0 0 0 0 rgba(243,205,189,0);}}
 
 /* NEON ROSE-GOLD & SHIMMER */
 .btn-primary{position:relative;overflow:hidden}
@@ -303,9 +316,55 @@ const About = () => {
     hidden: { opacity: 0, y: 12 },
     show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
   };
+  const profileContainer = {
+    hidden: { opacity: 0, y: 40 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.8, ease: "easeOut", staggerChildren: 0.18 },
+    },
+  };
+  const profileItem = {
+    hidden: { opacity: 0, y: 38, scale: 0.94 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.75, ease: "easeOut" },
+    },
+  };
+  const featuresContainer = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.16, delayChildren: 0.1 } },
+  };
+  const featureItem = {
+    hidden: { opacity: 0, y: 30, scale: 0.94 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.65, ease: "easeOut" },
+    },
+  };
+  const servicesVariants = {
+    hidden: { opacity: 0, y: 32, scale: 0.95 },
+    show: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: { duration: 0.7, ease: "easeOut" },
+    },
+  };
+  const ctaVariants = {
+    hidden: { opacity: 0, y: 26 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
+  };
 
   const [refProfile, inViewProfile] = useInView({ threshold: 0.2, triggerOnce: true });
   const [refFeatures, inViewFeatures] = useInView({ threshold: 0.15, triggerOnce: true });
+  const [heroTitleRef, heroTitleInView] = useInView({ threshold: 0.6, triggerOnce: true });
+  const [refServices, inViewServices] = useInView({ threshold: 0.25, triggerOnce: true });
+  const [refCTA, inViewCTA] = useInView({ threshold: 0.35, triggerOnce: true });
 
   // ----------------
   // Founder details (user provided)
