@@ -148,7 +148,7 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .profile-meta{color:#e3b8a5}
 .profile-name{font-size:1.8rem;font-weight:800;color:#f5c6b8;display:inline-block;position:relative}
 .profile-name.shimmer-once{background:linear-gradient(120deg,#fde6dc,#f5c6b8,#fee9df);background-size:220%;-webkit-background-clip:text;color:transparent;animation:roseGoldShimmer 1.7s ease-out forwards}
-.profile-role{color:#eac2b2;margin-bottom:12px;display:inline-block;position:relative}
+.profile-role{color:#eac2b2;margin-bottom:12px;display:inline-block;position:relative;font-size:0.92rem;font-weight:600}
 .profile-role.shimmer-once{background:linear-gradient(120deg,#fde6dc,#f7d2c2,#fee9df);background-size:220%;-webkit-background-clip:text;color:transparent;animation:roseGoldShimmer 1.6s ease-out forwards}
 .profile-bio{color:#e8c5b6;line-height:1.7}
 @keyframes roseGoldShimmer{0%{background-position:-160% 50%;filter:drop-shadow(0 0 12px rgba(236,198,180,0.55));}100%{background-position:160% 50%;filter:drop-shadow(0 0 0 rgba(236,198,180,0));}}
@@ -418,7 +418,12 @@ const About = () => {
               Guided journeys · Smart planning · One person behind the code
             </motion.span>
 
-            <motion.h1 className="hero-title" style={{ marginTop: 12 }} variants={item}>
+            <motion.h1
+              ref={heroTitleRef}
+              className={`hero-title ${heroTitleInView ? "hero-title-glow" : ""}`}
+              style={{ marginTop: 12 }}
+              variants={item}
+            >
               TourEase — travel planning that keeps the adventure, loses the friction.
             </motion.h1>
 
@@ -465,18 +470,22 @@ const About = () => {
         <section className="content-wrapper">
           <motion.div
             ref={refProfile}
-            className="profile-wrap"
+            className={`profile-wrap ${inViewProfile ? "in-view" : ""}`}
             initial="hidden"
             animate={inViewProfile ? "show" : "hidden"}
-            variants={container}
+            variants={profileContainer}
           >
-            <motion.div variants={item}>
+            <motion.div variants={profileItem}>
               <img src={founder.photo} alt={founder.name} className="profile-photo" />
             </motion.div>
-            <motion.div className="profile-meta" variants={item}>
+            <motion.div className="profile-meta" variants={profileItem}>
               <div style={{ display: "flex", gap: 12, alignItems: "baseline" }}>
-                <h2 className="profile-name">{founder.name}</h2>
-                <span style={{ fontSize: 14, color: "rgba(7,18,34,0.45)" }}>{founder.role}</span>
+                <h2 className={`profile-name ${inViewProfile ? "shimmer-once" : ""}`}>
+                  {founder.name}
+                </h2>
+                <span className={`profile-role ${inViewProfile ? "shimmer-once" : ""}`}>
+                  {founder.role}
+                </span>
               </div>
               <div style={{ margin: "10px 0 8px", color: "rgba(7,18,34,0.6)", fontWeight: 600 }}>
                 {founder.school} · {founder.location}
@@ -564,29 +573,29 @@ const About = () => {
             className="features"
             initial="hidden"
             animate={inViewFeatures ? "show" : "hidden"}
-            variants={container}
+            variants={featuresContainer}
           >
             <motion.div
               whileHover={{ rotateX: 2, rotateY: -2, scale: 1.04 }}
               transition={{ type: "spring", stiffness: 120 }}
               className="feature"
-              variants={item}
+              variants={featureItem}
             >
               <BsCloudSun className="feature-icon" />
               <h4>Live Weather</h4>
               <p>Get real‑time weather updates for any destination before and during your trip.</p>
             </motion.div>
-            <motion.div className="feature" variants={item}>
+            <motion.div className="feature" variants={featureItem}>
               <BsSignpostSplit className="feature-icon" />
               <h4>Routing Info</h4>
               <p>Smart routing suggestions to optimize your travel time between locations.</p>
             </motion.div>
-            <motion.div className="feature" variants={item}>
+            <motion.div className="feature" variants={featureItem}>
               <BsGeoAlt className="feature-icon" />
               <h4>Nearby Spots</h4>
               <p>Discover restaurants, attractions, fuel stations and essentials around you.</p>
             </motion.div>
-            <motion.div className="feature" variants={item}>
+            <motion.div className="feature" variants={featureItem}>
               <BsLightbulb className="feature-icon" />
               <h4>Trip Insights</h4>
               <p>Auto‑generated trip insights based on your itinerary and behavior.</p>
@@ -602,14 +611,17 @@ const About = () => {
             viewport={{ once: true }}
             style={{ transformOrigin: "left" }}
           />
-          <section className="services-band">
+          <motion.section
+            ref={refServices}
+            className={`services-band ${inViewServices ? "in-view" : ""}`}
+            initial="hidden"
+            animate={inViewServices ? "show" : "hidden"}
+            variants={servicesVariants}
+            viewport={{ once: true, amount: 0.3 }}
+          >
             <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-              <h2
-                style={{ textAlign: "center", color: "#071122", fontWeight: 900, marginBottom: 8 }}
-              >
-                Our Capabilities
-              </h2>
-              <p style={{ textAlign: "center", color: "#071122", opacity: 0.9, marginBottom: 18 }}>
+              <h2 className="services-heading">Our Capabilities</h2>
+              <p className="services-subheading">
                 TourEase is lightweight but focused — here are the building blocks that power the
                 site.
               </p>
@@ -641,7 +653,7 @@ const About = () => {
                 </div>
               </div>
             </div>
-          </section>
+          </motion.section>
 
           {/* Clients / partners (placeholder logos) */}
           <section className="clients">
@@ -682,7 +694,14 @@ const About = () => {
           </section>
 
           {/* CTA panel */}
-          <section className="cta-panel">
+          <motion.section
+            ref={refCTA}
+            className={`cta-panel ${inViewCTA ? "in-view" : ""}`}
+            initial="hidden"
+            animate={inViewCTA ? "show" : "hidden"}
+            variants={ctaVariants}
+            viewport={{ once: true, amount: 0.35 }}
+          >
             <h3>Ready to plan something memorable?</h3>
             <p>
               Tell me where you want to go and how many days you have — I’ll show you a simple
@@ -696,7 +715,7 @@ const About = () => {
                 Talk to the creator
               </a>
             </div>
-          </section>
+          </motion.section>
         </section>
       </div>
     </div>
