@@ -28,7 +28,7 @@ html, body, #root {
 }
 /* ensure hero content visually starts under/at the very top */
 .hero-content {
-  margin-top: 0 !important;
+  margin-top: 50px !important;
 }
 
 
