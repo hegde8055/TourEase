@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { profileAPI, getImageUrl } from "../utils/api";
 import { isAuthenticated } from "../utils/auth";
-import Navbar from "../components/Navbar";
 //import { aboutFeatures } from "../utils/aboutContent";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
@@ -401,7 +400,8 @@ const Profile = () => {
 
     setContactStatus({
       type: "success",
-      message: "Opening Gmail compose window. If it doesn't open, email us at shridharh303@gmail.com.",
+      message:
+        "Opening Gmail compose window. If it doesn't open, email us at shridharh303@gmail.com.",
     });
     setContactForm({ name: "", email: "", subject: "", message: "" });
     setContactLoading(false);
@@ -428,7 +428,6 @@ const Profile = () => {
 
   return (
     <>
-      <Navbar />
       <div
         style={{
           minHeight: "100vh",

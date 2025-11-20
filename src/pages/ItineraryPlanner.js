@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
-import Navbar from "../components/Navbar";
 import InteractiveMap from "../components/InteractiveMap";
 import { itineraryAPI, aiItineraryAPI, geoAPI, enhancedPlacesAPI, imageAPI } from "../utils/api";
 import { calculateMultiPointRoute } from "../utils/routingUtils";
@@ -1861,7 +1860,6 @@ const ItineraryPlanner = () => {
         color: "#e2e8f0",
       }}
     >
-      <Navbar />
       <main
         style={{
           width: "100%",

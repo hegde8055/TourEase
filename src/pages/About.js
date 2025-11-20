@@ -1,6 +1,4 @@
 import React, { useEffect } from "react";
-import Navbar from "../components/Navbar";
-import ScrollProgressBar from "../components/ScrollProgressBar";
 import { useScroll, useTransform, motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 // --- ICONS ADDED HERE ---
@@ -343,10 +341,6 @@ const About = () => {
       </div>
 
       <div className="about-shell">
-        {/* ScrollProgressBar is active here */}
-        <ScrollProgressBar />
-        <Navbar />
-
         {/* HERO */}
         <motion.section
           className="hero-section"

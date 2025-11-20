@@ -5,8 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { destinationAPI, enhancedPlacesAPI } from "../utils/api"; // Keep enhancedPlacesAPI for maps
 import { getDestinationHeroImage } from "../utils/imageHelpers";
 import { extractCoordinates } from "../utils/locationHelpers";
-import Navbar from "../components/Navbar";
-import AIChatbot from "../components/AIChatbot";
 import { useInView } from "react-intersection-observer";
 
 // --- NEW: Import our reusable modal ---
@@ -128,7 +126,6 @@ const Trending = () => {
 
   return (
     <div className="main-content">
-      <Navbar />
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -465,7 +462,6 @@ const Trending = () => {
             )}
           </div>
         </div>
-        <AIChatbot />
       </motion.div>
 
       {/* --- NEW: Render the modal component --- */}

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, useNavigate } from "react-router-dom"; // ✅ Added useNavigate
-import Navbar from "../components/Navbar"; // ✅ Added Navbar
 import InteractiveMap from "../components/InteractiveMap"; // ✅ Already correct
 import { getDestinationHeroImage } from "../utils/imageHelpers";
-import AIChatbot from "../components/AIChatbot";
 
 const Destination = () => {
   const { id } = useParams(); // Get the destination ID/slug from the URL
@@ -124,7 +122,6 @@ const Destination = () => {
   if (loading) {
     return (
       <>
-        <Navbar />
         <div
           className="main-content"
           style={{
@@ -138,7 +135,6 @@ const Destination = () => {
         >
           ⏳ Loading destination details...
         </div>
-        <AIChatbot />
       </>
     );
   }
@@ -147,7 +143,6 @@ const Destination = () => {
   if (error || !destination) {
     return (
       <>
-        <Navbar />
         <div
           className="main-content container"
           style={{ textAlign: "center", padding: "60px 20px" }}
@@ -159,7 +154,6 @@ const Destination = () => {
             ← Back to Home
           </button>
         </div>
-        <AIChatbot />
       </>
     );
   }
@@ -197,7 +191,6 @@ const Destination = () => {
   // --- Main Component Render ---
   return (
     <div className="main-content">
-      <Navbar />
       <div className="container" style={{ paddingTop: "40px", paddingBottom: "60px" }}>
         {/* Main content card */}
         <div
@@ -655,8 +648,6 @@ const Destination = () => {
           </div>
         </div>
       </div>
-
-      <AIChatbot />
     </div>
   );
 };

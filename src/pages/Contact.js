@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import Navbar from "../components/Navbar";
 
 const Contact = () => {
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
@@ -23,7 +22,6 @@ const Contact = () => {
 
   return (
     <div className="main-content">
-      <Navbar />
       <main className="page-container" style={{ paddingTop: "140px", paddingBottom: "120px" }}>
         <section style={{ textAlign: "center", marginBottom: "60px" }}>
           <motion.h1

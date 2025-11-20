@@ -2,8 +2,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
-import Navbar from "../components/Navbar";
-import AIChatbot from "../components/AIChatbot";
 import { useAuth } from "../App";
 import { destinationAPI, itineraryAPI, enhancedPlacesAPI } from "../utils/api";
 const Home = () => {
@@ -338,8 +336,6 @@ const Home = () => {
 
   return (
     <div className="main-content">
-      <Navbar />
-
       {saveModal && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -1391,7 +1387,6 @@ const Home = () => {
       </section>
 
       {/* AI Chatbot Integration - Positioned in bottom-right corner */}
-      <AIChatbot />
     </div>
   );
 };

@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import Navbar from "../components/Navbar";
 // --- REMOVED InteractiveMap import ---
 import { placesAPI, destinationsAPI, geoAPI } from "../utils/api";
 // --- REMOVED extractCoordinates import ---
@@ -362,8 +361,6 @@ const Explore = () => {
 
   return (
     <div className="main-content">
-      <Navbar />
-
       <motion.section
         ref={heroRef}
         style={{
