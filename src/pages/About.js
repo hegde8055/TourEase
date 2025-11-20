@@ -109,7 +109,7 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   display: grid;
   place-items: center;
   padding: var(--nav-height, 70px) 20px 80px;
-  margin-top: 0; 
+  margin: 0 24px 60px;
   top: 0 !important;
 }
 
