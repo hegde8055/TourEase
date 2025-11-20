@@ -78,12 +78,13 @@ const ScrollProgressBar = () => {
         top: 0,
         left: 0,
         width: "100%",
-        height: "6px",
-        // This is the background of the "track"
-        background: "linear-gradient(90deg, rgba(15,23,42,0.55) 0%, rgba(15,23,42,0.25) 100%)",
+        height: "8px",
+        background: "linear-gradient(90deg, rgba(11,17,32,0.75) 0%, rgba(11,17,32,0.45) 100%)",
         zIndex: 12000,
         pointerEvents: "none",
-        backdropFilter: "blur(12px)",
+        backdropFilter: "blur(14px)",
+        borderBottom: "1px solid rgba(212,175,55,0.38)",
+        boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
       }}
       aria-hidden
     >
@@ -92,15 +93,16 @@ const ScrollProgressBar = () => {
         style={{
           height: "100%",
           // This is the gradient of the bar itself
-          background: "linear-gradient(90deg, rgba(212,175,55,1) 0%, rgba(59,130,246,1) 100%)",
+          background: "linear-gradient(90deg, rgba(245,206,180,1) 0%, rgba(34,197,213,1) 100%)",
           transformOrigin: "0%",
           // This is the glow effect for the bar
-          boxShadow: "0 0 12px rgba(212,175,55,0.45)",
+          boxShadow: "0 0 14px rgba(245,206,180,0.6)",
           // This is the spring-animated scaleX value
           scaleX,
           // Performance hints
-          minWidth: "1px",
+          minWidth: "2px",
           transform: "translateZ(0)",
+          willChange: "transform",
         }}
       />
     </div>
