@@ -1,87 +1,69 @@
-// client/src/components/ScrollProgressBar.js
-import { motion, useMotionValue, useSpring } from "framer-motion";
 import React, { useEffect } from "react";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 
-/**
- * ScrollProgressBar
- * -----------------
- * Displays a top progress bar that fills as you scroll down.
- */
+const BAR_GRADIENT = "linear-gradient(90deg,#d4af37 0%,#f5c6b8 50%,#0abab5 100%)";
+
+const readScrollProgress = () => {
+  const scrollingElement = document.scrollingElement || document.documentElement || document.body;
+  const maxScrollable = Math.max(scrollingElement.scrollHeight - scrollingElement.clientHeight, 1);
+  const ratio = scrollingElement.scrollTop / maxScrollable;
+  if (!Number.isFinite(ratio)) return 0;
+  return Math.min(Math.max(ratio, 0), 1);
+};
+
 const ScrollProgressBar = () => {
   const progress = useMotionValue(0);
   const scaleX = useSpring(progress, {
-    stiffness: 160,
-    damping: 26,
+    stiffness: 200,
+    damping: 32,
     restDelta: 0.0005,
   });
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
-    const scrollingElement = document.scrollingElement || document.documentElement || document.body;
+    let rafId = 0;
 
-    let animationFrameId;
-
-    const updateProgress = () => {
-      const scrollTop = scrollingElement.scrollTop;
-      const maxScrollable = Math.max(
-        scrollingElement.scrollHeight - scrollingElement.clientHeight,
-        1
-      );
-      const ratio = scrollTop / maxScrollable;
-      const clamped = Math.min(Math.max(ratio, 0), 1);
-      progress.set(Number.isFinite(clamped) ? clamped : 0);
+    const tick = () => {
+      progress.set(readScrollProgress());
+      rafId = window.requestAnimationFrame(tick);
     };
 
-    const scheduleUpdate = () => {
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-      animationFrameId = window.requestAnimationFrame(updateProgress);
-    };
+    tick();
 
-    scrollingElement.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("resize", scheduleUpdate, { passive: true });
-
-    updateProgress();
+    const handleResize = () => progress.set(readScrollProgress());
+    window.addEventListener("resize", handleResize, { passive: true });
 
     return () => {
-      scrollingElement.removeEventListener("scroll", scheduleUpdate);
-      window.removeEventListener("scroll", scheduleUpdate);
-      window.removeEventListener("resize", scheduleUpdate);
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", handleResize);
     };
   }, [progress]);
 
   return (
     <div
+      aria-hidden
       style={{
         position: "fixed",
         top: 0,
         left: 0,
         width: "100%",
         height: "6px",
-        background: "rgba(7, 11, 22, 0.55)",
+        background: "rgba(7,11,22,0.55)",
         zIndex: 12000,
         pointerEvents: "none",
         backdropFilter: "blur(10px)",
       }}
-      aria-hidden
     >
-      {/* This is the moving progress bar */}
       <motion.div
         style={{
           height: "100%",
-          // This is the gradient of the bar itself
-          background: "linear-gradient(90deg,#d4af37 0%,#f5c6b8 45%,#0abab5 100%)",
+          background: BAR_GRADIENT,
           transformOrigin: "0% 50%",
-          // This is the glow effect for the bar
-          boxShadow: "0 0 12px rgba(245,206,180,0.6)",
-          // This is the spring-animated scaleX value
+          boxShadow: "0 0 12px rgba(245,206,180,0.55)",
           scaleX,
-          // Performance hints
           minWidth: "1px",
           transform: "translateZ(0)",
-          willChange: "transform",
         }}
       />
     </div>
