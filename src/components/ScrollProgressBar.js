@@ -21,30 +21,13 @@ const ScrollProgressBar = () => {
     let animationFrameId;
 
     const updateProgress = () => {
-      // Find the element that scrolls
-      const scrollingElement = document.scrollingElement || document.documentElement;
-      if (!scrollingElement) {
-        progress.set(0);
-        return;
-      }
-
-      const scrollTop = scrollingElement.scrollTop;
-      const viewportHeight = scrollingElement.clientHeight;
-      const scrollHeight = scrollingElement.scrollHeight;
-
-      // Calculate the maximum scrollable distance
+      const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 1;
+      const scrollHeight = document.documentElement.scrollHeight || 1;
       const maxScrollable = Math.max(scrollHeight - viewportHeight, 1);
-
-      // Calculate the raw progress value
       const rawValue = scrollTop / maxScrollable;
-
-      // Ensure the value is between 0 and 1
       const clampedValue = Math.min(Math.max(rawValue, 0), 1);
-
-      // Ensure the value is a valid number before setting
-      const safeValue = Number.isFinite(clampedValue) ? clampedValue : 0;
-
-      progress.set(safeValue);
+      progress.set(Number.isFinite(clampedValue) ? clampedValue : 0);
     };
 
     const scheduleUpdate = () => {
@@ -78,13 +61,11 @@ const ScrollProgressBar = () => {
         top: 0,
         left: 0,
         width: "100%",
-        height: "8px",
-        background: "linear-gradient(90deg, rgba(11,17,32,0.75) 0%, rgba(11,17,32,0.45) 100%)",
+        height: "6px",
+        background: "rgba(7, 11, 22, 0.55)",
         zIndex: 12000,
         pointerEvents: "none",
-        backdropFilter: "blur(14px)",
-        borderBottom: "1px solid rgba(212,175,55,0.38)",
-        boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
+        backdropFilter: "blur(10px)",
       }}
       aria-hidden
     >
@@ -93,14 +74,14 @@ const ScrollProgressBar = () => {
         style={{
           height: "100%",
           // This is the gradient of the bar itself
-          background: "linear-gradient(90deg, rgba(245,206,180,1) 0%, rgba(34,197,213,1) 100%)",
-          transformOrigin: "0%",
+          background: "linear-gradient(90deg,#d4af37 0%,#f5c6b8 45%,#0abab5 100%)",
+          transformOrigin: "0% 50%",
           // This is the glow effect for the bar
-          boxShadow: "0 0 14px rgba(245,206,180,0.6)",
+          boxShadow: "0 0 12px rgba(245,206,180,0.6)",
           // This is the spring-animated scaleX value
           scaleX,
           // Performance hints
-          minWidth: "2px",
+          minWidth: "1px",
           transform: "translateZ(0)",
           willChange: "transform",
         }}
