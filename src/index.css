@@ -25,6 +25,3 @@ body {
 }
 
 /* Keep very small project-specific selectors if needed below (avoid utility re-definitions) */
-body.about-page-active {
-  background: transparent !important;
-}
