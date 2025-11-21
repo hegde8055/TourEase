@@ -201,6 +201,12 @@ const collectDestinationCandidates = (payload) => {
 
 const selectBestDestinationSuggestion = (suggestions, query) => {
   const normalizedQuery = query.trim().toLowerCase();
+  const numericChunks = normalizedQuery.match(/\d{3,}/g) || [];
+  const textualChunks = normalizedQuery
+    .split(/[\s,\-_/]+/)
+    .map((chunk) => chunk.trim())
+    .filter(Boolean);
+  const textChunks = textualChunks.filter((chunk) => /[a-z]/.test(chunk));
   if (!Array.isArray(suggestions) || suggestions.length === 0) return null;
 
   const ranked = suggestions
@@ -213,10 +219,43 @@ const selectBestDestinationSuggestion = (suggestions, query) => {
       const formatted = (suggestion.formattedAddress || suggestion.address || "")
         .toString()
         .toLowerCase();
+      const postalCandidates = [
+        suggestion.postalCode,
+        suggestion.postcode,
+        suggestion.zip,
+        suggestion.zipcode,
+        suggestion.postal,
+        suggestion.code,
+        suggestion.locPostalCode,
+        suggestion.location?.postalCode,
+        suggestion.location?.postcode,
+        suggestion.location?.zip,
+        suggestion.location?.zipCode,
+        suggestion.address,
+        suggestion.formattedAddress,
+      ]
+        .flat()
+        .filter(Boolean)
+        .map((value) => value.toString().toLowerCase());
+
       let score = 0;
 
       if (normalizedQuery && name.includes(normalizedQuery)) score += 6;
       if (normalizedQuery && formatted.includes(normalizedQuery)) score += 4;
+
+      textChunks.forEach((chunk) => {
+        if (chunk && name.includes(chunk)) score += 4;
+        if (chunk && formatted.includes(chunk)) score += 3;
+        if (chunk && categories.some((c) => c.includes(chunk))) score += 2;
+      });
+
+      if (numericChunks.length > 0) {
+        numericChunks.forEach((digits) => {
+          if (digits && postalCandidates.some((candidate) => candidate.includes(digits))) {
+            score += 20;
+          }
+        });
+      }
 
       DESTINATION_KEYWORDS_PRIORITY.forEach((keyword) => {
         if (categories.some((c) => c.includes(keyword))) score += 3;
