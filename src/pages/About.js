@@ -52,6 +52,23 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   position: relative; /* For z-index stacking */
 }
 
+.scroll-progress-track{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:5px;
+  background:rgba(255,255,255,0.06);
+  backdrop-filter:blur(10px);
+  z-index:1400;
+  pointer-events:none;
+}
+.scroll-progress-bar{
+  height:100%;
+  background:linear-gradient(90deg, #f3cdbc 0%, #e3b8a5 50%, #caa72b 100%);
+  box-shadow:0 0 12px rgba(227,184,165,0.65);
+}
+
 /* --- NEW: FULL PAGE VIDEO BACKGROUND --- */
 .page-video-background {
   position: fixed;
@@ -401,6 +418,7 @@ const About = () => {
   // motion + scroll effects
   const { scrollYProgress } = useScroll();
   const parallax = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
+  const progressWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]); // Scroll bar width
 
   const container = {
     hidden: { opacity: 0, y: 24 },
@@ -487,6 +505,9 @@ const About = () => {
   return (
     <div className="about-page">
       <style>{aboutStyles}</style>
+      <div className="scroll-progress-track" aria-hidden="true">
+        <motion.div className="scroll-progress-bar" style={{ width: progressWidth }} />
+      </div>
 
       {/* --- NEW FULLPAGE VIDEO BACKGROUND --- */}
       <div className="page-video-background">
