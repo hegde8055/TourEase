@@ -3,7 +3,14 @@ import { useScroll, useTransform, motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 // --- ICONS ADDED HERE ---
 import { BsCloudSun, BsSignpostSplit, BsGeoAlt, BsLightbulb } from "react-icons/bs";
-import { FaInstagram, FaTwitter, FaYoutube, FaDiscord, FaLinkedin } from "react-icons/fa";
+import {
+  FaInstagram,
+  FaTwitter,
+  FaYoutube,
+  FaDiscord,
+  FaLinkedin,
+  FaEnvelope,
+} from "react-icons/fa";
 
 // -----------------------------------------------------------------------------
 // Redesigned About.js — cleaned, fixed imports, corrected CSS and animations
@@ -520,6 +527,7 @@ const About = () => {
 
   const socialLinks = [
     // Update the URLs below with the correct social handles once available.
+    { name: "Gmail", href: "mailto:shridhars@example.com", Icon: FaEnvelope },
     { name: "Instagram", href: "https://instagram.com/hegde8055", Icon: FaInstagram },
     { name: "Twitter", href: "https://x.com/hegde8055", Icon: FaTwitter },
     { name: "YouTube", href: "https://youtube.com/@hegde8055", Icon: FaYoutube },
@@ -663,17 +671,9 @@ const About = () => {
                   className="btn btn-primary"
                   type="button"
                   onClick={handleOpenSocialModal}
-                  style={{ marginRight: 12 }}
                 >
-                  Talk to Creator
+                  Talk to me
                 </motion.button>
-                <motion.a
-                  whileHover={{ y: -2 }}
-                  className="btn btn-ghost"
-                  href={`mailto:shridhars@example.com`}
-                >
-                  Contact me
-                </motion.a>
               </div>
 
               <div style={{ marginTop: 22, display: "flex", gap: 14, alignItems: "center" }}>
