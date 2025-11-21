@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useScroll, useTransform, motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 // --- ICONS ADDED HERE ---
 import { BsCloudSun, BsSignpostSplit, BsGeoAlt, BsLightbulb } from "react-icons/bs";
+import { FaInstagram, FaTwitter, FaYoutube, FaDiscord, FaLinkedin } from "react-icons/fa";
 
 // -----------------------------------------------------------------------------
 // Redesigned About.js — cleaned, fixed imports, corrected CSS and animations
@@ -225,6 +226,82 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 /* Reveal line */
 .reveal-line{height:3px;width:140px;background:linear-gradient(90deg,#ffd6c2,#e6b0a0);transform-origin:left;transform:scaleX(0);margin:40px auto 40px;border-radius:4px;z-index:5;position:relative}
 
+/* social modal */
+.social-modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(2,6,23,0.72);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1200;
+  padding:20px;
+}
+.social-modal{
+  position:relative;
+  width:min(420px,100%);
+  background:linear-gradient(180deg, rgba(12,18,36,0.94), rgba(12,18,36,0.88));
+  border:1px solid rgba(243,205,189,0.22);
+  border-radius:18px;
+  padding:32px 28px 36px;
+  box-shadow:0 28px 68px rgba(0,0,0,0.45);
+  backdrop-filter:blur(18px);
+  text-align:center;
+}
+.social-modal h4{
+  color:var(--gold);
+  font-size:1.4rem;
+  margin-bottom:18px;
+}
+.social-modal p{
+  color:rgba(226,232,240,0.88);
+  margin-bottom:20px;
+  font-size:0.95rem;
+}
+.social-modal-close{
+  position:absolute;
+  top:12px;
+  right:12px;
+  background:transparent;
+  border:none;
+  color:rgba(226,232,240,0.75);
+  font-size:1.5rem;
+  cursor:pointer;
+  transition:color 0.2s ease;
+}
+.social-modal-close:hover{color:rgba(226,232,240,1)}
+.social-links{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:16px;
+}
+.social-icon-btn{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  padding:16px 12px;
+  background:rgba(255,255,255,0.06);
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,0.08);
+  color:#f5c6b8;
+  text-decoration:none;
+  font-weight:600;
+  transition:transform 0.25s ease, box-shadow 0.25s ease, border 0.25s ease;
+}
+.social-icon-btn svg{font-size:1.8rem}
+.social-icon-btn:hover{
+  transform:translateY(-4px) scale(1.02);
+  box-shadow:0 16px 32px rgba(0,0,0,0.35);
+  border-color:rgba(243,205,189,0.35);
+}
+.social-icon-btn:focus{outline:2px solid rgba(243,205,189,0.6);outline-offset:3px}
+.social-icon-btn span{
+  font-size:0.85rem;
+  color:rgba(226,232,240,0.85);
+}
+
+
 /* responsive breakpoint follows */
 @media (max-width:980px){
   .profile-wrap{grid-template-columns:1fr;padding:28px}
@@ -243,6 +320,7 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 const About = () => {
   // hero video kept as variable — UPDATED TO INTRO.MKV
   const heroVideoSrc = "/assets/intro.mkv"; // <-- update this to your provided video path
+  const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -303,6 +381,22 @@ const About = () => {
       window.removeEventListener("resize", computeNavHeight);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined" || !isSocialModalOpen) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setIsSocialModalOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    const { overflow } = document.body.style;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = overflow;
+    };
+  }, [isSocialModalOpen]);
 
   // motion + scroll effects
   const { scrollYProgress } = useScroll();
@@ -365,6 +459,18 @@ const About = () => {
   const [heroTitleRef, heroTitleInView] = useInView({ threshold: 0.6, triggerOnce: true });
   const [refServices, inViewServices] = useInView({ threshold: 0.25, triggerOnce: true });
   const [refCTA, inViewCTA] = useInView({ threshold: 0.35, triggerOnce: true });
+
+  const handleOpenSocialModal = () => setIsSocialModalOpen(true);
+  const handleCloseSocialModal = () => setIsSocialModalOpen(false);
+
+  const socialLinks = [
+    // Update the URLs below with the correct social handles once available.
+    { name: "Instagram", href: "https://instagram.com/hegde8055", Icon: FaInstagram },
+    { name: "Twitter", href: "https://x.com/hegde8055", Icon: FaTwitter },
+    { name: "YouTube", href: "https://youtube.com/@hegde8055", Icon: FaYoutube },
+    { name: "Discord", href: "https://discord.com/users/hegde8055", Icon: FaDiscord },
+    { name: "LinkedIn", href: "https://www.linkedin.com/in/shridhar-hegde", Icon: FaLinkedin },
+  ];
 
   // ----------------
   // Founder details (user provided)
@@ -493,14 +599,15 @@ const About = () => {
               <p className="profile-bio">{founder.bio}</p>
 
               <div style={{ marginTop: 18 }}>
-                <motion.a
+                <motion.button
                   whileHover={{ y: -4 }}
                   className="btn btn-primary"
-                  href="mailto:shridhars@example.com"
+                  type="button"
+                  onClick={handleOpenSocialModal}
                   style={{ marginRight: 12 }}
                 >
                   Talk to Creator
-                </motion.a>
+                </motion.button>
                 <motion.a
                   whileHover={{ y: -2 }}
                   className="btn btn-ghost"
@@ -708,16 +815,57 @@ const About = () => {
               itinerary and the next steps.
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-              <a className="btn btn-primary" href="/planner">
+              <a className="btn btn-primary" href="/explore">
                 Create my trip
               </a>
-              <a className="btn btn-ghost" href="mailto:shridhars@example.com">
+              <button className="btn btn-ghost" type="button" onClick={handleOpenSocialModal}>
                 Talk to the creator
-              </a>
+              </button>
             </div>
           </motion.section>
         </section>
       </div>
+      {isSocialModalOpen && (
+        <motion.div
+          className="social-modal-backdrop"
+          onClick={handleCloseSocialModal}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div
+            className="social-modal"
+            onClick={(event) => event.stopPropagation()}
+            initial={{ scale: 0.92, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+          >
+            <button
+              type="button"
+              className="social-modal-close"
+              onClick={handleCloseSocialModal}
+              aria-label="Close social links modal"
+            >
+              ×
+            </button>
+            <h4>Connect with me</h4>
+            <p>Follow along on your favourite platform.</p>
+            <div className="social-links">
+              {socialLinks.map(({ name, href, Icon }) => (
+                <a
+                  key={name}
+                  className="social-icon-btn"
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={name}
+                >
+                  <Icon aria-hidden="true" />
+                  <span>{name}</span>
+                </a>
+              ))}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 };
