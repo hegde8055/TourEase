@@ -171,6 +171,12 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .profile-photo{width:100%;height:420px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.18);box-shadow:0 10px 30px rgba(0,0,0,0.28);backdrop-filter:blur(6px);transition:transform 0.45s ease}
 .profile-wrap:hover .profile-photo{transform:scale(1.02)}
 .profile-meta{color:#e3b8a5}
+.skills-row{margin-top:22px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.skills-heading{font-size:13px;color:rgba(7,18,34,0.68);font-weight:700;letter-spacing:0.05em;text-transform:uppercase}
+.skill-chips{display:flex;gap:10px;flex-wrap:wrap}
+.skill-chip{background:linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06));color:#ffe5d6;padding:8px 14px;border-radius:10px;font-weight:700;border:1px solid rgba(243,205,189,0.28);transition:transform 0.25s ease, box-shadow 0.25s ease, border 0.25s ease, color 0.25s ease}
+.skill-chip:hover{transform:translateY(-4px) scale(1.04);box-shadow:0 12px 28px rgba(0,0,0,0.28);border-color:rgba(243,205,189,0.55);color:#fff2e8}
+.skill-chip:focus{outline:2px solid rgba(243,205,189,0.6);outline-offset:3px}
 .talk-to-me-wrapper{
   margin-top:24px;
   display:flex;
@@ -433,19 +439,26 @@ const About = () => {
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
+    let frame;
     const updateProgress = () => {
       const doc = document.documentElement;
-      const scrollTop = doc.scrollTop || document.body.scrollTop;
-      const scrollHeight = doc.scrollHeight - doc.clientHeight;
+      const body = document.body;
+      const scrollTop = window.pageYOffset || doc.scrollTop || body.scrollTop || 0;
+      const scrollHeight = Math.max(doc.scrollHeight, body.scrollHeight) - window.innerHeight;
       const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-      setScrollProgress(progress);
+      setScrollProgress(Math.min(Math.max(progress, 0), 100));
+    };
+    const handleScroll = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(updateProgress);
     };
     updateProgress();
-    window.addEventListener("scroll", updateProgress, { passive: true });
-    window.addEventListener("resize", updateProgress);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
     return () => {
-      window.removeEventListener("scroll", updateProgress);
-      window.removeEventListener("resize", updateProgress);
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
     };
   }, []);
 
@@ -540,6 +553,7 @@ const About = () => {
     { name: "LinkedIn", href: "https://www.linkedin.com/in/shridhar-hegde", Icon: FaLinkedin },
     { name: "Unstop", href: "https://unstop.com/p/hegde8055", Icon: UnstopIcon },
   ];
+  const skillStack = ["MongoDB", "Express", "React", "Node.js"]; // MERN order
 
   // ----------------
   // Founder details (user provided)
@@ -574,7 +588,6 @@ const About = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 1.1 }}
         >
-          {/* UPDATED VIDEO TYPE */}
           <source src={heroVideoSrc} type="video/mkv" />
         </motion.video>
         <motion.div className="page-video-overlay" />
@@ -589,8 +602,6 @@ const About = () => {
           whileInView="show"
           viewport={{ once: false, amount: 0.25 }}
         >
-          {/* Video and overlay removed from here */}
-
           <motion.div className="hero-content" variants={container}>
             <motion.span className="pretitle" variants={item}>
               Guided journeys · Smart planning · One person behind the code
@@ -681,55 +692,14 @@ const About = () => {
                 </motion.button>
               </div>
 
-              <div style={{ marginTop: 22, display: "flex", gap: 14, alignItems: "center" }}>
-                <div style={{ fontSize: 13, color: "rgba(7,18,34,0.6)", fontWeight: 700 }}>
-                  Skills:
-                </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <span
-                    style={{
-                      background: "#e9e6dd",
-                      color: "#071122",
-                      padding: "6px 10px",
-                      borderRadius: 8,
-                      fontWeight: 700,
-                    }}
-                  >
-                    React
-                  </span>
-                  <span
-                    style={{
-                      background: "#e9e6dd",
-                      color: "#071122",
-                      padding: "6px 10px",
-                      borderRadius: 8,
-                      fontWeight: 700,
-                    }}
-                  >
-                    Node.js
-                  </span>
-                  <span
-                    style={{
-                      background: "#e9e6dd",
-                      color: "#071122",
-                      padding: "6px 10px",
-                      borderRadius: 8,
-                      fontWeight: 700,
-                    }}
-                  >
-                    MongoDB
-                  </span>
-                  <span
-                    style={{
-                      background: "#e9e6dd",
-                      color: "#071122",
-                      padding: "6px 10px",
-                      borderRadius: 8,
-                      fontWeight: 700,
-                    }}
-                  >
-                    Framer Motion
-                  </span>
+              <div className="skills-row">
+                <div className="skills-heading">Skills:</div>
+                <div className="skill-chips">
+                  {skillStack.map((skill) => (
+                    <span key={skill} className="skill-chip">
+                      {skill}
+                    </span>
+                  ))}
                 </div>
               </div>
             </motion.div>
