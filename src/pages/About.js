@@ -171,6 +171,11 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .profile-photo{width:100%;height:420px;object-fit:cover;border-radius:12px;border:1px solid rgba(255,255,255,0.18);box-shadow:0 10px 30px rgba(0,0,0,0.28);backdrop-filter:blur(6px);transition:transform 0.45s ease}
 .profile-wrap:hover .profile-photo{transform:scale(1.02)}
 .profile-meta{color:#e3b8a5}
+.talk-to-me-wrapper{
+  margin-top:24px;
+  display:flex;
+  justify-content:center;
+}
 .profile-name{font-size:1.8rem;font-weight:800;color:#f5c6b8;display:inline-block;position:relative}
 .profile-name.shimmer-once{background:linear-gradient(120deg,#fde6dc,#f5c6b8,#fee9df);background-size:220%;-webkit-background-clip:text;color:transparent;animation:roseGoldShimmer 1.7s ease-out forwards}
 .profile-role{color:#eac2b2;margin-bottom:12px;display:inline-block;position:relative}
@@ -665,7 +670,7 @@ const About = () => {
               </div>
               <p className="profile-bio">{founder.bio}</p>
 
-              <div style={{ marginTop: 18 }}>
+              <div className="talk-to-me-wrapper">
                 <motion.button
                   whileHover={{ y: -4 }}
                   className="btn btn-primary"
