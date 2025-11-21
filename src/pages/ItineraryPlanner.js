@@ -3,6 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import InteractiveMap from "../components/InteractiveMap";
 import { itineraryAPI, aiItineraryAPI, geoAPI, enhancedPlacesAPI, imageAPI } from "../utils/api";
+import {
+  parseDestinationSearchInput,
+  enhanceDestinationWithSearchContext,
+  capitalizeWords,
+} from "../utils/destinationNameUtils";
 import { calculateMultiPointRoute } from "../utils/routingUtils";
 import { useAuth } from "../App";
 import {
@@ -163,11 +168,6 @@ const DESTINATION_KEYWORDS_PRIORITY = [
   "attraction",
   "monument",
 ];
-
-const sanitizeDestinationName = (value = "") => {
-  const condensed = value.replace(/\s+/g, " ").trim();
-  return condensed.replace(/\b([a-zà-öø-ÿ0-9])/gi, (match) => match.toUpperCase());
-};
 
 const normalizeTextArray = (input) => {
   if (!input) return [];
@@ -627,8 +627,10 @@ const ItineraryPlanner = () => {
     const nights = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
     let cancelled = false;
 
+    const parsedDestination = parseDestinationSearchInput(aiForm.destinationName);
+    const lookupDestination = parsedDestination.lookupQuery || parsedDestination.trimmed;
+
     const timer = setTimeout(async () => {
-      const normalizedDestination = sanitizeDestinationName(aiForm.destinationName);
       try {
         const result = await aiItineraryAPI.estimateCosts({
           basePerPerson,
@@ -638,7 +640,7 @@ const ItineraryPlanner = () => {
           season,
           addOns,
           taxesPct,
-          destination: normalizedDestination,
+          destination: lookupDestination,
           interests: aiForm.interests,
         });
         if (!cancelled) {
@@ -1294,8 +1296,10 @@ const ItineraryPlanner = () => {
     const nights = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
     let cancelled = false;
 
+    const parsedDestination = parseDestinationSearchInput(aiForm.destinationName);
+    const lookupDestination = parsedDestination.lookupQuery || parsedDestination.trimmed;
+
     const timer = setTimeout(async () => {
-      const normalizedDestination = sanitizeDestinationName(aiForm.destinationName);
       try {
         const tripDistanceKm = routeTotals.totalMeters / 1000;
 
@@ -1307,7 +1311,7 @@ const ItineraryPlanner = () => {
           season: aiForm.season,
           addOns: aiForm.addOns,
           taxesPct: aiForm.taxesPct,
-          destination: normalizedDestination,
+          destination: lookupDestination,
           interests: aiForm.interests,
           tripDistanceKm,
         });
@@ -1551,13 +1555,20 @@ const ItineraryPlanner = () => {
       const passengersCount = Math.max(1, aiForm.passengers || 1);
       let calculatedBaseBudget = aiForm.basePerPerson;
 
-      const normalizedDestination = sanitizeDestinationName(aiForm.destinationName);
-      if (normalizedDestination !== aiForm.destinationName) {
-        setAiForm((prev) => ({ ...prev, destinationName: normalizedDestination }));
+      const parsedDestination = parseDestinationSearchInput(aiForm.destinationName);
+      const lookupDestination = parsedDestination.lookupQuery;
+      const formattedInput = parsedDestination.label
+        ? parsedDestination.postalCode
+          ? `${parsedDestination.label}-${parsedDestination.postalCode}`
+          : parsedDestination.label
+        : capitalizeWords(parsedDestination.trimmed);
+
+      if (formattedInput && formattedInput !== aiForm.destinationName) {
+        setAiForm((prev) => ({ ...prev, destinationName: formattedInput }));
       }
 
       try {
-        if (!normalizedDestination) {
+        if (!lookupDestination) {
           throw new Error("Enter a destination to generate a smart itinerary.");
         }
         if (!aiForm.startDate || !aiForm.endDate) {
@@ -1570,10 +1581,10 @@ const ItineraryPlanner = () => {
         let geoRes;
 
         try {
-          geoRes = await geoAPI.geocode({ query: normalizedDestination });
+          geoRes = await geoAPI.geocode({ query: lookupDestination });
           if (geoRes && !geoRes.coordinates) {
             const geoCandidates = collectDestinationCandidates(geoRes.results || geoRes.data);
-            const bestGeo = selectBestDestinationSuggestion(geoCandidates, normalizedDestination);
+            const bestGeo = selectBestDestinationSuggestion(geoCandidates, lookupDestination);
             if (bestGeo) {
               const lat = bestGeo.location?.lat ?? bestGeo.location?.latitude ?? bestGeo.lat;
               const lng = bestGeo.location?.lng ?? bestGeo.location?.longitude ?? bestGeo.lng;
@@ -1606,10 +1617,10 @@ const ItineraryPlanner = () => {
 
         if (!geoRes || !geoRes.coordinates) {
           try {
-            const altRes = await enhancedPlacesAPI.search({ query: normalizedDestination });
+            const altRes = await enhancedPlacesAPI.search({ query: lookupDestination });
             const altPayload = altRes?.data || altRes;
             const candidates = collectDestinationCandidates(altPayload);
-            const suggestion = selectBestDestinationSuggestion(candidates, normalizedDestination);
+            const suggestion = selectBestDestinationSuggestion(candidates, lookupDestination);
 
             if (suggestion) {
               const lat = suggestion.location?.lat ?? suggestion.location?.latitude;
@@ -1645,17 +1656,9 @@ const ItineraryPlanner = () => {
           throw new Error("Could not find coordinates for the destination.");
         }
 
-        let heroImageURL = null;
-        try {
-          const imageRes = await imageAPI.getDestinationImage(normalizedDestination);
-          heroImageURL = imageRes.data.imageUrl;
-        } catch (imgErr) {
-          console.warn("Could not fetch hero image.", imgErr);
-        }
-
-        const destinationFull = {
-          name: normalizedDestination,
-          heroImageURL,
+        let destinationFull = {
+          name: parsedDestination.trimmed || lookupDestination,
+          heroImageURL: null,
           location: {
             formatted: geoRes.formattedAddress,
             city: geoRes.city,
@@ -1665,6 +1668,29 @@ const ItineraryPlanner = () => {
           },
           formatted_address: geoRes.formattedAddress,
         };
+
+        destinationFull = enhanceDestinationWithSearchContext(destinationFull, {
+          ...parsedDestination,
+          label:
+            parsedDestination.label ||
+            geoRes.city ||
+            geoRes.state ||
+            geoRes.formattedAddress ||
+            lookupDestination,
+        });
+
+        try {
+          const imageQuery =
+            (destinationFull.displayName && parsedDestination.postalCode
+              ? `${destinationFull.displayName} ${parsedDestination.postalCode}`
+              : destinationFull.displayName) ||
+            geoRes.formattedAddress ||
+            lookupDestination;
+          const imageRes = await imageAPI.getDestinationImage(imageQuery);
+          destinationFull = { ...destinationFull, heroImageURL: imageRes.data.imageUrl };
+        } catch (imgErr) {
+          console.warn("Could not fetch hero image.", imgErr);
+        }
 
         setDestinationDetails(destinationFull);
 
