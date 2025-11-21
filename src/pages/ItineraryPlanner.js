@@ -139,6 +139,106 @@ const filterOptions = [
   { value: "past", label: "Past" },
 ];
 
+const DESTINATION_KEYWORDS_PRIORITY = [
+  "metropolitan",
+  "metropolis",
+  "city",
+  "town",
+  "district",
+  "state",
+  "province",
+  "country",
+  "village",
+  "island",
+  "temple",
+  "shrine",
+  "fort",
+  "palace",
+  "heritage",
+  "national park",
+  "wildlife",
+  "beach",
+  "mountain",
+  "tourist",
+  "attraction",
+  "monument",
+];
+
+const sanitizeDestinationName = (value = "") => {
+  const condensed = value.replace(/\s+/g, " ").trim();
+  return condensed.replace(/\b([a-zà-öø-ÿ0-9])/gi, (match) => match.toUpperCase());
+};
+
+const normalizeTextArray = (input) => {
+  if (!input) return [];
+  if (Array.isArray(input)) {
+    return input.flatMap((item) => normalizeTextArray(item)).filter(Boolean);
+  }
+  if (typeof input === "string") {
+    return input
+      .split(/[>,/|;-]/)
+      .map((chunk) => chunk.trim().toLowerCase())
+      .filter(Boolean);
+  }
+  if (typeof input === "object") {
+    return Object.values(input)
+      .flatMap((value) => normalizeTextArray(value))
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const collectDestinationCandidates = (payload) => {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload.filter(Boolean);
+  if (Array.isArray(payload?.suggestions)) return payload.suggestions.filter(Boolean);
+  if (Array.isArray(payload?.results)) return payload.results.filter(Boolean);
+  if (Array.isArray(payload?.data)) return payload.data.filter(Boolean);
+  if (Array.isArray(payload?.features)) return payload.features.filter(Boolean);
+  if (Array.isArray(payload?.items)) return payload.items.filter(Boolean);
+  return [];
+};
+
+const selectBestDestinationSuggestion = (suggestions, query) => {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!Array.isArray(suggestions) || suggestions.length === 0) return null;
+
+  const ranked = suggestions
+    .map((suggestion, index) => {
+      if (!suggestion) return null;
+      const categories = normalizeTextArray(
+        suggestion.categories || suggestion.category || suggestion.types || suggestion.tags
+      );
+      const name = (suggestion.name || suggestion.title || "").toString().toLowerCase();
+      const formatted = (suggestion.formattedAddress || suggestion.address || "")
+        .toString()
+        .toLowerCase();
+      let score = 0;
+
+      if (normalizedQuery && name.includes(normalizedQuery)) score += 6;
+      if (normalizedQuery && formatted.includes(normalizedQuery)) score += 4;
+
+      DESTINATION_KEYWORDS_PRIORITY.forEach((keyword) => {
+        if (categories.some((c) => c.includes(keyword))) score += 3;
+        if (name.includes(keyword)) score += 2;
+      });
+
+      if (suggestion.population) {
+        const populationScore = Math.min(Math.log10(Number(suggestion.population) + 1), 6);
+        if (Number.isFinite(populationScore)) score += populationScore;
+      }
+
+      if (suggestion.country || suggestion.countryCode) score += 1;
+      if (suggestion.state || suggestion.province) score += 0.5;
+
+      return { suggestion, score, index };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score || a.index - b.index);
+
+  return ranked[0]?.suggestion ?? null;
+};
+
 // --- NEW: Draggable Place Card Component ---
 // For places in the suggestions/search list that can be dragged to itinerary days
 const DraggablePlaceCard = ({ place, isDraggedOver, isAlreadySelected }) => {
@@ -528,6 +628,7 @@ const ItineraryPlanner = () => {
     let cancelled = false;
 
     const timer = setTimeout(async () => {
+      const normalizedDestination = sanitizeDestinationName(aiForm.destinationName);
       try {
         const result = await aiItineraryAPI.estimateCosts({
           basePerPerson,
@@ -537,7 +638,7 @@ const ItineraryPlanner = () => {
           season,
           addOns,
           taxesPct,
-          destination: aiForm.destinationName,
+          destination: normalizedDestination,
           interests: aiForm.interests,
         });
         if (!cancelled) {
@@ -1194,6 +1295,7 @@ const ItineraryPlanner = () => {
     let cancelled = false;
 
     const timer = setTimeout(async () => {
+      const normalizedDestination = sanitizeDestinationName(aiForm.destinationName);
       try {
         const tripDistanceKm = routeTotals.totalMeters / 1000;
 
@@ -1205,7 +1307,7 @@ const ItineraryPlanner = () => {
           season: aiForm.season,
           addOns: aiForm.addOns,
           taxesPct: aiForm.taxesPct,
-          destination: aiForm.destinationName,
+          destination: normalizedDestination,
           interests: aiForm.interests,
           tripDistanceKm,
         });
@@ -1449,8 +1551,13 @@ const ItineraryPlanner = () => {
       const passengersCount = Math.max(1, aiForm.passengers || 1);
       let calculatedBaseBudget = aiForm.basePerPerson;
 
+      const normalizedDestination = sanitizeDestinationName(aiForm.destinationName);
+      if (normalizedDestination !== aiForm.destinationName) {
+        setAiForm((prev) => ({ ...prev, destinationName: normalizedDestination }));
+      }
+
       try {
-        if (!aiForm.destinationName?.trim()) {
+        if (!normalizedDestination) {
           throw new Error("Enter a destination to generate a smart itinerary.");
         }
         if (!aiForm.startDate || !aiForm.endDate) {
@@ -1463,18 +1570,46 @@ const ItineraryPlanner = () => {
         let geoRes;
 
         try {
-          geoRes = await geoAPI.geocode({ query: aiForm.destinationName });
+          geoRes = await geoAPI.geocode({ query: normalizedDestination });
+          if (geoRes && !geoRes.coordinates) {
+            const geoCandidates = collectDestinationCandidates(geoRes.results || geoRes.data);
+            const bestGeo = selectBestDestinationSuggestion(geoCandidates, normalizedDestination);
+            if (bestGeo) {
+              const lat = bestGeo.location?.lat ?? bestGeo.location?.latitude ?? bestGeo.lat;
+              const lng = bestGeo.location?.lng ?? bestGeo.location?.longitude ?? bestGeo.lng;
+              if (lat != null && lng != null) {
+                geoRes = {
+                  coordinates: { lat, lng },
+                  formattedAddress: bestGeo.formattedAddress || bestGeo.name,
+                  city:
+                    bestGeo.city ||
+                    bestGeo.address?.city ||
+                    bestGeo.context?.city ||
+                    bestGeo.location?.city,
+                  state:
+                    bestGeo.state ||
+                    bestGeo.address?.state ||
+                    bestGeo.context?.state ||
+                    bestGeo.location?.state,
+                  country:
+                    bestGeo.country ||
+                    bestGeo.address?.country ||
+                    bestGeo.context?.country ||
+                    bestGeo.location?.country,
+                };
+              }
+            }
+          }
         } catch (geoError) {
           console.warn("Primary geocode failed, attempting fallback search", geoError);
         }
 
         if (!geoRes || !geoRes.coordinates) {
           try {
-            const altRes = await enhancedPlacesAPI.search({ query: aiForm.destinationName });
+            const altRes = await enhancedPlacesAPI.search({ query: normalizedDestination });
             const altPayload = altRes?.data || altRes;
-            const suggestion = Array.isArray(altPayload?.suggestions)
-              ? altPayload.suggestions[0]
-              : null;
+            const candidates = collectDestinationCandidates(altPayload);
+            const suggestion = selectBestDestinationSuggestion(candidates, normalizedDestination);
 
             if (suggestion) {
               const lat = suggestion.location?.lat ?? suggestion.location?.latitude;
@@ -1483,9 +1618,21 @@ const ItineraryPlanner = () => {
                 geoRes = {
                   coordinates: { lat, lng },
                   formattedAddress: suggestion.formattedAddress || suggestion.name,
-                  city: suggestion.city,
-                  state: suggestion.state,
-                  country: suggestion.country,
+                  city:
+                    suggestion.city ||
+                    suggestion.address?.city ||
+                    suggestion.context?.city ||
+                    suggestion.location?.city,
+                  state:
+                    suggestion.state ||
+                    suggestion.address?.state ||
+                    suggestion.context?.state ||
+                    suggestion.location?.state,
+                  country:
+                    suggestion.country ||
+                    suggestion.address?.country ||
+                    suggestion.context?.country ||
+                    suggestion.location?.country,
                 };
               }
             }
@@ -1500,14 +1647,14 @@ const ItineraryPlanner = () => {
 
         let heroImageURL = null;
         try {
-          const imageRes = await imageAPI.getDestinationImage(aiForm.destinationName);
+          const imageRes = await imageAPI.getDestinationImage(normalizedDestination);
           heroImageURL = imageRes.data.imageUrl;
         } catch (imgErr) {
           console.warn("Could not fetch hero image.", imgErr);
         }
 
         const destinationFull = {
-          name: aiForm.destinationName,
+          name: normalizedDestination,
           heroImageURL,
           location: {
             formatted: geoRes.formattedAddress,
@@ -2003,6 +2150,19 @@ const ItineraryPlanner = () => {
                               ...(focusedInput === "destinationName" && activeInputStyle),
                             }}
                           />
+                          <p
+                            style={{
+                              marginTop: "6px",
+                              color: "#94a3b8",
+                              fontSize: "0.78rem",
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            Works with towns, cities, heritage spots, temples and other popular
+                            attractions. We filter the location before calculating your AI
+                            itinerary, so type any well-known destination name and we will handle
+                            the rest.
+                          </p>
                         </div>
                         <div
                           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}
