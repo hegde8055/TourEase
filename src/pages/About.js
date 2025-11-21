@@ -4,6 +4,7 @@ import { useInView } from "react-intersection-observer";
 // --- ICONS ADDED HERE ---
 import { BsCloudSun, BsSignpostSplit, BsGeoAlt, BsLightbulb } from "react-icons/bs";
 import { FaInstagram, FaTwitter, FaYoutube, FaDiscord, FaLinkedin } from "react-icons/fa";
+import { SiUnstop } from "react-icons/si";
 
 // -----------------------------------------------------------------------------
 // Redesigned About.js — cleaned, fixed imports, corrected CSS and animations
@@ -488,6 +489,7 @@ const About = () => {
     { name: "YouTube", href: "https://youtube.com/@hegde8055", Icon: FaYoutube },
     { name: "Discord", href: "https://discord.com/users/hegde8055", Icon: FaDiscord },
     { name: "LinkedIn", href: "https://www.linkedin.com/in/shridhar-hegde", Icon: FaLinkedin },
+    { name: "Unstop", href: "https://unstop.com/p/hegde8055", Icon: SiUnstop },
   ];
 
   // ----------------
