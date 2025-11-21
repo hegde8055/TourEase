@@ -4,7 +4,6 @@ import { useInView } from "react-intersection-observer";
 // --- ICONS ADDED HERE ---
 import { BsCloudSun, BsSignpostSplit, BsGeoAlt, BsLightbulb } from "react-icons/bs";
 import { FaInstagram, FaTwitter, FaYoutube, FaDiscord, FaLinkedin } from "react-icons/fa";
-import { SiUnstop } from "react-icons/si";
 
 // -----------------------------------------------------------------------------
 // Redesigned About.js — cleaned, fixed imports, corrected CSS and animations
@@ -307,7 +306,8 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   font-weight:600;
   transition:transform 0.25s ease, box-shadow 0.25s ease, border 0.25s ease;
 }
-.social-icon-btn svg{font-size:1.8rem}
+.social-icon-btn svg,
+.social-icon-btn .social-custom-initial{font-size:1.8rem}
 .social-icon-btn:hover{
   transform:translateY(-4px) scale(1.02);
   box-shadow:0 16px 32px rgba(0,0,0,0.35);
@@ -317,6 +317,18 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .social-icon-btn span{
   font-size:0.85rem;
   color:rgba(226,232,240,0.85);
+}
+.social-custom-initial{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  background:linear-gradient(135deg,#4f46e5,#9333ea);
+  font-weight:800;
+  font-size:1.05rem;
+  color:#fff;
 }
 
 
@@ -335,10 +347,17 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 }
 `;
 
+const UnstopIcon = () => (
+  <span className="social-custom-initial" aria-hidden="true">
+    U
+  </span>
+);
+
 const About = () => {
   // hero video kept as variable — UPDATED TO INTRO.MKV
   const heroVideoSrc = "/assets/intro.mkv"; // <-- update this to your provided video path
   const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -401,6 +420,24 @@ const About = () => {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const updateProgress = () => {
+      const doc = document.documentElement;
+      const scrollTop = doc.scrollTop || document.body.scrollTop;
+      const scrollHeight = doc.scrollHeight - doc.clientHeight;
+      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      setScrollProgress(progress);
+    };
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+    return () => {
+      window.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateProgress);
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof document === "undefined" || !isSocialModalOpen) return undefined;
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -419,7 +456,6 @@ const About = () => {
   // motion + scroll effects
   const { scrollYProgress } = useScroll();
   const parallax = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
-  const progressWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]); // Scroll bar width
 
   const container = {
     hidden: { opacity: 0, y: 24 },
@@ -489,7 +525,7 @@ const About = () => {
     { name: "YouTube", href: "https://youtube.com/@hegde8055", Icon: FaYoutube },
     { name: "Discord", href: "https://discord.com/users/hegde8055", Icon: FaDiscord },
     { name: "LinkedIn", href: "https://www.linkedin.com/in/shridhar-hegde", Icon: FaLinkedin },
-    { name: "Unstop", href: "https://unstop.com/p/hegde8055", Icon: SiUnstop },
+    { name: "Unstop", href: "https://unstop.com/p/hegde8055", Icon: UnstopIcon },
   ];
 
   // ----------------
@@ -508,7 +544,7 @@ const About = () => {
     <div className="about-page">
       <style>{aboutStyles}</style>
       <div className="scroll-progress-track" aria-hidden="true">
-        <motion.div className="scroll-progress-bar" style={{ width: progressWidth }} />
+        <motion.div className="scroll-progress-bar" style={{ width: `${scrollProgress}%` }} />
       </div>
 
       {/* --- NEW FULLPAGE VIDEO BACKGROUND --- */}
