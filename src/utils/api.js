@@ -88,7 +88,13 @@ export const authAPI = {
     return await axios.post(`${API_BASE}/api/signup`, userData);
   },
   requestPasswordReset: async (email) => {
-    const payload = typeof email === "string" ? { email } : email;
+    const payload = typeof email === "string" ? { email } : { ...(email || {}) };
+    if (!payload.mode) {
+      payload.mode = "pin";
+    }
+    if (payload.email) {
+      payload.email = payload.email.trim();
+    }
     return await axios.post(`${API_BASE}/api/forgot-password`, payload);
   },
   resetPassword: async (token, newPassword) => {
@@ -96,6 +102,9 @@ export const authAPI = {
       token,
       newPassword,
     });
+  },
+  resetPasswordWithPin: async (payload) => {
+    return await axios.post(`${API_BASE}/api/reset-password/pin`, payload);
   },
   getProfile: async () => {
     return await axios.get(`${API_BASE}/api/auth/profile`);
@@ -170,6 +179,9 @@ export const profileAPI = {
   },
   changePassword: async (data) => {
     return await axios.put(`${API_BASE}/api/profile/change-password`, data);
+  },
+  refreshResetPin: async () => {
+    return await axios.put(`${API_BASE}/api/profile/reset-pin`);
   },
   uploadPhoto: async (formData) => {
     return await axios.post(`${API_BASE}/api/profile/upload-photo`, formData, {

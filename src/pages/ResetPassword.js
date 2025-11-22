@@ -10,8 +10,10 @@ const ResetPassword = () => {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pinForm, setPinForm] = useState({ email: "", pin: "" });
   const navigate = useNavigate();
   const { token } = useParams();
+  const isTokenMode = Boolean(token);
 
   const passwordRequirements = useMemo(
     () => [
@@ -44,18 +46,23 @@ const ResetPassword = () => {
     [password, passwordRequirements]
   );
 
-  useEffect(() => {
-    if (!token) {
-      setError("This reset link is invalid or has expired. Please request a new one.");
+  const handlePinFormChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "pin") {
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 6);
+      setPinForm((prev) => ({ ...prev, pin: digitsOnly }));
+      return;
     }
+    setPinForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  useEffect(() => {
+    setError("");
+    setMessage("");
   }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) {
-      setError("Reset token missing. Request a fresh reset link.");
-      return;
-    }
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -65,18 +72,50 @@ const ResetPassword = () => {
       setError(`Password must include: ${unmet.join(", ")}`);
       return;
     }
+    if (!isTokenMode) {
+      const trimmedEmail = pinForm.email.trim();
+      const trimmedPin = pinForm.pin.trim();
+      if (!trimmedEmail || !trimmedPin) {
+        setError("Email and reset PIN are required.");
+        return;
+      }
+      if (!/^[0-9]{6}$/.test(trimmedPin)) {
+        setError("Reset PIN must be exactly 6 digits.");
+        return;
+      }
+    }
     setLoading(true);
     setError("");
     setMessage("");
 
     try {
-      const response = await authAPI.resetPassword(token, password);
-      setMessage(response.data?.message || "Password has been reset successfully!");
+      let response;
+      if (isTokenMode) {
+        response = await authAPI.resetPassword(token, password);
+      } else {
+        response = await authAPI.resetPasswordWithPin({
+          email: pinForm.email.trim(),
+          pin: pinForm.pin.trim(),
+          newPassword: password,
+        });
+      }
+      const data = response?.data || response;
+      setMessage(
+        data?.message ||
+          (isTokenMode
+            ? "Password has been reset successfully!"
+            : "Password updated. Sign in and open Profile -> Security to view your refreshed PIN.")
+      );
       setTimeout(() => {
         navigate("/signin", { state: { resetSuccess: true } });
       }, 2200);
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to reset password. The link may have expired.");
+      setError(
+        err.response?.data?.error ||
+          (isTokenMode
+            ? "Failed to reset password. The link may have expired."
+            : "Unable to verify that email and PIN combination. Please try again.")
+      );
     } finally {
       setLoading(false);
     }
@@ -90,6 +129,11 @@ const ResetPassword = () => {
             <span>Set New</span>
             <span>Password</span>
           </div>
+          <p style={{ color: "#94a3b8", textAlign: "center", marginBottom: "1rem" }}>
+            {isTokenMode
+              ? "You are using an email link to finish resetting your password."
+              : "Enter your account email and the 6-digit reset PIN from Profile -> Security."}
+          </p>
           {error && <div className="error-banner">{error}</div>}
           {message && (
             <div style={{ color: "#22c55e", textAlign: "center", marginBottom: "1rem" }}>
@@ -97,6 +141,38 @@ const ResetPassword = () => {
             </div>
           )}
           <form onSubmit={handleSubmit}>
+            {!isTokenMode && (
+              <>
+                <label htmlFor="email">Account Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="Enter your account email"
+                  value={pinForm.email}
+                  onChange={handlePinFormChange}
+                  autoComplete="email"
+                  required
+                />
+                <label htmlFor="pin">Reset PIN</label>
+                <input
+                  id="pin"
+                  type="text"
+                  name="pin"
+                  placeholder="6-digit PIN"
+                  value={pinForm.pin}
+                  onChange={handlePinFormChange}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                  required
+                />
+                <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "1rem" }}>
+                  You can regenerate this PIN from Profile -> Security after you sign in.
+                </p>
+              </>
+            )}
             <label htmlFor="password">New Password</label>
             <input
               id="password"
@@ -107,7 +183,14 @@ const ResetPassword = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <div style={{ marginBottom: "1rem", padding: "0.75rem", background: "rgba(15,23,42,0.55)", borderRadius: "10px" }}>
+            <div
+              style={{
+                marginBottom: "1rem",
+                padding: "0.75rem",
+                background: "rgba(15,23,42,0.55)",
+                borderRadius: "10px",
+              }}
+            >
               <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
                 Your password must include:
               </p>
@@ -139,7 +222,7 @@ const ResetPassword = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
-            <button type="submit" className="btn" disabled={loading || !token}>
+            <button type="submit" className="btn" disabled={loading}>
               {loading ? "Resetting..." : "Reset Password"}
             </button>
           </form>
@@ -155,7 +238,7 @@ const ResetPassword = () => {
                 cursor: "pointer",
               }}
             >
-              Need a new link?
+              Need your PIN again?
             </button>
           </div>
         </div>

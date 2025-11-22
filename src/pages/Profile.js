@@ -48,6 +48,9 @@ const Profile = () => {
   });
   const [passwordStatus, setPasswordStatus] = useState({ type: "", message: "" });
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showResetPin, setShowResetPin] = useState(false);
+  const [pinStatus, setPinStatus] = useState({ type: "", message: "" });
+  const [refreshingPin, setRefreshingPin] = useState(false);
   const passwordRules = useMemo(
     () => [
       { label: "At least 8 characters", test: (value) => value.length >= 8 },
@@ -62,6 +65,12 @@ const Profile = () => {
     () => passwordRules.map((rule) => ({ ...rule, passed: rule.test(passwordForm.newPassword) })),
     [passwordRules, passwordForm.newPassword]
   );
+  const formatDateTime = useCallback((value, fallback = "Not set") => {
+    if (!value) return fallback;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return fallback;
+    return date.toLocaleString();
+  }, []);
   const profileImageSrc = profile?.profile_photo_url
     ? getImageUrl(profile.profile_photo_url)
     : profile?.profile_photo_base64 || null;
@@ -124,6 +133,8 @@ const Profile = () => {
       const userProfile = response.data;
       setProfile(userProfile);
       setFormData({ username: userProfile.username || "", about: userProfile.about || "" });
+      setShowResetPin(false);
+      setPinStatus({ type: "", message: "" });
     } catch (error) {
       console.error("Error loading profile:", error);
       if (error.response?.status === 401) navigate("/signin");
@@ -172,6 +183,43 @@ const Profile = () => {
     } catch (error) {
       console.error("Error updating profile:", error);
       alert(error.response?.data?.error || "Failed to update profile.");
+    }
+  };
+
+  const toggleResetPinVisibility = () => {
+    setShowResetPin((prev) => !prev);
+  };
+
+  const handleRegeneratePin = async () => {
+    if (refreshingPin) return;
+    setRefreshingPin(true);
+    setPinStatus({ type: "", message: "" });
+    try {
+      const response = await profileAPI.refreshResetPin();
+      const data = response.data || {};
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              resetPin: data.resetPin ?? prev.resetPin,
+              resetPinIssuedAt: data.issuedAt ?? prev.resetPinIssuedAt,
+              resetPinLastUsedAt: data.lastUsedAt ?? prev.resetPinLastUsedAt,
+            }
+          : prev
+      );
+      setPinStatus({
+        type: "success",
+        message: data.message || "Reset PIN refreshed successfully.",
+      });
+      setShowResetPin(true);
+    } catch (error) {
+      console.error("Error refreshing reset PIN:", error);
+      setPinStatus({
+        type: "error",
+        message: error.response?.data?.error || "Failed to refresh reset PIN.",
+      });
+    } finally {
+      setRefreshingPin(false);
     }
   };
 
@@ -991,6 +1039,159 @@ const Profile = () => {
                           }}
                         >
                           🚪 Logout
+                        </motion.button>
+                      </motion.div>
+                      <motion.div
+                        variants={cardVariants}
+                        whileHover={{ y: -5, boxShadow: "0 15px 40px rgba(34, 197, 94, 0.18)" }}
+                        style={{
+                          background: "var(--glass)",
+                          backdropFilter: "blur(12px)",
+                          padding: "30px",
+                          borderRadius: "20px",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <h3 style={{ color: "#34d399", fontSize: "1.5rem", marginBottom: "16px" }}>
+                          Account Recovery PIN
+                        </h3>
+                        <p style={{ color: "#cbd5e1", lineHeight: 1.5, marginBottom: "18px" }}>
+                          Use this 6-digit PIN on the Forgot Password page when you cannot access
+                          your email inbox. Keep it private.
+                        </p>
+                        {pinStatus.message && (
+                          <div
+                            style={{
+                              marginBottom: "18px",
+                              padding: "14px",
+                              borderRadius: "12px",
+                              border:
+                                pinStatus.type === "success"
+                                  ? "1px solid rgba(34,197,94,0.4)"
+                                  : "1px solid rgba(239,68,68,0.35)",
+                              background:
+                                pinStatus.type === "success"
+                                  ? "rgba(34,197,94,0.12)"
+                                  : "rgba(239,68,68,0.12)",
+                              color: pinStatus.type === "success" ? "#86efac" : "#fda4af",
+                              fontWeight: 600,
+                              textAlign: "center",
+                            }}
+                          >
+                            {pinStatus.message}
+                          </div>
+                        )}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            background: "rgba(15, 23, 42, 0.65)",
+                            borderRadius: "14px",
+                            padding: "16px 20px",
+                            border: "1px solid rgba(148, 163, 184, 0.25)",
+                            marginBottom: "16px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              letterSpacing: "6px",
+                              fontSize: "2rem",
+                              color: "#f8fafc",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {showResetPin ? profile?.resetPin || "------" : "******"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={toggleResetPinVisibility}
+                            style={{
+                              padding: "10px 16px",
+                              borderRadius: "10px",
+                              border: "1px solid rgba(148, 163, 184, 0.4)",
+                              background: "rgba(30, 41, 59, 0.65)",
+                              color: "#cbd5e1",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {showResetPin ? "Hide" : "Show"} PIN
+                          </button>
+                        </div>
+                        <div
+                          style={{
+                            display: "grid",
+                            gap: "6px",
+                            color: "#94a3b8",
+                            fontSize: "0.9rem",
+                            marginBottom: "20px",
+                          }}
+                        >
+                          <div>
+                            Generated:
+                            <span style={{ color: "#e2e8f0", fontWeight: 600, marginLeft: "6px" }}>
+                              {formatDateTime(profile?.resetPinIssuedAt, "Just now")}
+                            </span>
+                          </div>
+                          <div>
+                            Last used:
+                            <span style={{ color: "#e2e8f0", fontWeight: 600, marginLeft: "6px" }}>
+                              {profile?.resetPinLastUsedAt
+                                ? formatDateTime(profile.resetPinLastUsedAt)
+                                : "Never"}
+                            </span>
+                          </div>
+                        </div>
+                        <motion.button
+                          type="button"
+                          onClick={handleRegeneratePin}
+                          whileHover={{ scale: refreshingPin ? 1 : 1.02 }}
+                          disabled={refreshingPin}
+                          style={{
+                            width: "100%",
+                            padding: "14px",
+                            fontSize: "1rem",
+                            fontWeight: "700",
+                            borderRadius: "12px",
+                            border: "none",
+                            cursor: refreshingPin ? "not-allowed" : "pointer",
+                            background: refreshingPin
+                              ? "rgba(16, 185, 129, 0.45)"
+                              : "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                            color: "#0f172a",
+                          }}
+                        >
+                          {refreshingPin ? "Generating..." : "Generate New PIN"}
+                        </motion.button>
+                        <p
+                          style={{
+                            color: "#94a3b8",
+                            fontSize: "0.85rem",
+                            marginTop: "12px",
+                            textAlign: "center",
+                          }}
+                        >
+                          After changing your password, sign back in to view your refreshed reset
+                          PIN here.
+                        </p>
+                        <motion.button
+                          type="button"
+                          onClick={() => navigate("/forgot-password")}
+                          whileHover={{ scale: 1.01 }}
+                          style={{
+                            marginTop: "16px",
+                            width: "100%",
+                            padding: "12px",
+                            borderRadius: "12px",
+                            border: "1px solid rgba(96, 165, 250, 0.4)",
+                            background: "rgba(37, 99, 235, 0.12)",
+                            color: "#bfdbfe",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          Forgot how to use it?
                         </motion.button>
                       </motion.div>
                       <motion.div
