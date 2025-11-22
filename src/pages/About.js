@@ -148,6 +148,8 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .hero-title.hero-title-glow{animation:heroGlowSweep 1.8s ease-out forwards;background-size:220%;filter:drop-shadow(0 0 18px rgba(236,198,180,0.55));}
 .hero-blurb{max-width:760px;margin:10px auto 18px;color:rgba(226,232,240,0.9);font-size:1.04rem}
 .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.hero-cta .btn{min-width:190px;padding:14px 28px;font-size:1rem;line-height:1.2;text-align:center}
+.talk-to-me-wrapper .btn{padding:12px 26px;font-size:0.95rem;letter-spacing:0.04em}
 .btn{padding:12px 30px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border:none;cursor:pointer;outline:none}
 /* Primary button clean */
 .btn-primary{background:linear-gradient(135deg,#e3b8a5 0%,#f6d4c8 100%);color:#2a0e12;border:1px solid rgba(255,255,255,0.18);transition:transform 0.28s cubic-bezier(.2,.9,.2,1), box-shadow 0.35s ease;position:relative;overflow:hidden}
@@ -356,12 +358,17 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
   .features{grid-template-columns:repeat(2,1fr)}
   .services-grid{grid-template-columns:repeat(2,1fr)}
   .hero-section{padding:var(--nav-height, 70px) 16px 60px}
+  .hero-cta .btn{min-width:0;padding:14px 26px;font-size:0.98rem}
 }
 @media (max-width:640px){
   .hero-title{font-size:1.8rem}
   .features{grid-template-columns:1fr}
   .services-grid{grid-template-columns:1fr}
   .profile-photo{height:320px}
+  .hero-cta{flex-direction:column;gap:12px}
+  .hero-cta .btn{width:100%;min-width:0;padding:14px 22px;font-size:0.95rem}
+  .talk-to-me-wrapper{margin-top:18px}
+  .talk-to-me-wrapper .btn{width:100%;max-width:260px;margin:0 auto}
 }
 `;
 
