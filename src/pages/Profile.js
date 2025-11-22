@@ -1,5 +1,5 @@
 // client/src/pages/Profile.js
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { profileAPI, getImageUrl } from "../utils/api";
@@ -41,6 +41,27 @@ const Profile = () => {
   const [contactStatus, setContactStatus] = useState({ type: "", message: "" });
   const [contactLoading, setContactLoading] = useState(false);
   const [stats, setStats] = useState({ visited: 0, reviews: 0, photos: 0 });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordStatus, setPasswordStatus] = useState({ type: "", message: "" });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const passwordRules = useMemo(
+    () => [
+      { label: "At least 8 characters", test: (value) => value.length >= 8 },
+      { label: "One uppercase letter", test: (value) => /[A-Z]/.test(value) },
+      { label: "One lowercase letter", test: (value) => /[a-z]/.test(value) },
+      { label: "One number", test: (value) => /\d/.test(value) },
+      { label: "One special character", test: (value) => /[^A-Za-z0-9]/.test(value) },
+    ],
+    []
+  );
+  const passwordRuleStatus = useMemo(
+    () => passwordRules.map((rule) => ({ ...rule, passed: rule.test(passwordForm.newPassword) })),
+    [passwordRules, passwordForm.newPassword]
+  );
   const profileImageSrc = profile?.profile_photo_url
     ? getImageUrl(profile.profile_photo_url)
     : profile?.profile_photo_base64 || null;
@@ -405,6 +426,62 @@ const Profile = () => {
     });
     setContactForm({ name: "", email: "", subject: "", message: "" });
     setContactLoading(false);
+  };
+
+  const handlePasswordInputChange = (event) => {
+    const { name, value } = event.target;
+    setPasswordForm((prev) => ({ ...prev, [name]: value }));
+    if (passwordStatus.type) {
+      setPasswordStatus({ type: "", message: "" });
+    }
+  };
+
+  const submitPasswordChange = async (event) => {
+    event.preventDefault();
+    if (passwordLoading) return;
+
+    setPasswordStatus({ type: "", message: "" });
+    const { currentPassword, newPassword, confirmPassword } = passwordForm;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordStatus({ type: "error", message: "Please fill out all password fields." });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordStatus({ type: "error", message: "New password and confirmation do not match." });
+      return;
+    }
+    if (currentPassword === newPassword) {
+      setPasswordStatus({
+        type: "error",
+        message: "New password must be different from your current password.",
+      });
+      return;
+    }
+    if (passwordRuleStatus.some((rule) => !rule.passed)) {
+      setPasswordStatus({
+        type: "error",
+        message: "New password must meet all listed requirements.",
+      });
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      await profileAPI.changePassword({
+        currentPassword,
+        newPassword,
+      });
+      setPasswordStatus({ type: "success", message: "Password updated successfully." });
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    } catch (err) {
+      setPasswordStatus({
+        type: "error",
+        message: err.response?.data?.error || "Failed to update password. Please try again.",
+      });
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   const handleLogout = async () => {
@@ -915,6 +992,199 @@ const Profile = () => {
                         >
                           🚪 Logout
                         </motion.button>
+                      </motion.div>
+                      <motion.div
+                        variants={cardVariants}
+                        whileHover={{ y: -5, boxShadow: "0 15px 40px rgba(99, 102, 241, 0.2)" }}
+                        style={{
+                          background: "var(--glass)",
+                          backdropFilter: "blur(12px)",
+                          padding: "30px",
+                          borderRadius: "20px",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                        }}
+                      >
+                        <h3 style={{ color: "#818cf8", fontSize: "1.5rem", marginBottom: "20px" }}>
+                          Change Password
+                        </h3>
+                        {passwordStatus.message && (
+                          <div
+                            style={{
+                              marginBottom: "20px",
+                              padding: "14px",
+                              borderRadius: "12px",
+                              border:
+                                passwordStatus.type === "success"
+                                  ? "1px solid rgba(34,197,94,0.4)"
+                                  : "1px solid rgba(239,68,68,0.35)",
+                              background:
+                                passwordStatus.type === "success"
+                                  ? "rgba(34,197,94,0.12)"
+                                  : "rgba(239,68,68,0.1)",
+                              color: passwordStatus.type === "success" ? "#86efac" : "#fca5a5",
+                              fontWeight: 600,
+                              textAlign: "center",
+                            }}
+                          >
+                            {passwordStatus.message}
+                          </div>
+                        )}
+                        <form onSubmit={submitPasswordChange}>
+                          <div style={{ marginBottom: "18px" }}>
+                            <label
+                              style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                color: "#e5e7eb",
+                                fontWeight: 600,
+                              }}
+                            >
+                              Current Password
+                            </label>
+                            <input
+                              type="password"
+                              name="currentPassword"
+                              value={passwordForm.currentPassword}
+                              onChange={handlePasswordInputChange}
+                              autoComplete="current-password"
+                              style={{
+                                width: "100%",
+                                padding: "12px 16px",
+                                borderRadius: "12px",
+                                border: "2px solid rgba(255, 255, 255, 0.1)",
+                                background: "rgba(17, 24, 39, 0.6)",
+                                color: "#e5e7eb",
+                                fontSize: "1rem",
+                                outline: "none",
+                              }}
+                            />
+                          </div>
+                          <div style={{ marginBottom: "18px" }}>
+                            <label
+                              style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                color: "#e5e7eb",
+                                fontWeight: 600,
+                              }}
+                            >
+                              New Password
+                            </label>
+                            <input
+                              type="password"
+                              name="newPassword"
+                              value={passwordForm.newPassword}
+                              onChange={handlePasswordInputChange}
+                              autoComplete="new-password"
+                              style={{
+                                width: "100%",
+                                padding: "12px 16px",
+                                borderRadius: "12px",
+                                border: "2px solid rgba(255, 255, 255, 0.1)",
+                                background: "rgba(17, 24, 39, 0.6)",
+                                color: "#e5e7eb",
+                                fontSize: "1rem",
+                                outline: "none",
+                              }}
+                            />
+                            <div
+                              style={{
+                                marginTop: "12px",
+                                padding: "12px",
+                                borderRadius: "10px",
+                                background: "rgba(30, 41, 59, 0.55)",
+                              }}
+                            >
+                              <p
+                                style={{
+                                  color: "#94a3b8",
+                                  fontSize: "0.85rem",
+                                  marginBottom: "6px",
+                                }}
+                              >
+                                Must include:
+                              </p>
+                              <ul
+                                style={{
+                                  listStyle: "none",
+                                  margin: 0,
+                                  padding: 0,
+                                  display: "grid",
+                                  gap: "6px",
+                                }}
+                              >
+                                {passwordRuleStatus.map((rule) => (
+                                  <li
+                                    key={rule.label}
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "8px",
+                                      fontSize: "0.85rem",
+                                      color: rule.passed ? "#86efac" : "#fca5a5",
+                                      fontWeight: rule.passed ? 600 : 500,
+                                    }}
+                                  >
+                                    <span style={{ fontWeight: 700 }}>
+                                      {rule.passed ? "✓" : "•"}
+                                    </span>
+                                    {rule.label}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                          <div style={{ marginBottom: "24px" }}>
+                            <label
+                              style={{
+                                display: "block",
+                                marginBottom: "8px",
+                                color: "#e5e7eb",
+                                fontWeight: 600,
+                              }}
+                            >
+                              Confirm New Password
+                            </label>
+                            <input
+                              type="password"
+                              name="confirmPassword"
+                              value={passwordForm.confirmPassword}
+                              onChange={handlePasswordInputChange}
+                              autoComplete="new-password"
+                              style={{
+                                width: "100%",
+                                padding: "12px 16px",
+                                borderRadius: "12px",
+                                border: "2px solid rgba(255, 255, 255, 0.1)",
+                                background: "rgba(17, 24, 39, 0.6)",
+                                color: "#e5e7eb",
+                                fontSize: "1rem",
+                                outline: "none",
+                              }}
+                            />
+                          </div>
+                          <motion.button
+                            whileHover={{ scale: passwordLoading ? 1 : 1.02 }}
+                            whileTap={{ scale: passwordLoading ? 1 : 0.98 }}
+                            type="submit"
+                            disabled={passwordLoading}
+                            style={{
+                              width: "100%",
+                              padding: "14px",
+                              background: passwordLoading
+                                ? "rgba(129, 140, 248, 0.5)"
+                                : "linear-gradient(135deg, #6366f1, #4338ca)",
+                              border: "none",
+                              borderRadius: "12px",
+                              color: "#f8fafc",
+                              fontWeight: 700,
+                              fontSize: "1.05rem",
+                              cursor: passwordLoading ? "not-allowed" : "pointer",
+                            }}
+                          >
+                            {passwordLoading ? "Updating..." : "Update Password"}
+                          </motion.button>
+                        </form>
                       </motion.div>
                     </div>
                   </motion.div>

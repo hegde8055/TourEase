@@ -168,6 +168,9 @@ export const profileAPI = {
   updateProfile: async (data) => {
     return await axios.put(`${API_BASE}/api/profile/update`, data);
   },
+  changePassword: async (data) => {
+    return await axios.put(`${API_BASE}/api/profile/change-password`, data);
+  },
   uploadPhoto: async (formData) => {
     return await axios.post(`${API_BASE}/api/profile/upload-photo`, formData, {
       headers: {
