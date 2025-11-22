@@ -181,10 +181,37 @@ export const deriveNearbyPlaces = (items = [], destination, fallbackKey) => {
 export const normalizeDbDestination = (destination) => {
   if (!destination) return null;
   const normalizedRating = normalizePlaceRating(destination.rating);
+  const rawName = typeof destination.name === "string" ? destination.name.trim() : "";
+  const isLikelyPostalCode = rawName && /^[0-9]{4,6}$/.test(rawName);
+  const fallbackNameCandidates = [
+    destination.displayName,
+    destination.title,
+    destination.location?.name,
+    destination.location?.label,
+    destination.location?.city,
+    destination.location?.district,
+    destination.location?.region,
+    destination.location?.state,
+    destination.location?.country,
+  ];
+  const readableFallback = fallbackNameCandidates.find((value) => {
+    if (typeof value !== "string") return false;
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    return !/^[0-9]{4,6}$/.test(trimmed);
+  });
+  const resolvedNameCandidate = readableFallback
+    ? readableFallback.trim()
+    : fallbackNameCandidates.find((value) => typeof value === "string" && value.trim().length > 0);
+  const sanitizedFallback =
+    typeof resolvedNameCandidate === "string" ? resolvedNameCandidate.trim() : "";
+  const resolvedName = isLikelyPostalCode
+    ? sanitizedFallback || rawName || "Featured destination"
+    : rawName || sanitizedFallback || "Featured destination";
   const normalized = {
     id: destination._id,
     _id: destination._id, // Ensure _id is present
-    name: destination.name,
+    name: resolvedName,
     category: destination.category,
     description: destination.description,
     formatted_address: formatAddress(destination.location),
