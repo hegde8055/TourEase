@@ -15,6 +15,7 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,6 +36,14 @@ const SignIn = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (location.state?.resetSuccess) {
+      setSuccess("Password updated. You can sign in with your new credentials.");
+      const targetPath = `${location.pathname}${location.search}${location.hash}`;
+      navigate(targetPath, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -45,6 +54,7 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
@@ -132,6 +142,21 @@ const SignIn = () => {
                 }}
               >
                 {error}
+              </div>
+            )}
+            {success && !error && (
+              <div
+                style={{
+                  background: "rgba(34, 197, 94, 0.12)",
+                  border: "1px solid rgba(34, 197, 94, 0.35)",
+                  color: "#86efac",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  marginBottom: "15px",
+                  textAlign: "center",
+                }}
+              >
+                {success}
               </div>
             )}
 

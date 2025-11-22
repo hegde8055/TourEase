@@ -87,17 +87,12 @@ export const authAPI = {
   register: async (userData) => {
     return await axios.post(`${API_BASE}/api/signup`, userData);
   },
-  verifyOtp: async (otpData) => {
-    return await axios.post(`${API_BASE}/api/auth/verify-otp`, otpData);
-  },
   requestPasswordReset: async (email) => {
-    return await axios.post(`${API_BASE}/api/auth/request-password-reset`, { email });
-  },
-  verifyResetToken: async (token) => {
-    return await axios.get(`${API_BASE}/api/auth/verify-reset-token/${token}`);
+    const payload = typeof email === "string" ? { email } : email;
+    return await axios.post(`${API_BASE}/api/forgot-password`, payload);
   },
   resetPassword: async (token, newPassword) => {
-    return await axios.post(`${API_BASE}/api/auth/reset-password`, {
+    return await axios.post(`${API_BASE}/api/reset-password`, {
       token,
       newPassword,
     });

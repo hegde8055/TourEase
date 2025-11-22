@@ -29,8 +29,9 @@ const Reset = () => {
     setLoading(true);
 
     try {
-      const response = await authAPI.forgotPassword({ email });
-      setMessage(response.data.message);
+      const response = await authAPI.requestPasswordReset(email);
+      const data = response?.data || response;
+      setMessage(data?.message || "If the email exists, a reset link has been sent.");
     } catch (err) {
       setError(err.response?.data?.error || "Failed to send reset link. Please try again.");
     } finally {
@@ -56,11 +57,9 @@ const Reset = () => {
     setLoading(true);
 
     try {
-      const response = await authAPI.resetPassword({
-        token,
-        newPassword,
-      });
-      setMessage(response.data.message);
+      const response = await authAPI.resetPassword(token, newPassword);
+      const data = response?.data || response;
+      setMessage(data?.message || "Password reset successfully.");
       setTimeout(() => {
         navigate("/signin");
       }, 2000);

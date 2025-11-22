@@ -9,6 +9,9 @@ const ForgotPassword = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [linkCopied, setLinkCopied] = useState(false);
   const navigate = useNavigate();
 
   const containerVariants = {
@@ -41,15 +44,38 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccessMessage("");
+    setResetToken("");
+    setLinkCopied(false);
 
     try {
-      await authAPI.forgotPassword({ email });
+      const response = await authAPI.requestPasswordReset(email);
+      const data = response?.data || response;
+      if (data?._development_testing_token) {
+        setResetToken(data._development_testing_token);
+      }
+      setSuccessMessage(
+        data?.message ||
+          "If this email matches an account, we just sent a secure password reset link."
+      );
       setIsSubmitted(true);
-      setTimeout(() => navigate("/verify-otp", { state: { email } }), 3500);
     } catch (err) {
-      setError(err.response?.data?.error || "Failed to send OTP. Please try again.");
+      setError(err.response?.data?.error || "Failed to send a reset link. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    if (!resetToken || typeof navigator === "undefined" || !navigator.clipboard) return;
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const link = `${origin}/reset-password/${resetToken}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2200);
+    } catch (copyErr) {
+      console.warn("Clipboard copy failed", copyErr);
     }
   };
 
@@ -266,34 +292,116 @@ const ForgotPassword = () => {
               </motion.div>
             </>
           ) : (
-            <motion.div style={{ textAlign: "center" }} variants={containerVariants}>
-              <motion.div
-                style={{
-                  width: "110px",
-                  height: "110px",
-                  background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                  borderRadius: "50%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "56px",
-                  margin: "0 auto 30px",
-                }}
-                variants={successVariants}
-              >
-                ✓
+              <motion.div style={{ textAlign: "center" }} variants={containerVariants}>
+                <motion.div
+                  style={{
+                    width: "110px",
+                    height: "110px",
+                    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "56px",
+                    margin: "0 auto 30px",
+                  }}
+                  variants={successVariants}
+                >
+                  ✓
+                </motion.div>
+                <motion.h2
+                  style={{ fontSize: "28px", fontWeight: "800", color: "#22c55e" }}
+                  variants={itemVariants}
+                >
+                  Check Your Email
+                </motion.h2>
+                <motion.p style={{ color: "#cbd5e1" }} variants={itemVariants}>
+                  {successMessage ||
+                    "If the email you entered is registered, you'll receive a password reset link shortly."}
+                </motion.p>
+                {resetToken && (
+                  <motion.div
+                    style={{
+                      marginTop: "24px",
+                      padding: "18px",
+                      background: "rgba(59, 130, 246, 0.12)",
+                      border: "1px solid rgba(59, 130, 246, 0.32)",
+                      borderRadius: "14px",
+                      textAlign: "left",
+                    }}
+                    variants={itemVariants}
+                  >
+                    <p style={{ color: "#93c5fd", fontWeight: 600, marginBottom: "8px" }}>
+                      Developer testing token
+                    </p>
+                    <code
+                      style={{
+                        display: "block",
+                        wordBreak: "break-all",
+                        background: "rgba(15, 23, 42, 0.65)",
+                        padding: "12px",
+                        borderRadius: "10px",
+                        color: "#e2e8f0",
+                      }}
+                    >
+                      {resetToken}
+                    </code>
+                    <div style={{ display: "flex", gap: "12px", marginTop: "14px" }}>
+                      <motion.button
+                        type="button"
+                        onClick={() => navigate(`/reset-password/${resetToken}`)}
+                        whileHover={{ scale: 1.03 }}
+                        style={{
+                          flex: 1,
+                          padding: "12px",
+                          borderRadius: "10px",
+                          border: "none",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                          color: "#f8fafc",
+                        }}
+                      >
+                        Open Reset Form
+                      </motion.button>
+                      <motion.button
+                        type="button"
+                        onClick={handleCopyLink}
+                        whileHover={{ scale: 1.03 }}
+                        style={{
+                          padding: "12px 16px",
+                          borderRadius: "10px",
+                          border: "1px solid rgba(96, 165, 250, 0.45)",
+                          background: "rgba(30, 41, 59, 0.75)",
+                          color: "#bfdbfe",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        {linkCopied ? "Copied!" : "Copy reset link"}
+                      </motion.button>
+                    </div>
+                    <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: "10px" }}>
+                      Share this link only with the intended account owner. Tokens expire in roughly
+                      an hour.
+                    </p>
+                  </motion.div>
+                )}
+                <motion.div
+                  style={{ textAlign: "center", marginTop: "25px" }}
+                  variants={itemVariants}
+                >
+                  <a
+                    href="/signin"
+                    style={{ color: "#60a5fa", textDecoration: "none", fontWeight: "600" }}
+                    onMouseEnter={(e) => (e.target.style.color = "#93c5fd")}
+                    onMouseLeave={(e) => (e.target.style.color = "#60a5fa")}
+                  >
+                    Back to Sign In
+                  </a>
+                </motion.div>
               </motion.div>
-              <motion.h2
-                style={{ fontSize: "28px", fontWeight: "800", color: "#22c55e" }}
-                variants={itemVariants}
-              >
-                Check Your Email
-              </motion.h2>
-              <motion.p style={{ color: "#cbd5e1" }} variants={itemVariants}>
-                We've sent a password reset link. Check your inbox.
-              </motion.p>
-            </motion.div>
-          )}
+            )}
         </motion.div>
       </motion.div>
 

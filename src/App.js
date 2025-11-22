@@ -30,7 +30,6 @@ const SignUp = lazy(() => import("./pages/SignUp"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Destination = lazy(() => import("./pages/Destination"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const VerifyOTP = lazy(() => import("./pages/VerifyOTP"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Trending = lazy(() => import("./pages/Trending"));
 const ItineraryPlanner = lazy(() => import("./pages/ItineraryPlanner"));
@@ -250,14 +249,6 @@ const AnimatedRoutes = () => {
           element={
             <PageWrapper>
               <ForgotPassword />
-            </PageWrapper>
-          }
-        />
-        <Route
-          path="/verify-otp"
-          element={
-            <PageWrapper>
-              <VerifyOTP />
             </PageWrapper>
           }
         />
