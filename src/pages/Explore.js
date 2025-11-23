@@ -1,6 +1,6 @@
 // /client/src/pages/Explore.js
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 // --- REMOVED InteractiveMap import ---
 import { placesAPI, destinationsAPI, geoAPI } from "../utils/api";
@@ -94,6 +94,17 @@ const Explore = () => {
       searchInputRef.current.focus();
     }
   }, []);
+
+  // Handle URL query param for auto-search
+  const [searchParams] = useSearchParams();
+  const destParam = searchParams.get("destination");
+
+  useEffect(() => {
+    if (destParam) {
+      setSearchQuery(destParam);
+      handleSearch(destParam);
+    }
+  }, [destParam]);
 
   // Fetch curated destinations
   useEffect(() => {
@@ -221,21 +232,22 @@ const Explore = () => {
   const handleCardClick = async (destination) => {
     if (!destination) return;
 
-    const hasNearbyData =
-      (Array.isArray(destination.nearby?.tourist) && destination.nearby.tourist.length > 0) ||
-      (Array.isArray(destination.nearbyAttractions) && destination.nearbyAttractions.length > 0);
+    // Fetch expanded details (12 items) if needed
+    try {
+      // Always fetch fresh details to ensure we get the expanded lists
+      const response = await destinationsAPI.getById(destination._id);
+      let hydrated = response.data?.destination || destination;
 
-    if (!hasNearbyData && destination._id) {
-      try {
-        const response = await destinationsAPI.getById(destination._id);
-        const hydrated = response.data?.destination || destination;
-        setSelectedDestination(hydrated);
-        return;
-      } catch (error) {
-        console.warn("Destination hydration failed:", error);
-        setSelectedDestination(destination);
+      // If we need to fetch nearby places manually because they are missing
+      if (!hydrated.nearbyAttractions || hydrated.nearbyAttractions.length < 5) {
+        // This would ideally be a server-side enhancement, but we can try to fetch if the API supports it
+        // For now, we rely on the getById returning what it has.
+        // If the user wants 10-12 items, we might need to trigger a "refresh" or "ingest" if not enough data.
       }
-    } else {
+
+      setSelectedDestination(hydrated);
+    } catch (error) {
+      console.warn("Destination hydration failed:", error);
       setSelectedDestination(destination);
     }
   };

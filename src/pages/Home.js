@@ -23,7 +23,7 @@ const INDIAN_DESTINATIONS = [
   { id: 2, name: "Jaipur", image: "https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=1000&auto=format&fit=crop", desc: "The Pink City." },
   { id: 3, name: "Kerala", image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=1000&auto=format&fit=crop", desc: "God's Own Country." },
   { id: 4, name: "Ladakh", image: "https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=80&w=1000&auto=format&fit=crop", desc: "Land of High Passes." },
-  { id: 5, name: "Varanasi", image: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?q=80&w=1000&auto=format&fit=crop", desc: "Spiritual Capital." },
+  { id: 5, name: "Varanasi", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Ahilya_Ghat_by_the_Ganges%2C_Varanasi.jpg/1200px-Ahilya_Ghat_by_the_Ganges%2C_Varanasi.jpg", desc: "Spiritual Capital." },
   { id: 6, name: "Goa", image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1000&auto=format&fit=crop", desc: "Beaches & Heritage." },
   { id: 7, name: "Udaipur", image: "https://images.unsplash.com/photo-1595262366897-4089903960b7?q=80&w=1000&auto=format&fit=crop", desc: "City of Lakes." },
   { id: 8, name: "Hampi", image: "https://images.unsplash.com/photo-1620766182966-c6eb5ed2b788?q=80&w=1000&auto=format&fit=crop", desc: "Ancient Ruins." },
@@ -335,6 +335,12 @@ const ModernHome = ({ navigate }) => {
   const handleNext = () => setActiveIndex((prev) => (prev + 1) % INDIAN_DESTINATIONS.length);
   const handlePrev = () => setActiveIndex((prev) => (prev - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length);
 
+  // Auto-rotate carousel
+  useEffect(() => {
+    const interval = setInterval(handleNext, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   const getVisibleCards = () => {
     const cards = [];
     const len = INDIAN_DESTINATIONS.length;
@@ -463,7 +469,7 @@ const ModernHome = ({ navigate }) => {
                   transition={{ duration: 0.6, type: "spring", bounce: 0.2 }}
                   style={styles.card}
                   onClick={() => {
-                    if (offset === 0) navigate(`/explore?query=${encodeURIComponent(dest.name)}`);
+                    if (offset === 0) navigate(`/explore?destination=${encodeURIComponent(dest.name)}`);
                     else if (offset < 0) handlePrev();
                     else handleNext();
                   }}
@@ -545,6 +551,26 @@ const ClassicHome = ({ navigate }) => {
     { title: "Cultural Deep Dives", description: "Immersive local traditions.", icon: "🌏" },
   ];
 
+  // Carousel Logic for Classic View
+  const [activeIndex, setActiveIndex] = useState(2);
+  const handleNext = () => setActiveIndex((prev) => (prev + 1) % INDIAN_DESTINATIONS.length);
+  const handlePrev = () => setActiveIndex((prev) => (prev - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length);
+
+  useEffect(() => {
+    const interval = setInterval(handleNext, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getVisibleCards = () => {
+    const cards = [];
+    const len = INDIAN_DESTINATIONS.length;
+    for (let i = -2; i <= 2; i++) {
+      const index = (activeIndex + i + len) % len;
+      cards.push({ ...INDIAN_DESTINATIONS[index], offset: i });
+    }
+    return cards;
+  };
+
   return (
     <div style={{ ...styles.container, paddingTop: "80px" }}> {/* Reduced padding from 160px to 80px */}
       <motion.div 
@@ -619,6 +645,58 @@ const ClassicHome = ({ navigate }) => {
           </button>
           <button onClick={() => navigate("/trending")} style={styles.secondaryButton}>
             <IoSparkles /> Trending Now
+          </button>
+        </motion.div>
+
+        {/* CLASSIC CAROUSEL */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1 }}
+          style={{ ...styles.carouselContainer, marginTop: "80px", marginBottom: "0" }}
+        >
+          <AnimatePresence mode="popLayout">
+            {getVisibleCards().map((dest) => {
+              const { offset } = dest;
+              const isActive = offset === 0;
+
+              return (
+                <motion.div
+                  key={`${dest.id}-${offset}`}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{
+                    x: offset * 280,
+                    scale: isActive ? 1.2 : 0.85,
+                    rotateY: offset * -30,
+                    zIndex: 10 - Math.abs(offset),
+                    opacity: isActive ? 1 : 0.6,
+                    filter: isActive ? "blur(0px)" : "blur(3px) brightness(60%)",
+                  }}
+                  transition={{ duration: 0.6, type: "spring", bounce: 0.2 }}
+                  style={styles.card}
+                  onClick={() => {
+                    if (offset === 0) navigate(`/explore?destination=${encodeURIComponent(dest.name)}`);
+                    else if (offset < 0) handlePrev();
+                    else handleNext();
+                  }}
+                >
+                  <img src={dest.image} alt={dest.name} style={styles.cardImage} />
+                  <div style={styles.cardOverlay}>
+                    <h3 style={{ fontSize: "2.25rem", fontWeight: "bold", marginBottom: "12px" }}>{dest.name}</h3>
+                    <p style={{ fontSize: "1rem", color: "#e2e8f0" }}>{dest.desc}</p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+
+          <button onClick={handlePrev} style={{ ...styles.navButton, left: "40px" }}>
+            <IoChevronBack size={32} />
+          </button>
+          <button onClick={handleNext} style={{ ...styles.navButton, right: "40px" }}>
+            <IoChevronForward size={32} />
           </button>
         </motion.div>
       </motion.div>
