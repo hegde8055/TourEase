@@ -11,6 +11,8 @@ import {
   IoSwapHorizontal,
   IoChevronBack,
   IoChevronForward,
+  IoAirplane,
+  IoGlobe,
 } from "react-icons/io5";
 
 // --- CONSTANTS ---
@@ -519,12 +521,23 @@ const ModernHome = ({ navigate }) => {
             { title: "Concierge", desc: "24/7 Personal support.", icon: <IoPerson /> },
             { title: "Luxury Stays", desc: "Handpicked boutique hotels.", icon: <IoBed /> },
             { title: "Fine Dining", desc: "Reservations at top tables.", icon: <IoRestaurant /> },
+            {
+              title: "Private Charter",
+              desc: "Exclusive jets and choppers.",
+              icon: <IoAirplane />,
+            },
+            {
+              title: "Cultural Deep Dives",
+              desc: "Immersive local traditions.",
+              icon: <IoGlobe />,
+            },
           ].map((feature, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.15 }}
+              whileHover={{ scale: 1.03, rotate: 1 }}
+              transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
             >
               <SpotlightCard>
                 <div
@@ -572,6 +585,8 @@ const ClassicHome = ({ navigate }) => {
     },
     { title: "Immersive Cultural Moments", description: "After-hours palace tours.", icon: "🏛️" },
     { title: "Dynamic Weather Insights", description: "Live micro-climate forecasts.", icon: "🌦️" },
+    { title: "Private Charter", description: "Exclusive jets and choppers.", icon: "✈️" },
+    { title: "Cultural Deep Dives", description: "Immersive local traditions.", icon: "🌏" },
   ];
 
   return (
