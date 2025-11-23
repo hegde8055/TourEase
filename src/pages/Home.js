@@ -49,6 +49,24 @@ const INDIAN_DESTINATIONS = [
     image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1000&auto=format&fit=crop",
     desc: "Sun, sand, and spices - the perfect tropical getaway.",
   },
+  {
+    id: 6,
+    name: "Udaipur",
+    image: "https://images.unsplash.com/photo-1595262366897-4089903960b7?q=80&w=1000&auto=format&fit=crop",
+    desc: "The City of Lakes, a romantic masterpiece in white marble.",
+  },
+  {
+    id: 7,
+    name: "Hampi",
+    image: "https://images.unsplash.com/photo-1620766182966-c6eb5ed2b788?q=80&w=1000&auto=format&fit=crop",
+    desc: "Ancient ruins and boulder-strewn landscapes of Vijayanagara.",
+  },
+  {
+    id: 8,
+    name: "Darjeeling",
+    image: "https://images.unsplash.com/photo-1544634076-a901606f4180?q=80&w=1000&auto=format&fit=crop",
+    desc: "Queen of the Hills, famous for tea gardens and Kanchenjunga views.",
+  },
 ];
 
 // --- ANIMATION HELPERS ---
@@ -61,7 +79,7 @@ const StaggeredText = ({ text, className = "" }) => {
           key={i}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.03, duration: 0.5, ease: "easeOut" }}
+          transition={{ delay: i * 0.05, duration: 0.6, ease: "easeOut" }}
           className="inline-block"
         >
           {letter === " " ? "\u00A0" : letter}
@@ -120,7 +138,7 @@ const GlobalVideoBackground = () => (
 
 // --- MODERN HOME COMPONENT (Coverflow) ---
 const ModernHome = ({ navigate }) => {
-  const [activeIndex, setActiveIndex] = useState(1); // Start with Kerala (index 1)
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const handleNext = () => {
     setActiveIndex((prev) => (prev + 1) % INDIAN_DESTINATIONS.length);
@@ -142,18 +160,18 @@ const ModernHome = ({ navigate }) => {
       </div>
 
       {/* HERO SECTION */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center pt-20">
-        <div className="text-center mb-16 z-20 px-4">
-          <h1 className="text-[10vw] md:text-[6rem] lg:text-[7rem] font-bold leading-[0.9] tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-white/50 drop-shadow-2xl mix-blend-overlay">
+      <section className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12">
+        <div className="text-center mb-20 z-20 px-4">
+          <h1 className="text-[12vw] md:text-[7rem] lg:text-[8rem] font-bold leading-[0.9] tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-200 to-amber-500 drop-shadow-2xl mix-blend-overlay">
             <StaggeredText text="TOUREASE" />
           </h1>
-          <p className="text-lg md:text-2xl font-light text-amber-100/80 tracking-[0.3em] uppercase mt-6 backdrop-blur-sm">
-            <StaggeredText text="Discover the Unseen" />
+          <p className="text-lg md:text-2xl font-light text-amber-100/90 tracking-[0.4em] uppercase mt-8 backdrop-blur-sm">
+            <StaggeredText text="The Art of Travel" />
           </p>
         </div>
 
         {/* COVERFLOW CAROUSEL */}
-        <div className="relative w-full max-w-7xl mx-auto h-[500px] flex items-center justify-center perspective-1000 z-20 mb-12">
+        <div className="relative w-full max-w-7xl mx-auto h-[550px] flex items-center justify-center perspective-1000 z-20 mb-20">
           {INDIAN_DESTINATIONS.map((dest, index) => {
             const isActive = index === activeIndex;
             const isPrev = index === (activeIndex - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length;
@@ -166,21 +184,21 @@ const ModernHome = ({ navigate }) => {
             let rotateY = 0;
 
             if (isActive) {
-              scale = 1.1;
+              scale = 1.15;
               zIndex = 10;
               opacity = 1;
             } else if (isPrev) {
-              x = -300; // Move left
-              scale = 0.8;
+              x = -350; // Move left
+              scale = 0.85;
               zIndex = 5;
-              opacity = 0.6;
-              rotateY = 25;
+              opacity = 0.5;
+              rotateY = 30;
             } else if (isNext) {
-              x = 300; // Move right
-              scale = 0.8;
+              x = 350; // Move right
+              scale = 0.85;
               zIndex = 5;
-              opacity = 0.6;
-              rotateY = -25;
+              opacity = 0.5;
+              rotateY = -30;
             }
 
             // Only render active, prev, and next for performance/cleanliness
@@ -192,39 +210,39 @@ const ModernHome = ({ navigate }) => {
                 initial={false}
                 animate={{ x, scale, opacity, rotateY, zIndex }}
                 transition={{ duration: 0.6, type: "spring", stiffness: 100, damping: 20 }}
-                className="absolute w-[300px] md:w-[400px] h-[500px] rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 bg-slate-900 cursor-pointer"
+                className="absolute w-[320px] md:w-[420px] h-[520px] rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 bg-slate-900 cursor-pointer group"
                 onClick={() => {
                   if (isPrev) handlePrev();
                   if (isNext) handleNext();
                   if (isActive) navigate(`/explore?query=${encodeURIComponent(dest.name)}`);
                 }}
               >
-                <img src={dest.image} alt={dest.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <img src={dest.image} alt={dest.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-8 w-full">
-                  <h3 className="text-3xl font-bold text-white mb-2">{dest.name}</h3>
-                  <p className="text-sm text-slate-300 line-clamp-2">{dest.desc}</p>
+                  <h3 className="text-4xl font-bold text-white mb-3">{dest.name}</h3>
+                  <p className="text-sm text-slate-300 line-clamp-2 leading-relaxed">{dest.desc}</p>
                 </div>
               </motion.div>
             );
           })}
           
           {/* Navigation Buttons */}
-          <button onClick={handlePrev} className="absolute left-4 md:left-20 z-30 p-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all text-white">
-            <IoChevronBack size={24} />
+          <button onClick={handlePrev} className="absolute left-4 md:left-10 z-30 p-5 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/20 hover:scale-110 transition-all text-white shadow-lg">
+            <IoChevronBack size={28} />
           </button>
-          <button onClick={handleNext} className="absolute right-4 md:right-20 z-30 p-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 transition-all text-white">
-            <IoChevronForward size={24} />
+          <button onClick={handleNext} className="absolute right-4 md:right-10 z-30 p-5 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 hover:bg-white/20 hover:scale-110 transition-all text-white shadow-lg">
+            <IoChevronForward size={28} />
           </button>
         </div>
 
         {/* ACTION BUTTONS (Wide Padding) */}
-        <div className="flex flex-wrap justify-center gap-6 z-20 mt-8">
+        <div className="flex flex-wrap justify-center gap-8 z-20 mt-4">
           <motion.button 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/explore")}
-            className="px-12 py-5 rounded-full bg-amber-500 text-slate-950 font-bold text-lg shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all flex items-center gap-2"
+            className="px-14 py-6 rounded-full bg-amber-500 text-slate-950 font-bold text-xl shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all flex items-center gap-3"
           >
             <IoMap /> Start Journey
           </motion.button>
@@ -232,7 +250,7 @@ const ModernHome = ({ navigate }) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/trending")}
-            className="px-12 py-5 rounded-full bg-slate-800/60 backdrop-blur-md border border-amber-500/30 text-amber-200 font-bold text-lg hover:bg-slate-800/80 transition-all flex items-center gap-2"
+            className="px-14 py-6 rounded-full bg-slate-800/60 backdrop-blur-md border border-amber-500/30 text-amber-200 font-bold text-xl hover:bg-slate-800/80 transition-all flex items-center gap-3"
           >
             <IoSparkles /> Trending Now
           </motion.button>
@@ -240,7 +258,7 @@ const ModernHome = ({ navigate }) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/planner")}
-            className="px-12 py-5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-lg hover:bg-white/20 transition-all flex items-center gap-2"
+            className="px-14 py-6 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-xl hover:bg-white/20 transition-all flex items-center gap-3"
           >
             <IoBed /> Plan Itinerary
           </motion.button>
@@ -293,7 +311,7 @@ const ClassicHome = ({ navigate }) => {
   ];
 
   return (
-    <div className="w-full min-h-screen text-slate-100 overflow-x-hidden font-sans pt-32 pb-20"> {/* Increased top padding */}
+    <div className="w-full min-h-screen text-slate-100 overflow-x-hidden font-sans pt-32 pb-20">
       {/* Hero Content - Centered Properly */}
       <div className="relative z-20 px-6 max-w-7xl mx-auto flex flex-col items-center justify-center min-h-[60vh] text-center">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="w-full">
@@ -308,11 +326,11 @@ const ClassicHome = ({ navigate }) => {
           </p>
           
           {/* Buttons with Wide Padding */}
-          <div className="flex flex-wrap justify-center gap-6">
-            <button onClick={() => navigate("/explore")} className="px-10 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-lg shadow-lg flex items-center gap-2 hover:scale-105 transition-transform">
+          <div className="flex flex-wrap justify-center gap-8">
+            <button onClick={() => navigate("/explore")} className="px-12 py-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xl shadow-lg flex items-center gap-3 hover:scale-105 transition-transform">
               <IoMap /> Start Exploring
             </button>
-            <button onClick={() => navigate("/trending")} className="px-10 py-4 rounded-2xl bg-slate-800/40 backdrop-blur-md border border-amber-500/30 text-amber-200 font-bold text-lg flex items-center gap-2 hover:bg-slate-800/60 transition-colors">
+            <button onClick={() => navigate("/trending")} className="px-12 py-5 rounded-2xl bg-slate-800/40 backdrop-blur-md border border-amber-500/30 text-amber-200 font-bold text-xl flex items-center gap-3 hover:bg-slate-800/60 transition-colors">
               <IoSparkles /> Trending Now
             </button>
           </div>
