@@ -130,7 +130,7 @@ const styles = {
     zIndex: 20,
   },
   heroTitle: {
-    fontSize: "clamp(3rem, 8vw, 7rem)",
+    fontSize: "clamp(4rem, 10vw, 9rem)",
     fontWeight: "bold",
     lineHeight: "0.9",
     letterSpacing: "-0.05em",

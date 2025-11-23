@@ -128,11 +128,7 @@ nav {
   margin: 0 auto;
 }
 
-@media (max-width: 768px) {
-  nav {
-    flex-wrap: nowrap;
-  }
-}
+
 
 nav ul {
   list-style: none;
