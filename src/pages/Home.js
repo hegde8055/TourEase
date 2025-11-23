@@ -1,5 +1,5 @@
 // /client/src/pages/Home.js
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -73,17 +73,267 @@ const INDIAN_DESTINATIONS = [
   },
 ];
 
-// --- SHARED COMPONENTS ---
+// --- STYLES OBJECTS (Inline CSS) ---
+const styles = {
+  container: {
+    width: "100%",
+    minHeight: "100vh",
+    color: "#ffffff",
+    fontFamily: "'Inter', sans-serif",
+    overflowX: "hidden",
+    position: "relative",
+    paddingBottom: "100px",
+  },
+  videoBackground: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    zIndex: -1,
+    overflow: "hidden",
+  },
+  videoOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(2, 6, 23, 0.6)", // slate-950/60
+    zIndex: 10,
+  },
+  video: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    opacity: 0.5,
+  },
+  section: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    paddingTop: "160px", // pt-40
+    paddingBottom: "80px",
+    paddingLeft: "24px",
+    paddingRight: "24px",
+    position: "relative",
+  },
+  heroTitleContainer: {
+    textAlign: "center",
+    marginBottom: "80px",
+    zIndex: 20,
+  },
+  heroTitle: {
+    fontSize: "clamp(4rem, 10vw, 9rem)",
+    fontWeight: "bold",
+    lineHeight: "0.9",
+    letterSpacing: "-0.05em",
+    color: "transparent",
+    backgroundImage: "linear-gradient(to bottom, #ffffff, #fef3c7, #f59e0b)", // white to amber-500
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    filter: "drop-shadow(0 10px 30px rgba(0,0,0,0.5))",
+    margin: 0,
+    cursor: "default",
+  },
+  heroSubtitle: {
+    fontSize: "clamp(1rem, 2vw, 1.5rem)",
+    fontWeight: "300",
+    color: "#fef3c7", // amber-100
+    letterSpacing: "0.5em",
+    textTransform: "uppercase",
+    marginTop: "24px",
+    textShadow: "0 4px 10px rgba(0,0,0,0.3)",
+  },
+  aestheticPhrase: {
+    fontSize: "1.5rem",
+    fontWeight: "300",
+    color: "#e2e8f0", // slate-200
+    maxWidth: "800px",
+    textAlign: "center",
+    marginBottom: "80px",
+    lineHeight: "1.6",
+    textShadow: "0 2px 5px rgba(0,0,0,0.3)",
+  },
+  buttonGroup: {
+    display: "flex",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: "40px", // gap-10
+    marginBottom: "100px",
+    zIndex: 20,
+  },
+  primaryButton: {
+    padding: "20px 40px",
+    borderRadius: "9999px",
+    backgroundColor: "#f59e0b", // amber-500
+    color: "#0f172a", // slate-900
+    fontWeight: "bold",
+    fontSize: "1.125rem",
+    border: "none",
+    boxShadow: "0 10px 15px -3px rgba(245, 158, 11, 0.3)",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    transition: "transform 0.2s, box-shadow 0.2s",
+  },
+  secondaryButton: {
+    padding: "20px 40px",
+    borderRadius: "9999px",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    color: "#ffffff",
+    fontWeight: "bold",
+    fontSize: "1.125rem",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    transition: "background-color 0.2s",
+  },
+  tertiaryButton: {
+    padding: "20px 40px",
+    borderRadius: "9999px",
+    backgroundColor: "rgba(30, 41, 59, 0.6)", // slate-800/60
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(148, 163, 184, 0.5)", // slate-400/50
+    color: "#e2e8f0", // slate-200
+    fontWeight: "bold",
+    fontSize: "1.125rem",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    transition: "background-color 0.2s",
+  },
+  carouselContainer: {
+    position: "relative",
+    width: "100%",
+    maxWidth: "1400px",
+    height: "600px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    perspective: "1000px",
+    marginBottom: "128px", // mb-32
+  },
+  card: {
+    position: "absolute",
+    width: "400px", // Desktop width
+    height: "550px",
+    borderRadius: "40px", // rounded-[2.5rem]
+    overflow: "hidden",
+    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    backgroundColor: "#0f172a", // slate-900
+    cursor: "pointer",
+  },
+  cardImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+  },
+  cardOverlay: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    width: "100%",
+    padding: "40px",
+    background: "linear-gradient(to top, rgba(0,0,0,0.9), transparent)",
+  },
+  navButton: {
+    position: "absolute",
+    zIndex: 30,
+    padding: "24px",
+    borderRadius: "50%",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    color: "#ffffff",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+  },
+  featuresSection: {
+    padding: "96px 24px", // py-24 px-6
+    maxWidth: "1400px",
+    margin: "0 auto",
+  },
+  sectionHeader: {
+    textAlign: "center",
+    marginBottom: "80px",
+  },
+  sectionTitle: {
+    fontSize: "clamp(3rem, 5vw, 4.5rem)",
+    fontFamily: "serif",
+    color: "#ffffff",
+    marginBottom: "32px",
+    textShadow: "0 4px 10px rgba(0,0,0,0.5)",
+  },
+  divider: {
+    width: "128px",
+    height: "4px",
+    background: "linear-gradient(to right, transparent, #f59e0b, transparent)",
+    margin: "0 auto",
+    borderRadius: "9999px",
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+    gap: "48px", // gap-12
+  },
+  glassCard: {
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: "40px",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    backdropFilter: "blur(24px)",
+    boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
+    padding: "48px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    minHeight: "350px",
+    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+  },
+  toggleButton: {
+    position: "fixed",
+    bottom: "32px",
+    left: "32px",
+    zIndex: 1000,
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
+    padding: "16px 32px",
+    backgroundColor: "rgba(15, 23, 42, 0.9)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(245, 158, 11, 0.3)",
+    borderRadius: "9999px",
+    color: "#fde68a", // amber-200
+    fontSize: "1.125rem",
+    fontWeight: "bold",
+    cursor: "pointer",
+    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5)",
+  },
+};
+
+// --- COMPONENTS ---
+
 const GlobalVideoBackground = () => (
-  <div className="fixed inset-0 z-[-1] overflow-hidden">
-    <div className="absolute inset-0 bg-slate-950/60 z-10" />
-    <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-50">
+  <div style={styles.videoBackground}>
+    <div style={styles.videoOverlay} />
+    <video autoPlay loop muted playsInline style={styles.video}>
       <source src="/assets/hero-bg.mp4" type="video/mp4" />
     </video>
   </div>
 );
 
-const SpotlightCard = ({ children, className = "" }) => {
+const SpotlightCard = ({ children, style = {} }) => {
   const divRef = useRef(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [opacity, setOpacity] = useState(0);
@@ -100,33 +350,37 @@ const SpotlightCard = ({ children, className = "" }) => {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setOpacity(1)}
       onMouseLeave={() => setOpacity(0)}
-      className={`relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-md transition-all duration-300 hover:border-amber-500/30 ${className}`}
+      style={{ ...styles.glassCard, ...style }}
     >
       <div
-        className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 z-0"
         style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
           opacity,
           background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(212, 175, 55, 0.15), transparent 40%)`,
+          pointerEvents: "none",
+          transition: "opacity 0.3s",
+          zIndex: 0,
         }}
       />
-      <div className="relative z-10">{children}</div>
+      <div style={{ position: "relative", zIndex: 10 }}>{children}</div>
     </div>
   );
 };
 
-// --- MODERN HOME (True Coverflow) ---
 const ModernHome = ({ navigate }) => {
-  const [activeIndex, setActiveIndex] = useState(2); // Start at index 2
+  const [activeIndex, setActiveIndex] = useState(2);
 
   const handleNext = () => setActiveIndex((prev) => (prev + 1) % INDIAN_DESTINATIONS.length);
   const handlePrev = () =>
     setActiveIndex((prev) => (prev - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length);
 
-  // Calculate visible cards for Coverflow effect
   const getVisibleCards = () => {
     const cards = [];
     const len = INDIAN_DESTINATIONS.length;
-    // Show 5 cards: -2, -1, 0, +1, +2
     for (let i = -2; i <= 2; i++) {
       const index = (activeIndex + i + len) % len;
       cards.push({ ...INDIAN_DESTINATIONS[index], offset: i });
@@ -135,21 +389,72 @@ const ModernHome = ({ navigate }) => {
   };
 
   return (
-    <div className="relative w-full min-h-screen text-white overflow-x-hidden font-sans pb-20">
+    <div style={styles.container}>
       {/* HERO SECTION */}
-      <section className="relative pt-40 pb-20 px-6 flex flex-col items-center">
-        {/* BRANDING - Solid & Visible */}
-        <div className="text-center mb-20 z-20">
-          <h1 className="text-[12vw] md:text-[8rem] font-bold leading-none tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-amber-100 to-amber-500 drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+      <section style={styles.section}>
+        {/* FADE TEXT */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, repeat: Infinity, repeatType: "reverse", repeatDelay: 3 }}
+          style={{
+            marginBottom: "32px",
+            color: "rgba(253, 230, 138, 0.8)",
+            letterSpacing: "0.3em",
+            textTransform: "uppercase",
+            fontSize: "0.9rem",
+          }}
+        >
+          Discover • Experience • Remember
+        </motion.div>
+
+        {/* TITLE */}
+        <div style={styles.heroTitleContainer}>
+          <motion.h1
+            style={styles.heroTitle}
+            whileHover={{ scale: 1.05, letterSpacing: "-0.02em" }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
             TOUREASE
-          </h1>
-          <p className="text-xl md:text-2xl font-light text-amber-100 tracking-[0.5em] uppercase mt-6 drop-shadow-lg">
-            The Art of Travel
-          </p>
+          </motion.h1>
+          <p style={styles.heroSubtitle}>The Art of Travel</p>
         </div>
 
-        {/* TRUE COVERFLOW CAROUSEL */}
-        <div className="relative w-full max-w-7xl h-[500px] flex items-center justify-center perspective-1000 mb-24">
+        {/* PHRASE */}
+        <p style={styles.aestheticPhrase}>
+          "Wander where the WiFi is weak and the memories are strong."
+        </p>
+
+        {/* BUTTONS */}
+        <div style={styles.buttonGroup}>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/explore")}
+            style={styles.primaryButton}
+          >
+            <IoMap size={24} /> Start Your Journey Here
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/trending")}
+            style={styles.secondaryButton}
+          >
+            <IoSparkles size={24} color="#fbbf24" /> See What's Trending Now
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate("/planner")}
+            style={styles.tertiaryButton}
+          >
+            <IoBed size={24} /> Craft Your Perfect Trip
+          </motion.button>
+        </div>
+
+        {/* CAROUSEL */}
+        <div style={styles.carouselContainer}>
           <AnimatePresence mode="popLayout">
             {getVisibleCards().map((dest) => {
               const { offset } = dest;
@@ -161,114 +466,91 @@ const ModernHome = ({ navigate }) => {
                   layout
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{
-                    x: offset * 220, // Spacing
-                    scale: isActive ? 1.1 : 0.8,
-                    rotateY: offset * -25, // 3D Tilt
+                    x: offset * 280,
+                    scale: isActive ? 1.2 : 0.85,
+                    rotateY: offset * -30,
                     zIndex: 10 - Math.abs(offset),
-                    opacity: isActive ? 1 : 0.5,
-                    filter: isActive ? "blur(0px)" : "blur(2px) brightness(50%)",
+                    opacity: isActive ? 1 : 0.6,
+                    filter: isActive ? "blur(0px)" : "blur(3px) brightness(60%)",
                   }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                  className="absolute w-[300px] md:w-[380px] h-[480px] rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 bg-slate-900 cursor-pointer"
+                  transition={{ duration: 0.6, type: "spring", bounce: 0.2 }}
+                  style={styles.card}
                   onClick={() => {
                     if (offset === 0) navigate(`/explore?query=${encodeURIComponent(dest.name)}`);
                     else if (offset < 0) handlePrev();
                     else handleNext();
                   }}
                 >
-                  <img src={dest.image} alt={dest.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
-                  <div className="absolute bottom-0 left-0 p-8 w-full">
-                    <h3 className="text-3xl font-bold text-white mb-2">{dest.name}</h3>
-                    <p className="text-sm text-slate-300 line-clamp-2">{dest.desc}</p>
+                  <img src={dest.image} alt={dest.name} style={styles.cardImage} />
+                  <div style={styles.cardOverlay}>
+                    <h3 style={{ fontSize: "2.25rem", fontWeight: "bold", marginBottom: "12px" }}>
+                      {dest.name}
+                    </h3>
+                    <p style={{ fontSize: "1rem", color: "#e2e8f0" }}>{dest.desc}</p>
                   </div>
                 </motion.div>
               );
             })}
           </AnimatePresence>
 
-          {/* Nav Buttons */}
-          <button
-            onClick={handlePrev}
-            className="absolute left-4 md:left-0 z-30 p-4 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all text-white border border-white/20"
-          >
-            <IoChevronBack size={24} />
+          <button onClick={handlePrev} style={{ ...styles.navButton, left: "40px" }}>
+            <IoChevronBack size={32} />
           </button>
-          <button
-            onClick={handleNext}
-            className="absolute right-4 md:right-0 z-30 p-4 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all text-white border border-white/20"
-          >
-            <IoChevronForward size={24} />
+          <button onClick={handleNext} style={{ ...styles.navButton, right: "40px" }}>
+            <IoChevronForward size={32} />
           </button>
-        </div>
-
-        {/* ACTION BUTTONS */}
-        <div className="flex flex-wrap justify-center gap-6 z-20">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/explore")}
-            className="px-12 py-5 rounded-full bg-amber-500 text-slate-950 font-bold text-lg shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 transition-all flex items-center gap-2"
-          >
-            <IoMap /> Start Journey
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/trending")}
-            className="px-12 py-5 rounded-full bg-slate-800/60 backdrop-blur-md border border-amber-500/30 text-amber-200 font-bold text-lg hover:bg-slate-800/80 transition-all flex items-center gap-2"
-          >
-            <IoSparkles /> Trending Now
-          </motion.button>
         </div>
       </section>
 
-      {/* FEATURES MASONRY */}
-      <section className="py-24 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-20">
-          <h2 className="text-4xl md:text-6xl font-serif text-white mb-6">Why TourEase?</h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto" />
+      {/* FEATURES */}
+      <section style={styles.featuresSection}>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>Why Choose Us?</h2>
+          <div style={styles.divider} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div style={styles.grid}>
           {[
             {
               title: "AI Architect",
-              desc: "Intelligent itinerary crafting.",
+              desc: "Smart itineraries tailored to you.",
               icon: <IoSparkles />,
-              col: "lg:col-span-2",
             },
-            {
-              title: "Concierge",
-              desc: "24/7 Personal support.",
-              icon: <IoPerson />,
-              col: "lg:col-span-1",
-            },
-            {
-              title: "Luxury Stays",
-              desc: "Handpicked boutique hotels.",
-              icon: <IoBed />,
-              col: "lg:col-span-1",
-            },
-            {
-              title: "Fine Dining",
-              desc: "Reservations at top tables.",
-              icon: <IoRestaurant />,
-              col: "lg:col-span-2",
-            },
+            { title: "Concierge", desc: "24/7 Personal support.", icon: <IoPerson /> },
+            { title: "Luxury Stays", desc: "Handpicked boutique hotels.", icon: <IoBed /> },
+            { title: "Fine Dining", desc: "Reservations at top tables.", icon: <IoRestaurant /> },
           ].map((feature, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className={feature.col}
+              transition={{ delay: i * 0.15 }}
             >
-              <SpotlightCard className="h-full p-10 flex flex-col justify-between min-h-[300px]">
-                <div className="text-5xl text-amber-400/80 mb-6">{feature.icon}</div>
+              <SpotlightCard>
+                <div
+                  style={{
+                    fontSize: "4rem",
+                    color: "#fbbf24",
+                    marginBottom: "32px",
+                    filter: "drop-shadow(0 0 15px rgba(251,191,36,0.4))",
+                  }}
+                >
+                  {feature.icon}
+                </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-3">{feature.title}</h3>
-                  <p className="text-white/60 text-lg leading-relaxed">{feature.desc}</p>
+                  <h3
+                    style={{
+                      fontSize: "1.875rem",
+                      fontWeight: "bold",
+                      marginBottom: "16px",
+                      color: "#fff",
+                    }}
+                  >
+                    {feature.title}
+                  </h3>
+                  <p style={{ fontSize: "1.25rem", color: "#cbd5e1", lineHeight: "1.6" }}>
+                    {feature.desc}
+                  </p>
                 </div>
               </SpotlightCard>
             </motion.div>
@@ -279,7 +561,7 @@ const ModernHome = ({ navigate }) => {
   );
 };
 
-// --- CLASSIC HOME (Simplified & Fixed) ---
+// --- CLASSIC HOME (Inline CSS) ---
 const ClassicHome = ({ navigate }) => {
   const features = [
     { title: "Intelligent Journey Designer", description: "AI-curated escapes.", icon: "🧠" },
@@ -293,56 +575,102 @@ const ClassicHome = ({ navigate }) => {
   ];
 
   return (
-    <div className="w-full min-h-screen text-slate-100 overflow-x-hidden font-sans pt-32 pb-20 bg-slate-950">
-      {/* Hero Content - Standard Flex Layout */}
-      <div className="relative z-20 px-6 max-w-7xl mx-auto flex flex-col items-center text-center mb-24">
-        <span className="inline-block py-2 px-6 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm font-medium tracking-widest uppercase mb-8 backdrop-blur-md">
+    <div style={{ ...styles.container, paddingTop: "160px", backgroundColor: "#020617" }}>
+      <div style={{ ...styles.section, minHeight: "60vh", paddingBottom: "128px" }}>
+        <span
+          style={{
+            display: "inline-block",
+            padding: "12px 32px",
+            borderRadius: "9999px",
+            backgroundColor: "rgba(245, 158, 11, 0.1)",
+            border: "1px solid rgba(245, 158, 11, 0.3)",
+            color: "#fcd34d",
+            fontSize: "0.875rem",
+            fontWeight: "500",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            marginBottom: "40px",
+            backdropFilter: "blur(12px)",
+          }}
+        >
           Where Whimsy Meets Wanderlust
         </span>
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-amber-100 to-amber-400 mb-8 drop-shadow-2xl leading-tight">
+        <h1
+          style={{
+            fontSize: "clamp(3rem, 8vw, 6rem)",
+            fontWeight: "bold",
+            color: "transparent",
+            backgroundImage: "linear-gradient(to bottom, #fef3c7, #f59e0b)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            marginBottom: "40px",
+            textAlign: "center",
+            lineHeight: "1.1",
+          }}
+        >
           Discover the Unseen
         </h1>
-        <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-12 leading-relaxed">
+        <p
+          style={{
+            fontSize: "1.25rem",
+            color: "#cbd5e1",
+            maxWidth: "800px",
+            textAlign: "center",
+            marginBottom: "64px",
+            lineHeight: "1.7",
+          }}
+        >
           Let moonlit palaces, spice-scented markets, and secret coffee trails unfold as we craft
           your next chapter across India's most enchanting escapes.
         </p>
 
-        <div className="flex flex-wrap justify-center gap-8">
-          <button
-            onClick={() => navigate("/explore")}
-            className="px-12 py-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xl shadow-lg flex items-center gap-3 hover:scale-105 transition-transform"
-          >
+        <div style={styles.buttonGroup}>
+          <button onClick={() => navigate("/explore")} style={styles.primaryButton}>
             <IoMap /> Start Exploring
           </button>
-          <button
-            onClick={() => navigate("/trending")}
-            className="px-12 py-5 rounded-2xl bg-slate-800/40 backdrop-blur-md border border-amber-500/30 text-amber-200 font-bold text-xl flex items-center gap-3 hover:bg-slate-800/60 transition-colors"
-          >
+          <button onClick={() => navigate("/trending")} style={styles.secondaryButton}>
             <IoSparkles /> Trending Now
           </button>
         </div>
       </div>
 
-      {/* Features Grid - Standard Grid Layout */}
-      <section className="px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-amber-400 mb-6">
-            Why Choose TourEase?
-          </h2>
-          <p className="text-slate-400 max-w-2xl mx-auto">
+      <section style={styles.featuresSection}>
+        <div style={styles.sectionHeader}>
+          <h2 style={{ ...styles.sectionTitle, color: "#fbbf24" }}>Why Choose TourEase?</h2>
+          <p style={{ fontSize: "1.25rem", color: "#94a3b8", maxWidth: "800px", margin: "0 auto" }}>
             Experience the perfect blend of AI intelligence and human-curated luxury.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div style={styles.grid}>
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-slate-800/40 backdrop-blur-lg border border-white/5 p-8 rounded-3xl hover:border-amber-500/30 transition-colors flex flex-col items-center text-center h-full"
+              style={{
+                backgroundColor: "rgba(30, 41, 59, 0.4)",
+                backdropFilter: "blur(16px)",
+                border: "1px solid rgba(255, 255, 255, 0.05)",
+                padding: "40px",
+                borderRadius: "32px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+                transition: "border-color 0.3s",
+              }}
             >
-              <div className="text-5xl mb-6">{feature.icon}</div>
-              <h3 className="text-xl font-bold text-slate-100 mb-4">{feature.title}</h3>
-              <p className="text-slate-400 leading-relaxed">{feature.description}</p>
+              <div style={{ fontSize: "3rem", marginBottom: "32px" }}>{feature.icon}</div>
+              <h3
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: "bold",
+                  marginBottom: "16px",
+                  color: "#f1f5f9",
+                }}
+              >
+                {feature.title}
+              </h3>
+              <p style={{ color: "#94a3b8", lineHeight: "1.6" }}>{feature.description}</p>
             </div>
           ))}
         </div>
@@ -360,14 +688,21 @@ const Home = () => {
     <>
       <GlobalVideoBackground />
 
-      {/* View Toggle Button - Bottom Left */}
-      <div className="fixed bottom-6 left-6 z-[1000]">
+      <div style={styles.toggleButton}>
         <button
           onClick={() => setIsModern(!isModern)}
-          className="flex items-center gap-3 px-6 py-3 bg-slate-900/90 backdrop-blur-xl border border-amber-500/30 rounded-full text-amber-200 text-base font-bold hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/50 focus:outline-none focus:ring-2 focus:ring-amber-500"
-          aria-label={isModern ? "Switch to Classic View" : "Switch to Modern View"}
+          style={{
+            background: "none",
+            border: "none",
+            color: "inherit",
+            font: "inherit",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+          }}
         >
-          <IoSwapHorizontal className="text-xl" />
+          <IoSwapHorizontal size={24} />
           <span>{isModern ? "Switch to Classic View" : "Switch to Modern View"}</span>
         </button>
       </div>
