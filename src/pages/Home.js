@@ -19,14 +19,62 @@ import {
 
 // --- CONSTANTS ---
 const INDIAN_DESTINATIONS = [
-  { id: 1, name: "Agra", image: "https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=1000&auto=format&fit=crop", desc: "Home of the Taj Mahal." },
-  { id: 2, name: "Jaipur", image: "https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=1000&auto=format&fit=crop", desc: "The Pink City." },
-  { id: 3, name: "Kerala", image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=1000&auto=format&fit=crop", desc: "God's Own Country." },
-  { id: 4, name: "Ladakh", image: "https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=80&w=1000&auto=format&fit=crop", desc: "Land of High Passes." },
-  { id: 5, name: "Varanasi", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Ahilya_Ghat_by_the_Ganges%2C_Varanasi.jpg/1200px-Ahilya_Ghat_by_the_Ganges%2C_Varanasi.jpg", desc: "Spiritual Capital." },
-  { id: 6, name: "Goa", image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1000&auto=format&fit=crop", desc: "Beaches & Heritage." },
-  { id: 7, name: "Udaipur", image: "https://images.unsplash.com/photo-1595262366897-4089903960b7?q=80&w=1000&auto=format&fit=crop", desc: "City of Lakes." },
-  { id: 8, name: "Hampi", image: "https://images.unsplash.com/photo-1620766182966-c6eb5ed2b788?q=80&w=1000&auto=format&fit=crop", desc: "Ancient Ruins." },
+  {
+    id: 1,
+    name: "Agra",
+    image:
+      "https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=1000&auto=format&fit=crop",
+    desc: "Home of the Taj Mahal.",
+  },
+  {
+    id: 2,
+    name: "Jaipur",
+    image:
+      "https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=1000&auto=format&fit=crop",
+    desc: "The Pink City.",
+  },
+  {
+    id: 3,
+    name: "Kerala",
+    image:
+      "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=1000&auto=format&fit=crop",
+    desc: "God's Own Country.",
+  },
+  {
+    id: 4,
+    name: "Ladakh",
+    image:
+      "https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=80&w=1000&auto=format&fit=crop",
+    desc: "Land of High Passes.",
+  },
+  {
+    id: 5,
+    name: "Varanasi",
+    image:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Ahilya_Ghat_by_the_Ganges%2C_Varanasi.jpg/1200px-Ahilya_Ghat_by_the_Ganges%2C_Varanasi.jpg",
+    desc: "Spiritual Capital.",
+  },
+  {
+    id: 6,
+    name: "Goa",
+    image:
+      "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1000&auto=format&fit=crop",
+    desc: "Beaches & Heritage.",
+  },
+  {
+    id: 7,
+    name: "Udaipur",
+    image:
+      "https://images.unsplash.com/photo-1595262366897-4089903960b7?q=80&w=1000&auto=format&fit=crop",
+    desc: "City of Lakes.",
+  },
+  {
+    id: 8,
+    name: "Hampi",
+    image:
+      "https://images.unsplash.com/photo-1620766182966-c6eb5ed2b788?q=80&w=1000&auto=format&fit=crop",
+    desc: "Ancient Ruins.",
+  },
 ];
 
 // --- STYLES OBJECTS (Inline CSS) ---
@@ -82,7 +130,7 @@ const styles = {
     zIndex: 20,
   },
   heroTitle: {
-    fontSize: "clamp(4rem, 10vw, 9rem)",
+    fontSize: "clamp(3rem, 8vw, 7rem)",
     fontWeight: "bold",
     lineHeight: "0.9",
     letterSpacing: "-0.05em",
@@ -333,7 +381,8 @@ const ModernHome = ({ navigate }) => {
   const [activeIndex, setActiveIndex] = useState(2);
 
   const handleNext = () => setActiveIndex((prev) => (prev + 1) % INDIAN_DESTINATIONS.length);
-  const handlePrev = () => setActiveIndex((prev) => (prev - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length);
+  const handlePrev = () =>
+    setActiveIndex((prev) => (prev - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length);
 
   // Auto-rotate carousel
   useEffect(() => {
@@ -384,7 +433,7 @@ const ModernHome = ({ navigate }) => {
           >
             TOUREASE
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -396,7 +445,7 @@ const ModernHome = ({ navigate }) => {
         </div>
 
         {/* PHRASE - Scroll Reveal */}
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -407,7 +456,7 @@ const ModernHome = ({ navigate }) => {
         </motion.p>
 
         {/* BUTTONS - Scroll Reveal */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -441,7 +490,7 @@ const ModernHome = ({ navigate }) => {
         </motion.div>
 
         {/* CAROUSEL - Scroll Reveal */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
@@ -469,14 +518,17 @@ const ModernHome = ({ navigate }) => {
                   transition={{ duration: 0.6, type: "spring", bounce: 0.2 }}
                   style={styles.card}
                   onClick={() => {
-                    if (offset === 0) navigate(`/explore?destination=${encodeURIComponent(dest.name)}`);
+                    if (offset === 0)
+                      navigate(`/explore?destination=${encodeURIComponent(dest.name)}`);
                     else if (offset < 0) handlePrev();
                     else handleNext();
                   }}
                 >
                   <img src={dest.image} alt={dest.name} style={styles.cardImage} />
                   <div style={styles.cardOverlay}>
-                    <h3 style={{ fontSize: "2.25rem", fontWeight: "bold", marginBottom: "12px" }}>{dest.name}</h3>
+                    <h3 style={{ fontSize: "2.25rem", fontWeight: "bold", marginBottom: "12px" }}>
+                      {dest.name}
+                    </h3>
                     <p style={{ fontSize: "1rem", color: "#e2e8f0" }}>{dest.desc}</p>
                   </div>
                 </motion.div>
@@ -495,7 +547,7 @@ const ModernHome = ({ navigate }) => {
 
       {/* FEATURES - Scroll Reveal */}
       <section style={styles.featuresSection}>
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -508,12 +560,28 @@ const ModernHome = ({ navigate }) => {
 
         <div style={styles.grid}>
           {[
-            { title: "AI Architect", desc: "Smart itineraries tailored to you.", icon: <IoSparkles /> },
+            {
+              title: "AI Architect",
+              desc: "Smart itineraries tailored to you.",
+              icon: <IoSparkles />,
+            },
             { title: "Concierge", desc: "24/7 Personal support.", icon: <IoPerson /> },
-            { title: "Smart Budget Architect", desc: "AI-powered cost estimation.", icon: <IoWallet /> },
+            {
+              title: "Smart Budget Architect",
+              desc: "AI-powered cost estimation.",
+              icon: <IoWallet />,
+            },
             { title: "Fine Dining", desc: "Reservations at top tables.", icon: <IoRestaurant /> },
-            { title: "Hidden Gems Discovery", desc: "Find nearby local treasures.", icon: <IoCompass /> },
-            { title: "Cultural Deep Dives", desc: "Immersive local traditions.", icon: <IoGlobe /> },
+            {
+              title: "Hidden Gems Discovery",
+              desc: "Find nearby local treasures.",
+              icon: <IoCompass />,
+            },
+            {
+              title: "Cultural Deep Dives",
+              desc: "Immersive local traditions.",
+              icon: <IoGlobe />,
+            },
           ].map((feature, i) => (
             <motion.div
               key={i}
@@ -524,12 +592,30 @@ const ModernHome = ({ navigate }) => {
               transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
             >
               <SpotlightCard>
-                <div style={{ fontSize: "4rem", color: "#fbbf24", marginBottom: "32px", filter: "drop-shadow(0 0 15px rgba(251,191,36,0.4))" }}>
+                <div
+                  style={{
+                    fontSize: "4rem",
+                    color: "#fbbf24",
+                    marginBottom: "32px",
+                    filter: "drop-shadow(0 0 15px rgba(251,191,36,0.4))",
+                  }}
+                >
                   {feature.icon}
                 </div>
                 <div>
-                  <h3 style={{ fontSize: "1.875rem", fontWeight: "bold", marginBottom: "16px", color: "#fff" }}>{feature.title}</h3>
-                  <p style={{ fontSize: "1.25rem", color: "#cbd5e1", lineHeight: "1.6" }}>{feature.desc}</p>
+                  <h3
+                    style={{
+                      fontSize: "1.875rem",
+                      fontWeight: "bold",
+                      marginBottom: "16px",
+                      color: "#fff",
+                    }}
+                  >
+                    {feature.title}
+                  </h3>
+                  <p style={{ fontSize: "1.25rem", color: "#cbd5e1", lineHeight: "1.6" }}>
+                    {feature.desc}
+                  </p>
                 </div>
               </SpotlightCard>
             </motion.div>
@@ -544,7 +630,11 @@ const ModernHome = ({ navigate }) => {
 const ClassicHome = ({ navigate }) => {
   const features = [
     { title: "Intelligent Journey Designer", description: "AI-curated escapes.", icon: "🧠" },
-    { title: "Private Concierge Support", description: "Your personal travel stylist.", icon: "🤵" },
+    {
+      title: "Private Concierge Support",
+      description: "Your personal travel stylist.",
+      icon: "🤵",
+    },
     { title: "Immersive Cultural Moments", description: "After-hours palace tours.", icon: "🏛️" },
     { title: "Dynamic Weather Insights", description: "Live micro-climate forecasts.", icon: "🌦️" },
     { title: "Hidden Gems Discovery", description: "Find nearby local treasures.", icon: "💎" },
@@ -554,7 +644,8 @@ const ClassicHome = ({ navigate }) => {
   // Carousel Logic for Classic View
   const [activeIndex, setActiveIndex] = useState(2);
   const handleNext = () => setActiveIndex((prev) => (prev + 1) % INDIAN_DESTINATIONS.length);
-  const handlePrev = () => setActiveIndex((prev) => (prev - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length);
+  const handlePrev = () =>
+    setActiveIndex((prev) => (prev - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length);
 
   useEffect(() => {
     const interval = setInterval(handleNext, 4000);
@@ -572,8 +663,10 @@ const ClassicHome = ({ navigate }) => {
   };
 
   return (
-    <div style={{ ...styles.container, paddingTop: "80px" }}> {/* Reduced padding from 160px to 80px */}
-      <motion.div 
+    <div style={{ ...styles.container, paddingTop: "80px" }}>
+      {" "}
+      {/* Reduced padding from 160px to 80px */}
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
@@ -631,10 +724,11 @@ const ClassicHome = ({ navigate }) => {
             lineHeight: "1.7",
           }}
         >
-          Let moonlit palaces, spice-scented markets, and secret coffee trails unfold as we craft your next chapter across India's most enchanting escapes.
+          Let moonlit palaces, spice-scented markets, and secret coffee trails unfold as we craft
+          your next chapter across India's most enchanting escapes.
         </motion.p>
 
-        <motion.div 
+        <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8 }}
@@ -649,7 +743,7 @@ const ClassicHome = ({ navigate }) => {
         </motion.div>
 
         {/* CLASSIC CAROUSEL */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
@@ -677,14 +771,17 @@ const ClassicHome = ({ navigate }) => {
                   transition={{ duration: 0.6, type: "spring", bounce: 0.2 }}
                   style={styles.card}
                   onClick={() => {
-                    if (offset === 0) navigate(`/explore?destination=${encodeURIComponent(dest.name)}`);
+                    if (offset === 0)
+                      navigate(`/explore?destination=${encodeURIComponent(dest.name)}`);
                     else if (offset < 0) handlePrev();
                     else handleNext();
                   }}
                 >
                   <img src={dest.image} alt={dest.name} style={styles.cardImage} />
                   <div style={styles.cardOverlay}>
-                    <h3 style={{ fontSize: "2.25rem", fontWeight: "bold", marginBottom: "12px" }}>{dest.name}</h3>
+                    <h3 style={{ fontSize: "2.25rem", fontWeight: "bold", marginBottom: "12px" }}>
+                      {dest.name}
+                    </h3>
                     <p style={{ fontSize: "1rem", color: "#e2e8f0" }}>{dest.desc}</p>
                   </div>
                 </motion.div>
@@ -700,7 +797,6 @@ const ClassicHome = ({ navigate }) => {
           </button>
         </motion.div>
       </motion.div>
-
       <section style={styles.featuresSection}>
         <div style={styles.sectionHeader}>
           <h2 style={{ ...styles.sectionTitle, color: "#fbbf24" }}>Why Choose TourEase?</h2>
@@ -711,8 +807,8 @@ const ClassicHome = ({ navigate }) => {
 
         <div style={styles.grid}>
           {features.map((feature, index) => (
-            <motion.div 
-              key={index} 
+            <motion.div
+              key={index}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -731,7 +827,16 @@ const ClassicHome = ({ navigate }) => {
               }}
             >
               <div style={{ fontSize: "3rem", marginBottom: "32px" }}>{feature.icon}</div>
-              <h3 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "16px", color: "#f1f5f9" }}>{feature.title}</h3>
+              <h3
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: "bold",
+                  marginBottom: "16px",
+                  color: "#f1f5f9",
+                }}
+              >
+                {feature.title}
+              </h3>
               <p style={{ color: "#94a3b8", lineHeight: "1.6" }}>{feature.description}</p>
             </motion.div>
           ))}
@@ -749,7 +854,7 @@ const Home = () => {
   return (
     <>
       <GlobalVideoBackground />
-      
+
       <div style={styles.toggleButton}>
         <button
           onClick={() => setIsModern(!isModern)}
@@ -764,16 +869,12 @@ const Home = () => {
             gap: "12px",
           }}
         >
-          <IoSwapHorizontal size={24} /> 
+          <IoSwapHorizontal size={24} />
           <span>{isModern ? "Switch to Classic View" : "Switch to Modern View"}</span>
         </button>
       </div>
 
-      {isModern ? (
-        <ModernHome navigate={navigate} />
-      ) : (
-        <ClassicHome navigate={navigate} />
-      )}
+      {isModern ? <ModernHome navigate={navigate} /> : <ClassicHome navigate={navigate} />}
     </>
   );
 };
