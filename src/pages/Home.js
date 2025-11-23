@@ -1,20 +1,20 @@
 // /client/src/pages/Home.js
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import {
   IoSparkles,
-  IoPerson,
-  IoRestaurant,
-  IoBed,
   IoMap,
-  IoSwapHorizontal,
   IoChevronBack,
   IoChevronForward,
   IoAirplane,
-  IoGlobe,
-  IoWallet,
   IoCompass,
+  IoPlanet,
+  IoLocation,
+  IoWallet,
+  IoPerson,
+  IoGlobe,
+  IoSwapHorizontal,
 } from "react-icons/io5";
 
 // --- CONSTANTS ---
@@ -77,7 +77,7 @@ const INDIAN_DESTINATIONS = [
   },
 ];
 
-// --- STYLES OBJECTS (Inline CSS) ---
+// --- STYLES (Cinematic Glassmorphism) ---
 const styles = {
   container: {
     width: "100%",
@@ -86,8 +86,7 @@ const styles = {
     fontFamily: "'Inter', sans-serif",
     overflowX: "hidden",
     position: "relative",
-    paddingBottom: "100px",
-    // Removed solid background color to let video show through
+    backgroundColor: "#000",
   },
   videoBackground: {
     position: "fixed",
@@ -95,30 +94,102 @@ const styles = {
     left: 0,
     width: "100%",
     height: "100%",
-    zIndex: -1,
-    overflow: "hidden",
-    backgroundColor: "#000", // Fallback
+    zIndex: 0,
+    objectFit: "cover",
+    opacity: 0.6, // Slightly visible initially
   },
-  videoOverlay: {
-    position: "absolute",
+  gradientOverlay: {
+    position: "fixed",
     top: 0,
     left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(2, 6, 23, 0.4)", // Lighter overlay for visibility
-    zIndex: 10,
+    zIndex: 1,
+    background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 50%, #000 100%)",
+    pointerEvents: "none",
   },
-  video: {
+  driftingIconsContainer: {
+    position: "fixed",
+    top: 0,
+    left: 0,
     width: "100%",
     height: "100%",
-    objectFit: "cover",
-    opacity: 0.7, // Increased opacity
+    zIndex: 2,
+    pointerEvents: "none",
+    overflow: "hidden",
   },
+  contentLayer: {
+    position: "relative",
+    zIndex: 10,
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  introSection: {
+    height: "100vh",
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  studioLogo: {
+    fontSize: "clamp(4rem, 12vw, 10rem)",
+    fontWeight: "900",
+    letterSpacing: "-0.02em",
+    color: "transparent",
+    backgroundImage: "linear-gradient(to bottom, #fff 20%, #94a3b8 100%)",
+    WebkitBackgroundClip: "text",
+    backgroundClip: "text",
+    filter: "drop-shadow(0 0 40px rgba(255,255,255,0.3))",
+    textAlign: "center",
+    lineHeight: 1,
+    zIndex: 20,
+  },
+  tagline: {
+    fontSize: "1.2rem",
+    color: "rgba(255,255,255,0.8)",
+    letterSpacing: "0.4em",
+    textTransform: "uppercase",
+    marginTop: "2rem",
+    fontWeight: 300,
+    textAlign: "center",
+  },
+  glassCard: {
+    background: "rgba(255, 255, 255, 0.03)",
+    backdropFilter: "blur(16px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
+    borderRadius: "24px",
+    boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+    overflow: "hidden",
+  },
+  toggleButton: {
+    position: "fixed",
+    bottom: "32px",
+    left: "32px", // Moved to Bottom-Left
+    zIndex: 100,
+    padding: "12px 24px",
+    background: "rgba(0, 0, 0, 0.6)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    borderRadius: "999px",
+    color: "#fff",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    fontSize: "0.9rem",
+    fontWeight: 600,
+    transition: "all 0.3s ease",
+  },
+  // Classic Styles
   section: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    paddingTop: "120px", // Reduced from 160px
+    paddingTop: "120px",
     paddingBottom: "80px",
     paddingLeft: "24px",
     paddingRight: "24px",
@@ -151,16 +222,6 @@ const styles = {
     marginTop: "24px",
     textShadow: "0 4px 10px rgba(0,0,0,0.3)",
   },
-  aestheticPhrase: {
-    fontSize: "1.5rem",
-    fontWeight: "300",
-    color: "#e2e8f0",
-    maxWidth: "800px",
-    textAlign: "center",
-    marginBottom: "80px",
-    lineHeight: "1.6",
-    textShadow: "0 2px 5px rgba(0,0,0,0.3)",
-  },
   buttonGroup: {
     display: "flex",
     flexWrap: "wrap",
@@ -191,21 +252,6 @@ const styles = {
     backdropFilter: "blur(12px)",
     border: "1px solid rgba(255, 255, 255, 0.2)",
     color: "#ffffff",
-    fontWeight: "bold",
-    fontSize: "1.125rem",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    transition: "background-color 0.2s",
-  },
-  tertiaryButton: {
-    padding: "20px 40px",
-    borderRadius: "9999px",
-    backgroundColor: "rgba(30, 41, 59, 0.6)",
-    backdropFilter: "blur(12px)",
-    border: "1px solid rgba(148, 163, 184, 0.5)",
-    color: "#e2e8f0",
     fontWeight: "bold",
     fontSize: "1.125rem",
     cursor: "pointer",
@@ -246,147 +292,119 @@ const styles = {
     bottom: 0,
     left: 0,
     width: "100%",
-    padding: "40px",
-    background: "linear-gradient(to top, rgba(0,0,0,0.9), transparent)",
+    height: "100%",
+    background: "linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.6) 40%, transparent)",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-end",
+    padding: "32px",
   },
   navButton: {
     position: "absolute",
-    zIndex: 30,
-    padding: "24px",
-    borderRadius: "50%",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    top: "50%",
+    transform: "translateY(-50%)",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     backdropFilter: "blur(12px)",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    color: "#ffffff",
-    cursor: "pointer",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    color: "#fff",
+    width: "64px",
+    height: "64px",
+    borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    cursor: "pointer",
+    zIndex: 20,
+    transition: "background-color 0.2s, transform 0.2s",
   },
   featuresSection: {
-    padding: "96px 24px",
-    maxWidth: "1400px",
-    margin: "0 auto",
-  },
-  sectionHeader: {
-    textAlign: "center",
-    marginBottom: "80px",
-  },
-  sectionTitle: {
-    fontSize: "clamp(3rem, 5vw, 4.5rem)",
-    fontFamily: "serif",
-    color: "#ffffff",
-    marginBottom: "32px",
-    textShadow: "0 4px 10px rgba(0,0,0,0.5)",
-  },
-  divider: {
-    width: "128px",
-    height: "4px",
-    background: "linear-gradient(to right, transparent, #f59e0b, transparent)",
-    margin: "0 auto",
-    borderRadius: "9999px",
-  },
-  grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
-    gap: "48px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+    gap: "40px",
+    width: "100%",
+    maxWidth: "1400px",
+    marginBottom: "160px",
+    padding: "0 24px",
   },
-  glassCard: {
-    position: "relative",
-    overflow: "hidden",
-    borderRadius: "40px",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    backdropFilter: "blur(24px)",
-    boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.37)",
-    padding: "48px",
+  featureCard: {
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    backdropFilter: "blur(16px)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
+    borderRadius: "32px",
+    padding: "48px 32px",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "space-between",
-    minHeight: "350px",
-    transition: "transform 0.3s ease, box-shadow 0.3s ease",
-  },
-  toggleButton: {
-    position: "fixed",
-    bottom: "32px",
-    left: "32px",
-    zIndex: 1000,
-    display: "flex",
     alignItems: "center",
-    gap: "16px",
-    padding: "16px 32px",
-    backgroundColor: "rgba(15, 23, 42, 0.9)",
-    backdropFilter: "blur(12px)",
-    border: "1px solid rgba(245, 158, 11, 0.3)",
-    borderRadius: "9999px",
-    color: "#fde68a",
-    fontSize: "1.125rem",
+    textAlign: "center",
+    transition: "transform 0.3s, box-shadow 0.3s",
+    cursor: "default",
+  },
+  featureIcon: {
+    fontSize: "3.5rem",
+    color: "#f59e0b",
+    marginBottom: "24px",
+    filter: "drop-shadow(0 0 15px rgba(245, 158, 11, 0.4))",
+  },
+  featureTitle: {
+    fontSize: "1.5rem",
     fontWeight: "bold",
-    cursor: "pointer",
-    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5)",
+    color: "#ffffff",
+    marginBottom: "16px",
+  },
+  featureDesc: {
+    fontSize: "1rem",
+    color: "#94a3b8",
+    lineHeight: "1.6",
   },
 };
 
 // --- COMPONENTS ---
 
-const GlobalVideoBackground = () => (
-  <div style={styles.videoBackground}>
-    <div style={styles.videoOverlay} />
-    <video autoPlay loop muted playsInline style={styles.video}>
-      <source src="/assets/hero-bg.mp4" type="video/mp4" />
-    </video>
-  </div>
-);
-
-const SpotlightCard = ({ children, style = {} }) => {
-  const divRef = useRef(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [opacity, setOpacity] = useState(0);
-
-  const handleMouseMove = (e) => {
-    if (!divRef.current) return;
-    const rect = divRef.current.getBoundingClientRect();
-    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-  };
-
+const DriftingIcons = () => {
+  const icons = [IoAirplane, IoCompass, IoPlanet, IoLocation, IoMap, IoSparkles];
   return (
-    <div
-      ref={divRef}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setOpacity(1)}
-      onMouseLeave={() => setOpacity(0)}
-      style={{ ...styles.glassCard, ...style }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          opacity,
-          background: `radial-gradient(600px circle at ${position.x}px ${position.y}px, rgba(212, 175, 55, 0.15), transparent 40%)`,
-          pointerEvents: "none",
-          transition: "opacity 0.3s",
-          zIndex: 0,
-        }}
-      />
-      <div style={{ position: "relative", zIndex: 10 }}>{children}</div>
+    <div style={styles.driftingIconsContainer}>
+      {icons.map((Icon, i) => (
+        <motion.div
+          key={i}
+          initial={{
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            opacity: 0,
+          }}
+          animate={{
+            y: [null, Math.random() * -100],
+            x: [null, (Math.random() - 0.5) * 50],
+            opacity: [0, 0.15, 0],
+          }}
+          transition={{
+            duration: 10 + Math.random() * 10,
+            repeat: Infinity,
+            ease: "linear",
+            delay: Math.random() * 5,
+          }}
+          style={{ position: "absolute", color: "#fff", fontSize: `${20 + Math.random() * 40}px` }}
+        >
+          <Icon />
+        </motion.div>
+      ))}
     </div>
   );
 };
 
 const ModernHome = ({ navigate }) => {
-  const [activeIndex, setActiveIndex] = useState(2);
+  const { scrollY } = useScroll();
+  const logoScale = useTransform(scrollY, [0, 300], [1, 0.3]);
+  const logoY = useTransform(scrollY, [0, 300], [0, -window.innerHeight / 2 + 40]);
 
+  // Carousel Logic
+  const [activeIndex, setActiveIndex] = useState(2);
   const handleNext = () => setActiveIndex((prev) => (prev + 1) % INDIAN_DESTINATIONS.length);
   const handlePrev = () =>
     setActiveIndex((prev) => (prev - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length);
 
-  // Auto-rotate carousel
   useEffect(() => {
-    const interval = setInterval(handleNext, 4000);
+    const interval = setInterval(handleNext, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -401,244 +419,183 @@ const ModernHome = ({ navigate }) => {
   };
 
   return (
-    <div style={styles.container}>
-      {/* HERO SECTION */}
-      <section style={styles.section}>
-        {/* FADE TEXT - Scroll Reveal */}
+    <div style={styles.contentLayer}>
+      {/* INTRO SECTION */}
+      <section style={styles.introSection}>
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          style={{
-            marginBottom: "32px",
-            color: "rgba(253, 230, 138, 0.8)",
-            letterSpacing: "0.3em",
-            textTransform: "uppercase",
-            fontSize: "0.9rem",
-          }}
+          style={{ scale: logoScale, y: logoY, zIndex: 50 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
         >
-          Discover • Experience • Remember
+          <h1 style={styles.studioLogo}>TOUREASE</h1>
         </motion.div>
 
-        {/* TITLE - Scroll Reveal */}
-        <div style={styles.heroTitleContainer}>
-          <motion.h1
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            style={styles.heroTitle}
-            whileHover={{ scale: 1.05, letterSpacing: "-0.02em" }}
-          >
-            TOUREASE
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-            style={styles.heroSubtitle}
-          >
-            The Art of Travel
-          </motion.p>
-        </div>
-
-        {/* PHRASE - Scroll Reveal */}
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.7, duration: 0.8 }}
-          style={styles.aestheticPhrase}
+          style={{ ...styles.tagline, opacity: useTransform(scrollY, [0, 100], [1, 0]) }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 1 }}
         >
-          "Wander where the WiFi is weak and the memories are strong."
+          DISCOVER &bull; EXPERIENCE &bull; REMEMBER
         </motion.p>
+      </section>
 
-        {/* BUTTONS - Scroll Reveal */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.9, duration: 0.8 }}
-          style={styles.buttonGroup}
-        >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/explore")}
-            style={styles.primaryButton}
-          >
-            <IoMap size={24} /> Start Your Journey Here
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/trending")}
-            style={styles.secondaryButton}
-          >
-            <IoSparkles size={24} color="#fbbf24" /> See What's Trending Now
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/planner")}
-            style={styles.tertiaryButton}
-          >
-            <IoBed size={24} /> Craft Your Perfect Trip
-          </motion.button>
-        </motion.div>
-
-        {/* CAROUSEL - Scroll Reveal */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1 }}
-          style={styles.carouselContainer}
+      {/* CAROUSEL SECTION */}
+      <section style={{ width: "100%", padding: "100px 0", position: "relative", zIndex: 20 }}>
+        <div
+          style={{
+            height: "600px",
+            position: "relative",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            perspective: "1000px",
+          }}
         >
           <AnimatePresence mode="popLayout">
             {getVisibleCards().map((dest) => {
               const { offset } = dest;
               const isActive = offset === 0;
-
               return (
                 <motion.div
-                  key={`${dest.id}-${offset}`}
+                  key={dest.id}
                   layout
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{
-                    x: offset * 280,
-                    scale: isActive ? 1.2 : 0.85,
-                    rotateY: offset * -30,
-                    zIndex: 10 - Math.abs(offset),
-                    opacity: isActive ? 1 : 0.6,
-                    filter: isActive ? "blur(0px)" : "blur(3px) brightness(60%)",
+                    x: offset * 260,
+                    z: Math.abs(offset) * -100,
+                    rotateY: offset * -15,
+                    scale: isActive ? 1.1 : 0.85,
+                    opacity: isActive ? 1 : 0.5,
+                    filter: isActive ? "blur(0px)" : "blur(4px)",
                   }}
-                  transition={{ duration: 0.6, type: "spring", bounce: 0.2 }}
-                  style={styles.card}
+                  transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
+                  style={{
+                    position: "absolute",
+                    width: "380px",
+                    height: "520px",
+                    borderRadius: "30px",
+                    overflow: "hidden",
+                    cursor: "pointer",
+                    boxShadow: isActive ? "0 25px 50px -12px rgba(0,0,0,0.7)" : "none",
+                    border: isActive ? "1px solid rgba(255,255,255,0.2)" : "none",
+                  }}
                   onClick={() => {
-                    if (offset === 0)
-                      navigate(`/explore?destination=${encodeURIComponent(dest.name)}`);
+                    if (isActive) navigate(`/explore?destination=${encodeURIComponent(dest.name)}`);
                     else if (offset < 0) handlePrev();
                     else handleNext();
                   }}
                 >
-                  <img src={dest.image} alt={dest.name} style={styles.cardImage} />
-                  <div style={styles.cardOverlay}>
-                    <h3 style={{ fontSize: "2.25rem", fontWeight: "bold", marginBottom: "12px" }}>
+                  <img
+                    src={dest.image}
+                    alt={dest.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      width: "100%",
+                      padding: "30px",
+                      background: "linear-gradient(to top, rgba(0,0,0,0.9), transparent)",
+                    }}
+                  >
+                    <h3 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "8px" }}>
                       {dest.name}
                     </h3>
-                    <p style={{ fontSize: "1rem", color: "#e2e8f0" }}>{dest.desc}</p>
+                    <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.8)" }}>
+                      {dest.desc}
+                    </p>
                   </div>
                 </motion.div>
               );
             })}
           </AnimatePresence>
-
-          <button onClick={handlePrev} style={{ ...styles.navButton, left: "40px" }}>
-            <IoChevronBack size={32} />
-          </button>
-          <button onClick={handleNext} style={{ ...styles.navButton, right: "40px" }}>
-            <IoChevronForward size={32} />
-          </button>
-        </motion.div>
+        </div>
       </section>
 
-      {/* FEATURES - Scroll Reveal */}
-      <section style={styles.featuresSection}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          style={styles.sectionHeader}
-        >
-          <h2 style={styles.sectionTitle}>Why Choose Us?</h2>
-          <div style={styles.divider} />
-        </motion.div>
-
-        <div style={styles.grid}>
-          {[
-            {
-              title: "AI Architect",
-              desc: "Smart itineraries tailored to you.",
-              icon: <IoSparkles />,
-            },
-            { title: "Concierge", desc: "24/7 Personal support.", icon: <IoPerson /> },
-            {
-              title: "Smart Budget Architect",
-              desc: "AI-powered cost estimation.",
-              icon: <IoWallet />,
-            },
-            { title: "Fine Dining", desc: "Reservations at top tables.", icon: <IoRestaurant /> },
-            {
-              title: "Hidden Gems Discovery",
-              desc: "Find nearby local treasures.",
-              icon: <IoCompass />,
-            },
-            {
-              title: "Cultural Deep Dives",
-              desc: "Immersive local traditions.",
-              icon: <IoGlobe />,
-            },
-          ].map((feature, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.03, rotate: 1 }}
-              transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
+      {/* FEATURES SECTION */}
+      <section
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+          gap: "30px",
+          padding: "0 5%",
+          width: "100%",
+          maxWidth: "1400px",
+          marginBottom: "150px",
+        }}
+      >
+        {[
+          { title: "AI Planner", icon: <IoSparkles />, desc: "Smart itineraries tailored to you." },
+          { title: "Hidden Gems", icon: <IoMap />, desc: "Discover places off the beaten path." },
+          { title: "Luxury Stays", icon: <IoPlanet />, desc: "Handpicked premium accommodations." },
+        ].map((feature, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.2 }}
+            style={{
+              ...styles.glassCard,
+              padding: "40px",
+              textAlign: "center",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "20px",
+            }}
+          >
+            <div
+              style={{
+                fontSize: "3rem",
+                color: "#f59e0b",
+                filter: "drop-shadow(0 0 10px rgba(245, 158, 11, 0.4))",
+              }}
             >
-              <SpotlightCard>
-                <div
-                  style={{
-                    fontSize: "4rem",
-                    color: "#fbbf24",
-                    marginBottom: "32px",
-                    filter: "drop-shadow(0 0 15px rgba(251,191,36,0.4))",
-                  }}
-                >
-                  {feature.icon}
-                </div>
-                <div>
-                  <h3
-                    style={{
-                      fontSize: "1.875rem",
-                      fontWeight: "bold",
-                      marginBottom: "16px",
-                      color: "#fff",
-                    }}
-                  >
-                    {feature.title}
-                  </h3>
-                  <p style={{ fontSize: "1.25rem", color: "#cbd5e1", lineHeight: "1.6" }}>
-                    {feature.desc}
-                  </p>
-                </div>
-              </SpotlightCard>
-            </motion.div>
-          ))}
-        </div>
+              {feature.icon}
+            </div>
+            <h3 style={{ fontSize: "1.5rem", fontWeight: "bold" }}>{feature.title}</h3>
+            <p style={{ color: "#94a3b8", lineHeight: "1.6" }}>{feature.desc}</p>
+          </motion.div>
+        ))}
       </section>
     </div>
   );
 };
 
-// --- CLASSIC HOME (Inline CSS) ---
+// --- CLASSIC HOME (Preserved) ---
 const ClassicHome = ({ navigate }) => {
   const features = [
-    { title: "Intelligent Journey Designer", description: "AI-curated escapes.", icon: "🧠" },
+    {
+      title: "Intelligent Journey Designer",
+      description: "AI-curated escapes.",
+      icon: <IoSparkles />,
+    },
     {
       title: "Private Concierge Support",
       description: "Your personal travel stylist.",
-      icon: "🤵",
+      icon: <IoPerson />,
     },
-    { title: "Immersive Cultural Moments", description: "After-hours palace tours.", icon: "🏛️" },
-    { title: "Dynamic Weather Insights", description: "Live micro-climate forecasts.", icon: "🌦️" },
-    { title: "Hidden Gems Discovery", description: "Find nearby local treasures.", icon: "💎" },
-    { title: "Cultural Deep Dives", description: "Immersive local traditions.", icon: "🌏" },
+    {
+      title: "Immersive Cultural Moments",
+      description: "After-hours palace tours.",
+      icon: <IoGlobe />,
+    },
+    {
+      title: "Dynamic Weather Insights",
+      description: "Live micro-climate forecasts.",
+      icon: <IoPlanet />,
+    },
+    {
+      title: "Hidden Gems Discovery",
+      description: "Find nearby local treasures.",
+      icon: <IoCompass />,
+    },
+    { title: "Cultural Deep Dives", description: "Immersive local traditions.", icon: <IoMap /> },
   ];
 
   // Carousel Logic for Classic View
@@ -664,69 +621,21 @@ const ClassicHome = ({ navigate }) => {
 
   return (
     <div style={{ ...styles.container, paddingTop: "80px" }}>
-      {" "}
-      {/* Reduced padding from 160px to 80px */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-        style={{ ...styles.section, minHeight: "60vh", paddingBottom: "80px", paddingTop: "40px" }} // Reduced internal padding
+        transition={{ duration: 0.8 }}
+        style={styles.section}
       >
-        <motion.span
-          initial={{ y: -20, opacity: 0 }}
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          style={{
-            display: "inline-block",
-            padding: "12px 32px",
-            borderRadius: "9999px",
-            backgroundColor: "rgba(245, 158, 11, 0.1)",
-            border: "1px solid rgba(245, 158, 11, 0.3)",
-            color: "#fcd34d",
-            fontSize: "0.875rem",
-            fontWeight: "500",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            marginBottom: "32px", // Reduced margin
-            backdropFilter: "blur(12px)",
-          }}
+          style={styles.heroTitleContainer}
         >
-          Where Whimsy Meets Wanderlust
-        </motion.span>
-        <motion.h1
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-          style={{
-            fontSize: "clamp(3rem, 8vw, 6rem)",
-            fontWeight: "bold",
-            color: "transparent",
-            backgroundImage: "linear-gradient(to bottom, #fef3c7, #f59e0b)",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            marginBottom: "32px", // Reduced margin
-            textAlign: "center",
-            lineHeight: "1.1",
-          }}
-        >
-          Discover the Unseen
-        </motion.h1>
-        <motion.p
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          style={{
-            fontSize: "1.25rem",
-            color: "#cbd5e1",
-            maxWidth: "800px",
-            textAlign: "center",
-            marginBottom: "48px", // Reduced margin
-            lineHeight: "1.7",
-          }}
-        >
-          Let moonlit palaces, spice-scented markets, and secret coffee trails unfold as we craft
-          your next chapter across India's most enchanting escapes.
-        </motion.p>
+          <h1 style={{ ...styles.heroTitle, fontSize: "clamp(3rem, 6vw, 5rem)" }}>TOUREASE</h1>
+          <p style={styles.heroSubtitle}>CLASSIC COLLECTION</p>
+        </motion.div>
 
         <motion.div
           initial={{ y: 20, opacity: 0 }}
@@ -797,85 +706,76 @@ const ClassicHome = ({ navigate }) => {
           </button>
         </motion.div>
       </motion.div>
-      <section style={styles.featuresSection}>
-        <div style={styles.sectionHeader}>
-          <h2 style={{ ...styles.sectionTitle, color: "#fbbf24" }}>Why Choose TourEase?</h2>
-          <p style={{ fontSize: "1.25rem", color: "#94a3b8", maxWidth: "800px", margin: "0 auto" }}>
-            Experience the perfect blend of AI intelligence and human-curated luxury.
-          </p>
-        </div>
 
-        <div style={styles.grid}>
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
+      <section style={styles.featuresSection}>
+        {features.map((feature, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: index * 0.1 }}
+            style={{
+              ...styles.featureCard,
+              padding: "32px",
+              background: "rgba(255, 255, 255, 0.05)",
+              borderRadius: "24px",
+            }}
+          >
+            <div style={{ fontSize: "2.5rem", marginBottom: "16px", color: "#f59e0b" }}>
+              {feature.icon}
+            </div>
+            <h3
               style={{
-                backgroundColor: "rgba(30, 41, 59, 0.4)",
-                backdropFilter: "blur(16px)",
-                border: "1px solid rgba(255, 255, 255, 0.05)",
-                padding: "40px",
-                borderRadius: "32px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                textAlign: "center",
-                transition: "border-color 0.3s",
+                fontSize: "1.25rem",
+                fontWeight: "bold",
+                color: "#fff",
+                marginBottom: "8px",
               }}
             >
-              <div style={{ fontSize: "3rem", marginBottom: "32px" }}>{feature.icon}</div>
-              <h3
-                style={{
-                  fontSize: "1.5rem",
-                  fontWeight: "bold",
-                  marginBottom: "16px",
-                  color: "#f1f5f9",
-                }}
-              >
-                {feature.title}
-              </h3>
-              <p style={{ color: "#94a3b8", lineHeight: "1.6" }}>{feature.description}</p>
-            </motion.div>
-          ))}
-        </div>
+              {feature.title}
+            </h3>
+            <p style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>{feature.description}</p>
+          </motion.div>
+        ))}
       </section>
     </div>
   );
 };
 
-// --- MAIN HOME COMPONENT ---
 const Home = () => {
   const navigate = useNavigate();
-  const [isModern, setIsModern] = useState(true);
+  const [viewMode, setViewMode] = useState("modern"); // 'modern' or 'classic'
 
   return (
-    <>
-      <GlobalVideoBackground />
+    <div style={styles.container}>
+      {/* BACKGROUND VIDEO */}
+      <video autoPlay loop muted playsInline style={styles.videoBackground}>
+        <source src="/assets/hero-bg.mp4" type="video/mp4" />
+      </video>
+      <div style={styles.gradientOverlay} />
 
-      <div style={styles.toggleButton}>
-        <button
-          onClick={() => setIsModern(!isModern)}
-          style={{
-            background: "none",
-            border: "none",
-            color: "inherit",
-            font: "inherit",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-          }}
-        >
-          <IoSwapHorizontal size={24} />
-          <span>{isModern ? "Switch to Classic View" : "Switch to Modern View"}</span>
-        </button>
-      </div>
+      {/* DRIFTING ICONS */}
+      <DriftingIcons />
 
-      {isModern ? <ModernHome navigate={navigate} /> : <ClassicHome navigate={navigate} />}
-    </>
+      {/* CONTENT */}
+      {viewMode === "modern" ? (
+        <ModernHome navigate={navigate} />
+      ) : (
+        <ClassicHome navigate={navigate} />
+      )}
+
+      {/* VIEW TOGGLE */}
+      <motion.button
+        whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(255,255,255,0.3)" }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setViewMode((prev) => (prev === "modern" ? "classic" : "modern"))}
+        style={styles.toggleButton}
+      >
+        {viewMode === "modern" ? <IoCompass size={20} /> : <IoSparkles size={20} />}
+        <span>Switch to {viewMode === "modern" ? "Classic" : "Cinematic"}</span>
+      </motion.button>
+    </div>
   );
 };
 
