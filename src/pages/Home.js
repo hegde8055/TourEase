@@ -15,27 +15,69 @@ import {
 
 // --- CONSTANTS ---
 const INDIAN_DESTINATIONS = [
-  { id: 1, name: "Agra", image: "https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=1000&auto=format&fit=crop", desc: "Home of the Taj Mahal." },
-  { id: 2, name: "Jaipur", image: "https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=1000&auto=format&fit=crop", desc: "The Pink City." },
-  { id: 3, name: "Kerala", image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=1000&auto=format&fit=crop", desc: "God's Own Country." },
-  { id: 4, name: "Ladakh", image: "https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=80&w=1000&auto=format&fit=crop", desc: "Land of High Passes." },
-  { id: 5, name: "Varanasi", image: "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?q=80&w=1000&auto=format&fit=crop", desc: "Spiritual Capital." },
-  { id: 6, name: "Goa", image: "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1000&auto=format&fit=crop", desc: "Beaches & Heritage." },
-  { id: 7, name: "Udaipur", image: "https://images.unsplash.com/photo-1595262366897-4089903960b7?q=80&w=1000&auto=format&fit=crop", desc: "City of Lakes." },
-  { id: 8, name: "Hampi", image: "https://images.unsplash.com/photo-1620766182966-c6eb5ed2b788?q=80&w=1000&auto=format&fit=crop", desc: "Ancient Ruins." },
+  {
+    id: 1,
+    name: "Agra",
+    image:
+      "https://images.unsplash.com/photo-1564507592333-c60657eea523?q=80&w=1000&auto=format&fit=crop",
+    desc: "Home of the Taj Mahal.",
+  },
+  {
+    id: 2,
+    name: "Jaipur",
+    image:
+      "https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=1000&auto=format&fit=crop",
+    desc: "The Pink City.",
+  },
+  {
+    id: 3,
+    name: "Kerala",
+    image:
+      "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=1000&auto=format&fit=crop",
+    desc: "God's Own Country.",
+  },
+  {
+    id: 4,
+    name: "Ladakh",
+    image:
+      "https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=80&w=1000&auto=format&fit=crop",
+    desc: "Land of High Passes.",
+  },
+  {
+    id: 5,
+    name: "Varanasi",
+    image:
+      "https://images.unsplash.com/photo-1561361513-2d000a50f0dc?q=80&w=1000&auto=format&fit=crop",
+    desc: "Spiritual Capital.",
+  },
+  {
+    id: 6,
+    name: "Goa",
+    image:
+      "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1000&auto=format&fit=crop",
+    desc: "Beaches & Heritage.",
+  },
+  {
+    id: 7,
+    name: "Udaipur",
+    image:
+      "https://images.unsplash.com/photo-1595262366897-4089903960b7?q=80&w=1000&auto=format&fit=crop",
+    desc: "City of Lakes.",
+  },
+  {
+    id: 8,
+    name: "Hampi",
+    image:
+      "https://images.unsplash.com/photo-1620766182966-c6eb5ed2b788?q=80&w=1000&auto=format&fit=crop",
+    desc: "Ancient Ruins.",
+  },
 ];
 
 // --- SHARED COMPONENTS ---
 const GlobalVideoBackground = () => (
   <div className="fixed inset-0 z-[-1] overflow-hidden">
     <div className="absolute inset-0 bg-slate-950/60 z-10" />
-    <video
-      autoPlay
-      loop
-      muted
-      playsInline
-      className="w-full h-full object-cover opacity-50"
-    >
+    <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-50">
       <source src="/assets/hero-bg.mp4" type="video/mp4" />
     </video>
   </div>
@@ -77,7 +119,8 @@ const ModernHome = ({ navigate }) => {
   const [activeIndex, setActiveIndex] = useState(2); // Start at index 2
 
   const handleNext = () => setActiveIndex((prev) => (prev + 1) % INDIAN_DESTINATIONS.length);
-  const handlePrev = () => setActiveIndex((prev) => (prev - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length);
+  const handlePrev = () =>
+    setActiveIndex((prev) => (prev - 1 + INDIAN_DESTINATIONS.length) % INDIAN_DESTINATIONS.length);
 
   // Calculate visible cards for Coverflow effect
   const getVisibleCards = () => {
@@ -111,19 +154,19 @@ const ModernHome = ({ navigate }) => {
             {getVisibleCards().map((dest) => {
               const { offset } = dest;
               const isActive = offset === 0;
-              
+
               return (
                 <motion.div
                   key={`${dest.id}-${offset}`}
                   layout
                   initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ 
+                  animate={{
                     x: offset * 220, // Spacing
                     scale: isActive ? 1.1 : 0.8,
                     rotateY: offset * -25, // 3D Tilt
                     zIndex: 10 - Math.abs(offset),
                     opacity: isActive ? 1 : 0.5,
-                    filter: isActive ? "blur(0px)" : "blur(2px) brightness(50%)"
+                    filter: isActive ? "blur(0px)" : "blur(2px) brightness(50%)",
                   }}
                   transition={{ duration: 0.5, ease: "easeOut" }}
                   className="absolute w-[300px] md:w-[380px] h-[480px] rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 bg-slate-900 cursor-pointer"
@@ -145,17 +188,23 @@ const ModernHome = ({ navigate }) => {
           </AnimatePresence>
 
           {/* Nav Buttons */}
-          <button onClick={handlePrev} className="absolute left-4 md:left-0 z-30 p-4 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all text-white border border-white/20">
+          <button
+            onClick={handlePrev}
+            className="absolute left-4 md:left-0 z-30 p-4 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all text-white border border-white/20"
+          >
             <IoChevronBack size={24} />
           </button>
-          <button onClick={handleNext} className="absolute right-4 md:right-0 z-30 p-4 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all text-white border border-white/20">
+          <button
+            onClick={handleNext}
+            className="absolute right-4 md:right-0 z-30 p-4 rounded-full bg-white/10 backdrop-blur-md hover:bg-white/20 transition-all text-white border border-white/20"
+          >
             <IoChevronForward size={24} />
           </button>
         </div>
 
         {/* ACTION BUTTONS */}
         <div className="flex flex-wrap justify-center gap-6 z-20">
-          <motion.button 
+          <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/explore")}
@@ -163,7 +212,7 @@ const ModernHome = ({ navigate }) => {
           >
             <IoMap /> Start Journey
           </motion.button>
-          <motion.button 
+          <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate("/trending")}
@@ -180,19 +229,39 @@ const ModernHome = ({ navigate }) => {
           <h2 className="text-4xl md:text-6xl font-serif text-white mb-6">Why TourEase?</h2>
           <div className="w-24 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto" />
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[
-            { title: "AI Architect", desc: "Intelligent itinerary crafting.", icon: <IoSparkles />, col: "lg:col-span-2" },
-            { title: "Concierge", desc: "24/7 Personal support.", icon: <IoPerson />, col: "lg:col-span-1" },
-            { title: "Luxury Stays", desc: "Handpicked boutique hotels.", icon: <IoBed />, col: "lg:col-span-1" },
-            { title: "Fine Dining", desc: "Reservations at top tables.", icon: <IoRestaurant />, col: "lg:col-span-2" },
+            {
+              title: "AI Architect",
+              desc: "Intelligent itinerary crafting.",
+              icon: <IoSparkles />,
+              col: "lg:col-span-2",
+            },
+            {
+              title: "Concierge",
+              desc: "24/7 Personal support.",
+              icon: <IoPerson />,
+              col: "lg:col-span-1",
+            },
+            {
+              title: "Luxury Stays",
+              desc: "Handpicked boutique hotels.",
+              icon: <IoBed />,
+              col: "lg:col-span-1",
+            },
+            {
+              title: "Fine Dining",
+              desc: "Reservations at top tables.",
+              icon: <IoRestaurant />,
+              col: "lg:col-span-2",
+            },
           ].map((feature, i) => (
-            <motion.div 
-              key={i} 
-              initial={{ opacity: 0, y: 30 }} 
-              whileInView={{ opacity: 1, y: 0 }} 
-              transition={{ delay: i * 0.1 }} 
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
               className={feature.col}
             >
               <SpotlightCard className="h-full p-10 flex flex-col justify-between min-h-[300px]">
@@ -214,7 +283,11 @@ const ModernHome = ({ navigate }) => {
 const ClassicHome = ({ navigate }) => {
   const features = [
     { title: "Intelligent Journey Designer", description: "AI-curated escapes.", icon: "🧠" },
-    { title: "Private Concierge Support", description: "Your personal travel stylist.", icon: "🤵" },
+    {
+      title: "Private Concierge Support",
+      description: "Your personal travel stylist.",
+      icon: "🤵",
+    },
     { title: "Immersive Cultural Moments", description: "After-hours palace tours.", icon: "🏛️" },
     { title: "Dynamic Weather Insights", description: "Live micro-climate forecasts.", icon: "🌦️" },
   ];
@@ -230,14 +303,21 @@ const ClassicHome = ({ navigate }) => {
           Discover the Unseen
         </h1>
         <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-12 leading-relaxed">
-          Let moonlit palaces, spice-scented markets, and secret coffee trails unfold as we craft your next chapter across India's most enchanting escapes.
+          Let moonlit palaces, spice-scented markets, and secret coffee trails unfold as we craft
+          your next chapter across India's most enchanting escapes.
         </p>
-        
+
         <div className="flex flex-wrap justify-center gap-8">
-          <button onClick={() => navigate("/explore")} className="px-12 py-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xl shadow-lg flex items-center gap-3 hover:scale-105 transition-transform">
+          <button
+            onClick={() => navigate("/explore")}
+            className="px-12 py-5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xl shadow-lg flex items-center gap-3 hover:scale-105 transition-transform"
+          >
             <IoMap /> Start Exploring
           </button>
-          <button onClick={() => navigate("/trending")} className="px-12 py-5 rounded-2xl bg-slate-800/40 backdrop-blur-md border border-amber-500/30 text-amber-200 font-bold text-xl flex items-center gap-3 hover:bg-slate-800/60 transition-colors">
+          <button
+            onClick={() => navigate("/trending")}
+            className="px-12 py-5 rounded-2xl bg-slate-800/40 backdrop-blur-md border border-amber-500/30 text-amber-200 font-bold text-xl flex items-center gap-3 hover:bg-slate-800/60 transition-colors"
+          >
             <IoSparkles /> Trending Now
           </button>
         </div>
@@ -246,13 +326,20 @@ const ClassicHome = ({ navigate }) => {
       {/* Features Grid - Standard Grid Layout */}
       <section className="px-6 max-w-7xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-amber-400 mb-6">Why Choose TourEase?</h2>
-          <p className="text-slate-400 max-w-2xl mx-auto">Experience the perfect blend of AI intelligence and human-curated luxury.</p>
+          <h2 className="text-4xl md:text-5xl font-bold text-amber-400 mb-6">
+            Why Choose TourEase?
+          </h2>
+          <p className="text-slate-400 max-w-2xl mx-auto">
+            Experience the perfect blend of AI intelligence and human-curated luxury.
+          </p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (
-            <div key={index} className="bg-slate-800/40 backdrop-blur-lg border border-white/5 p-8 rounded-3xl hover:border-amber-500/30 transition-colors flex flex-col items-center text-center h-full">
+            <div
+              key={index}
+              className="bg-slate-800/40 backdrop-blur-lg border border-white/5 p-8 rounded-3xl hover:border-amber-500/30 transition-colors flex flex-col items-center text-center h-full"
+            >
               <div className="text-5xl mb-6">{feature.icon}</div>
               <h3 className="text-xl font-bold text-slate-100 mb-4">{feature.title}</h3>
               <p className="text-slate-400 leading-relaxed">{feature.description}</p>
@@ -272,7 +359,7 @@ const Home = () => {
   return (
     <>
       <GlobalVideoBackground />
-      
+
       {/* View Toggle Button - Bottom Left */}
       <div className="fixed bottom-6 left-6 z-[1000]">
         <button
@@ -280,16 +367,12 @@ const Home = () => {
           className="flex items-center gap-3 px-6 py-3 bg-slate-900/90 backdrop-blur-xl border border-amber-500/30 rounded-full text-amber-200 text-base font-bold hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-black/50 focus:outline-none focus:ring-2 focus:ring-amber-500"
           aria-label={isModern ? "Switch to Classic View" : "Switch to Modern View"}
         >
-          <IoSwapHorizontal className="text-xl" /> 
+          <IoSwapHorizontal className="text-xl" />
           <span>{isModern ? "Switch to Classic View" : "Switch to Modern View"}</span>
         </button>
       </div>
 
-      {isModern ? (
-        <ModernHome navigate={navigate} />
-      ) : (
-        <ClassicHome navigate={navigate} />
-      )}
+      {isModern ? <ModernHome navigate={navigate} /> : <ClassicHome navigate={navigate} />}
     </>
   );
 };
