@@ -13,6 +13,8 @@ import {
   IoChevronForward,
   IoAirplane,
   IoGlobe,
+  IoWallet,
+  IoCompass,
 } from "react-icons/io5";
 
 // --- CONSTANTS ---
@@ -502,9 +504,9 @@ const ModernHome = ({ navigate }) => {
           {[
             { title: "AI Architect", desc: "Smart itineraries tailored to you.", icon: <IoSparkles /> },
             { title: "Concierge", desc: "24/7 Personal support.", icon: <IoPerson /> },
-            { title: "Luxury Stays", desc: "Handpicked boutique hotels.", icon: <IoBed /> },
+            { title: "Smart Budget Architect", desc: "AI-powered cost estimation.", icon: <IoWallet /> },
             { title: "Fine Dining", desc: "Reservations at top tables.", icon: <IoRestaurant /> },
-            { title: "Private Charter", desc: "Exclusive jets and choppers.", icon: <IoAirplane /> },
+            { title: "Hidden Gems Discovery", desc: "Find nearby local treasures.", icon: <IoCompass /> },
             { title: "Cultural Deep Dives", desc: "Immersive local traditions.", icon: <IoGlobe /> },
           ].map((feature, i) => (
             <motion.div
@@ -539,7 +541,7 @@ const ClassicHome = ({ navigate }) => {
     { title: "Private Concierge Support", description: "Your personal travel stylist.", icon: "🤵" },
     { title: "Immersive Cultural Moments", description: "After-hours palace tours.", icon: "🏛️" },
     { title: "Dynamic Weather Insights", description: "Live micro-climate forecasts.", icon: "🌦️" },
-    { title: "Private Charter", description: "Exclusive jets and choppers.", icon: "✈️" },
+    { title: "Hidden Gems Discovery", description: "Find nearby local treasures.", icon: "💎" },
     { title: "Cultural Deep Dives", description: "Immersive local traditions.", icon: "🌏" },
   ];
 
