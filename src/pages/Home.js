@@ -383,14 +383,15 @@ const Home = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent z-10" />
           <div className="absolute inset-0 bg-slate-950/30 z-10" />
-          <img
-            src="/assets/Untitled design.png"
-            alt="Luxury Travel"
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
             className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.src = "https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=2076&auto=format&fit=crop";
-            }}
-          />
+          >
+            <source src="/assets/hero-bg.mp4" type="video/mp4" />
+          </video>
         </motion.div>
 
         {/* Hero Content */}
