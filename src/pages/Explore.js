@@ -85,13 +85,23 @@ const Explore = () => {
   const heroTranslate = useTransform(scrollYProgress, [0, 1], [0, -80]);
 
   // Stop/Start Lenis when modal opens/closes and allow modal to scroll
+  // Stop/Start Lenis when modal opens/closes
   useEffect(() => {
     if (selectedDestination) {
-      stopLenis(); // Stop smooth scroll when modal opens
-      document.body.style.overflow = "auto"; // Allow scrolling
+      stopLenis();
+      // CHANGE THIS: Lock the body so the browser focuses on the modal
+      document.body.style.overflow = "hidden";
     } else {
-      startLenis(); // Resume smooth scroll when modal closes
+      startLenis();
+      // CHANGE THIS: Restore body scrolling
+      document.body.style.overflow = "unset";
     }
+
+    // Cleanup function to ensure scroll is restored if component unmounts
+    return () => {
+      document.body.style.overflow = "unset";
+      startLenis();
+    };
   }, [selectedDestination]);
 
   useEffect(() => {
