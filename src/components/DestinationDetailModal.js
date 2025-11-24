@@ -534,9 +534,6 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
   return (
     <AnimatePresence>
       <motion.div
-        key="destination-details"
-        data-modal-scroll="true" // Override Lenis scroll lock
-        initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.25 }}
@@ -868,6 +865,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
               exit={{ y: prefersReducedMotion ? 0 : 20, opacity: 0 }}
               transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
               onClick={(event) => event.stopPropagation()}
+              data-lenis-prevent // 🟢 ADD THIS HERE
               style={{
                 width: "min(520px, 95vw)",
                 maxHeight: "90vh",
