@@ -535,6 +535,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
     <AnimatePresence>
       <motion.div
         key="destination-details"
+        data-modal-scroll="true" // Override Lenis scroll lock
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
