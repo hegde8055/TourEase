@@ -15,9 +15,31 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Poppins", sans-serif;
-  scroll-behavior: smooth;
+  /* scroll-behavior: smooth;  <-- REMOVED: Conflicts with Lenis */
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+/* Lenis Recommended CSS */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
 }
 
 *::-webkit-scrollbar {

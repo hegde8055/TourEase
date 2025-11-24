@@ -14,6 +14,8 @@ const SmoothScroll = ({ children }) => {
       touchMultiplier: 2,
     });
 
+    console.log("Lenis initialized"); // Debug log
+
     function raf(time) {
       lenis.raf(time);
       requestAnimationFrame(raf);
