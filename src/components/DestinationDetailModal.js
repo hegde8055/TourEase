@@ -546,10 +546,11 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
           backdropFilter: prefersReducedMotion ? "none" : "blur(12px)",
           zIndex: 950,
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start", // Align to top for scrolling
           justifyContent: "center",
           padding: "40px 20px",
           overflowY: "auto", // Allow scroll on backdrop for modal
+          overflowX: "hidden",
         }}
         onClick={onClose}
       >
