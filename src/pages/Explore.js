@@ -1,21 +1,3 @@
-import DestinationDetailModal from "../components/DestinationDetailModal";
-
-const heroVariants = {
-  hidden: { opacity: 0, y: -40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: "easeOut" } },
-};
-const heroSupportingVariants = {
-  hidden: { opacity: 0, y: -20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut", delay: 0.15 } },
-};
-const chipContainerVariants = {
-  hidden: { opacity: 0, y: 18 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { staggerChildren: 0.08, delayChildren: 0.1, ease: "easeOut" },
-  },
-};
 const chipVariants = {
   hidden: { opacity: 0, scale: 0.9, y: 12 },
   visible: {
