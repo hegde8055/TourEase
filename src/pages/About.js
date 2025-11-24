@@ -150,7 +150,7 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .hero-cta .btn{min-width:190px;padding:14px 28px;font-size:1rem;line-height:1.2;text-align:center}
 .talk-to-me-wrapper .btn{padding:12px 26px;font-size:0.95rem;letter-spacing:0.04em}
-.btn{padding:12px 30px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border:none;cursor:pointer;outline:none}
+.btn{padding:12px 30px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border:none;cursor:pointer;outline:none;text-decoration:none}
 /* Primary button clean */
 .btn-primary{background:linear-gradient(135deg,#e3b8a5 0%,#f6d4c8 100%);color:#2a0e12;border:1px solid rgba(255,255,255,0.18);transition:transform 0.28s cubic-bezier(.2,.9,.2,1), box-shadow 0.35s ease;position:relative;overflow:hidden}
 .btn-primary:hover{transform:translateY(-4px) scale(1.03);box-shadow:0 14px 40px rgba(227,146,146,0.12)}
