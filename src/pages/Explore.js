@@ -6,26 +6,28 @@ import debounce from "lodash.debounce";
 import { placesAPI, destinationsAPI, geoAPI } from "../utils/api";
 import { getDestinationHeroImage } from "../utils/imageHelpers";
 import { useAuth } from "../App";
-import { stopLenis, startLenis } from "../components/SmoothScroll";
+import { stopLenis, startLenis } from "../../components/SmoothScroll";
 import DestinationDetailModal from "../components/DestinationDetailModal";
 
+const heroVariants = {
+  hidden: { opacity: 0, y: -40 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.9, ease: "easeOut" } },
+};
+const heroSupportingVariants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut", delay: 0.15 } },
+};
+const chipContainerVariants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: {
     opacity: 1,
-    scale: 1,
     y: 0,
-    transition: { type: "spring", stiffness: 240, damping: 18 },
+    transition: { staggerChildren: 0.08, delayChildren: 0.1, ease: "easeOut" },
   },
 };
-const cardVariants = {
-  hidden: { opacity: 0, y: 35, rotateX: -8 },
-  visible: (index = 0) => ({
-    opacity: 1,
-    y: 0,
-    rotateX: 0,
-    transition: { duration: 0.5, delay: index * 0.04, ease: "easeOut" },
-  }),
-};
-const orbAnimation = (delay = 0) => ({
-  y: [0, -30, 0],
+const chipVariants = {
+  hidden: { opacity: 0, scale: 0.9, y: 12 },
+  visible: {
   scale: [1, 1.15, 1],
   opacity: [0.25, 0.6, 0.25],
   transition: { duration: 5, repeat: Infinity, ease: "easeInOut", delay },
