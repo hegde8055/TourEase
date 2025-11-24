@@ -549,6 +549,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
           alignItems: "center",
           justifyContent: "center",
           padding: "40px 20px",
+          overflowY: "auto", // Allow scroll on backdrop for modal
         }}
         onClick={onClose}
       >
@@ -560,10 +561,9 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
           style={{
             width: "100%",
             maxWidth: "1100px",
-            maxHeight: "90vh",
-            overflowY: "auto",
-            overflowX: "hidden",
-            WebkitOverflowScrolling: "touch", // Enable momentum scrolling on iOS
+            minHeight: "200px", // Ensure minimum height
+            maxHeight: "none", // Remove max height constraint
+            margin: "auto 0", // Center vertically in flex container
             background: "linear-gradient(180deg, rgba(11,14,20,0.95) 0%, rgba(17,24,39,0.98) 100%)",
             borderRadius: "28px",
             border: "1px solid rgba(212, 175, 55, 0.25)",
