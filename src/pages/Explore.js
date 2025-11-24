@@ -95,6 +95,28 @@ const Explore = () => {
   const destParam = searchParams.get("destination");
 
   useEffect(() => {
+    if (destParam) {
+      setSearchQuery(destParam);
+      handleSearch(destParam);
+    }
+  }, [destParam]);
+
+  // Fetch curated destinations
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCurated = async () => {
+      setDbLoading(true);
+      setDbError("");
+      try {
+        const [destinationsRes, categoriesRes] = await Promise.allSettled([
+          destinationsAPI.getAll({ limit: 40, sort: "rating" }),
+          destinationsAPI.getCategories(),
+        ]);
+        if (!isMounted) return;
+        if (destinationsRes.status === "fulfilled") {
+          const apiValue = destinationsRes.value;
+          const list =
+            apiValue?.destinations ||
             apiValue?.data?.destinations ||
             (Array.isArray(apiValue) ? apiValue : apiValue?.data) ||
             [];
