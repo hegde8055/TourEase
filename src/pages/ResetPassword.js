@@ -1,6 +1,6 @@
-// /client/src/pages/ResetPassword.js
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { authAPI } from "../utils/api";
 import "../auth.css";
 
@@ -17,26 +17,11 @@ const ResetPassword = () => {
 
   const passwordRequirements = useMemo(
     () => [
-      {
-        label: "At least 8 characters",
-        test: (value) => value.length >= 8,
-      },
-      {
-        label: "One uppercase letter",
-        test: (value) => /[A-Z]/.test(value),
-      },
-      {
-        label: "One lowercase letter",
-        test: (value) => /[a-z]/.test(value),
-      },
-      {
-        label: "One number",
-        test: (value) => /\d/.test(value),
-      },
-      {
-        label: "One special character",
-        test: (value) => /[^A-Za-z0-9]/.test(value),
-      },
+      { label: "At least 8 characters", test: (value) => value.length >= 8 },
+      { label: "One uppercase letter", test: (value) => /[A-Z]/.test(value) },
+      { label: "One lowercase letter", test: (value) => /[a-z]/.test(value) },
+      { label: "One number", test: (value) => /\d/.test(value) },
+      { label: "One special character", test: (value) => /[^A-Za-z0-9]/.test(value) },
     ],
     []
   );
@@ -121,112 +106,433 @@ const ResetPassword = () => {
     }
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+  };
+
   return (
-    <div className="auth-page-wrapper">
-      <div className="left">
-        <div className="form-container">
-          <div className="logo">
-            <span>Set New</span>
-            <span>Password</span>
-          </div>
-          <p style={{ color: "#94a3b8", textAlign: "center", marginBottom: "1rem" }}>
-            {isTokenMode
-              ? "You are using an email link to finish resetting your password."
-              : "Enter your account email and the 6-digit reset PIN from Profile -> Security."}
-          </p>
-          {error && <div className="error-banner">{error}</div>}
-          {message && (
-            <div style={{ color: "#22c55e", textAlign: "center", marginBottom: "1rem" }}>
-              {message}
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Background Image */}
+      <motion.div
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage: "url(/assets/uploads/5.jpg)", // Consistent with ForgotPassword
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          zIndex: 0,
+        }}
+        initial={{ opacity: 0, scale: 1.05 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1 }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 41, 59, 0.88) 100%)",
+          zIndex: 1,
+        }}
+      />
+
+      <motion.div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          zIndex: 10,
+          padding: "40px",
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        <motion.div
+          style={{
+            background: "rgba(15, 23, 42, 0.85)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "24px",
+            border: "1px solid rgba(148, 163, 184, 0.3)",
+            padding: "50px 40px",
+            maxWidth: "500px",
+            width: "100%",
+            boxShadow: "0 30px 60px -12px rgba(0, 0, 0, 0.6)",
+          }}
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div
+            style={{ display: "flex", justifyContent: "center", marginBottom: "25px" }}
+            variants={itemVariants}
+          >
+            <div
+              style={{
+                width: "80px",
+                height: "80px",
+                background: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "40px",
+              }}
+            >
+              🔒
             </div>
+          </motion.div>
+
+          <motion.h1
+            style={{
+              fontSize: "28px",
+              fontWeight: "800",
+              background: "linear-gradient(135deg, #60a5fa 0%, #93c5fd 100%)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              textAlign: "center",
+              marginBottom: "10px",
+            }}
+            variants={itemVariants}
+          >
+            Set New Password
+          </motion.h1>
+
+          <motion.p
+            style={{
+              textAlign: "center",
+              marginBottom: "30px",
+              color: "#cbd5e1",
+              fontSize: "0.95rem",
+            }}
+            variants={itemVariants}
+          >
+            {isTokenMode
+              ? "You are using a secure link to reset your password."
+              : "Enter your account email and the 6-digit reset PIN from Profile -> Security."}
+          </motion.p>
+
+          {error && (
+            <motion.div
+              style={{
+                background: "rgba(239, 68, 68, 0.15)",
+                color: "#fca5a5",
+                padding: "14px",
+                borderRadius: "12px",
+                marginBottom: "20px",
+                fontSize: "0.9rem",
+                fontWeight: 600,
+              }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {error}
+            </motion.div>
           )}
+
+          {message && (
+            <motion.div
+              style={{
+                background: "rgba(34, 197, 94, 0.15)",
+                color: "#86efac",
+                padding: "14px",
+                borderRadius: "12px",
+                marginBottom: "20px",
+                fontSize: "0.9rem",
+                fontWeight: 600,
+                textAlign: "center",
+              }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {message}
+            </motion.div>
+          )}
+
           <form onSubmit={handleSubmit}>
             {!isTokenMode && (
               <>
-                <label htmlFor="email">Account Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  name="email"
-                  placeholder="Enter your account email"
-                  value={pinForm.email}
-                  onChange={handlePinFormChange}
-                  autoComplete="email"
-                  required
-                />
-                <label htmlFor="pin">Reset PIN</label>
-                <input
-                  id="pin"
-                  type="text"
-                  name="pin"
-                  placeholder="6-digit PIN"
-                  value={pinForm.pin}
-                  onChange={handlePinFormChange}
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  autoComplete="one-time-code"
-                  required
-                />
-                <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "1rem" }}>
-                  You can regenerate this PIN from Profile -> Security after you sign in.
-                </p>
+                <motion.div variants={itemVariants} style={{ marginBottom: "16px" }}>
+                  <label
+                    htmlFor="email"
+                    style={{
+                      display: "block",
+                      marginBottom: "8px",
+                      fontWeight: "700",
+                      color: "#e2e8f0",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    Account Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    name="email"
+                    placeholder="Enter your account email"
+                    value={pinForm.email}
+                    onChange={handlePinFormChange}
+                    autoComplete="email"
+                    required
+                    className="auth-input"
+                    style={{
+                      width: "100%",
+                      padding: "14px 16px",
+                      background: "rgba(30, 41, 59, 0.6)",
+                      border: "1.5px solid rgba(148, 163, 184, 0.3)",
+                      borderRadius: "12px",
+                      color: "#e2e8f0",
+                      outline: "none",
+                      transition: "all 0.2s",
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = "#60a5fa";
+                      e.target.style.boxShadow = "0 0 0 4px rgba(96, 165, 250, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = "rgba(148, 163, 184, 0.3)";
+                      e.target.style.boxShadow = "none";
+                    }}
+                  />
+                </motion.div>
+
+                <motion.div variants={itemVariants} style={{ marginBottom: "16px" }}>
+                  <label
+                    htmlFor="pin"
+                    style={{
+                      display: "block",
+                      marginBottom: "8px",
+                      fontWeight: "700",
+                      color: "#e2e8f0",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    Reset PIN
+                  </label>
+                  <input
+                    id="pin"
+                    type="text"
+                    name="pin"
+                    placeholder="6-digit PIN"
+                    value={pinForm.pin}
+                    onChange={handlePinFormChange}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                    required
+                    className="auth-input"
+                    style={{
+                      width: "100%",
+                      padding: "14px 16px",
+                      background: "rgba(30, 41, 59, 0.6)",
+                      border: "1.5px solid rgba(148, 163, 184, 0.3)",
+                      borderRadius: "12px",
+                      color: "#e2e8f0",
+                      outline: "none",
+                      transition: "all 0.2s",
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = "#60a5fa";
+                      e.target.style.boxShadow = "0 0 0 4px rgba(96, 165, 250, 0.1)";
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = "rgba(148, 163, 184, 0.3)";
+                      e.target.style.boxShadow = "none";
+                    }}
+                  />
+                </motion.div>
               </>
             )}
-            <label htmlFor="password">New Password</label>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              placeholder="Enter new password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <div
+
+            <motion.div variants={itemVariants} style={{ marginBottom: "16px" }}>
+              <label
+                htmlFor="password"
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "700",
+                  color: "#e2e8f0",
+                  fontSize: "0.9rem",
+                }}
+              >
+                New Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                name="password"
+                placeholder="Enter new password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="auth-input"
+                style={{
+                  width: "100%",
+                  padding: "14px 16px",
+                  background: "rgba(30, 41, 59, 0.6)",
+                  border: "1.5px solid rgba(148, 163, 184, 0.3)",
+                  borderRadius: "12px",
+                  color: "#e2e8f0",
+                  outline: "none",
+                  transition: "all 0.2s",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#60a5fa";
+                  e.target.style.boxShadow = "0 0 0 4px rgba(96, 165, 250, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "rgba(148, 163, 184, 0.3)";
+                  e.target.style.boxShadow = "none";
+                }}
+              />
+            </motion.div>
+
+            <motion.div
+              variants={itemVariants}
               style={{
-                marginBottom: "1rem",
-                padding: "0.75rem",
-                background: "rgba(15,23,42,0.55)",
-                borderRadius: "10px",
+                marginBottom: "20px",
+                padding: "16px",
+                background: "rgba(15,23,42,0.6)",
+                borderRadius: "12px",
+                border: "1px solid rgba(148, 163, 184, 0.2)",
               }}
             >
-              <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-                Your password must include:
+              <p
+                style={{
+                  color: "#94a3b8",
+                  fontSize: "0.8rem",
+                  marginBottom: "10px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Password Requirements
               </p>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "6px" }}>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "8px" }}>
                 {requirementStatus.map((rule) => (
                   <li
                     key={rule.label}
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "8px",
-                      color: rule.passed ? "#86efac" : "#fca5a5",
+                      gap: "10px",
+                      color: rule.passed ? "#86efac" : "#94a3b8",
                       fontSize: "0.85rem",
+                      transition: "color 0.2s",
                     }}
                   >
-                    <span style={{ fontWeight: 700 }}>{rule.passed ? "✓" : "•"}</span>
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        background: rule.passed
+                          ? "rgba(34, 197, 94, 0.2)"
+                          : "rgba(148, 163, 184, 0.2)",
+                        color: rule.passed ? "#22c55e" : "#64748b",
+                        fontSize: "10px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {rule.passed ? "✓" : "•"}
+                    </span>
                     {rule.label}
                   </li>
                 ))}
               </ul>
-            </div>
-            <label htmlFor="confirmPassword">Confirm New Password</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-            <button type="submit" className="btn" disabled={loading}>
+            </motion.div>
+
+            <motion.div variants={itemVariants} style={{ marginBottom: "24px" }}>
+              <label
+                htmlFor="confirmPassword"
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "700",
+                  color: "#e2e8f0",
+                  fontSize: "0.9rem",
+                }}
+              >
+                Confirm New Password
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="auth-input"
+                style={{
+                  width: "100%",
+                  padding: "14px 16px",
+                  background: "rgba(30, 41, 59, 0.6)",
+                  border: "1.5px solid rgba(148, 163, 184, 0.3)",
+                  borderRadius: "12px",
+                  color: "#e2e8f0",
+                  outline: "none",
+                  transition: "all 0.2s",
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "#60a5fa";
+                  e.target.style.boxShadow = "0 0 0 4px rgba(96, 165, 250, 0.1)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "rgba(148, 163, 184, 0.3)";
+                  e.target.style.boxShadow = "none";
+                }}
+              />
+            </motion.div>
+
+            <motion.button
+              type="submit"
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={loading}
+              style={{
+                width: "100%",
+                padding: "16px",
+                fontSize: "1rem",
+                fontWeight: "700",
+                background: loading
+                  ? "rgba(96, 165, 250, 0.6)"
+                  : "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                color: "#fff",
+                border: "none",
+                borderRadius: "14px",
+                cursor: loading ? "not-allowed" : "pointer",
+                boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.4)",
+              }}
+            >
               {loading ? "Resetting..." : "Reset Password"}
-            </button>
+            </motion.button>
           </form>
-          <div style={{ marginTop: "1.2rem", textAlign: "center" }}>
+
+          <motion.div style={{ marginTop: "25px", textAlign: "center" }} variants={itemVariants}>
             <button
               type="button"
               onClick={() => navigate("/forgot-password")}
@@ -234,21 +540,19 @@ const ResetPassword = () => {
                 background: "transparent",
                 border: "none",
                 color: "#60a5fa",
-                fontWeight: 600,
+                fontWeight: "600",
                 cursor: "pointer",
+                fontSize: "0.9rem",
+                transition: "color 0.2s",
               }}
+              onMouseEnter={(e) => (e.target.style.color = "#93c5fd")}
+              onMouseLeave={(e) => (e.target.style.color = "#60a5fa")}
             >
               Need your PIN again?
             </button>
-          </div>
-        </div>
-      </div>
-      <div className="right">
-        <video className="hero-video" autoPlay loop muted playsInline>
-          <source src="/assets/Welcome to Karnataka _ One State Many Worlds.mp4" type="video/mp4" />
-        </video>
-        <div className="video-overlay"></div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

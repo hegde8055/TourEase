@@ -65,7 +65,7 @@ const INDIAN_DESTINATIONS = [
     id: 7,
     name: "Udaipur",
     image:
-      "https://images.unsplash.com/photo-1595262366897-4089903960b7?q=80&w=1000&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1615836245337-f5b9b2303f10?q=80&w=1000&auto=format&fit=crop", // Updated image
     desc: "City of Lakes.",
   },
   {
@@ -86,7 +86,7 @@ const styles = {
     fontFamily: "'Inter', sans-serif",
     overflowX: "hidden",
     position: "relative",
-    backgroundColor: "#000",
+    // backgroundColor: "#000", // REMOVED to let video show through
   },
   videoBackground: {
     position: "fixed",
@@ -620,7 +620,7 @@ const ClassicHome = ({ navigate }) => {
   };
 
   return (
-    <div style={{ ...styles.container, paddingTop: "80px" }}>
+    <div style={{ ...styles.container, paddingTop: "80px", backgroundColor: "transparent" }}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "r
 import { AnimatePresence, motion } from "framer-motion";
 import ScrollProgressBar from "./components/ScrollProgressBar";
 import ScrollToTop from "./components/ScrollToTop";
+import SmoothScroll from "./components/SmoothScroll"; // Import SmoothScroll
 import ProtectedRoute from "./components/ProtectedRoute";
 import {
   getUsername,
@@ -182,17 +183,19 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <ScrollProgressBar />
-        <ScrollToTop />
-        <Navbar />
-        <PageMetaUpdater />
-        <Suspense fallback={<Fallback />}>
-          <div className="app-shell">
-            <AnimatedRoutes />
-            <AIChatbot />
-          </div>
-        </Suspense>
-        <Footer />
+        <SmoothScroll>
+          <ScrollProgressBar />
+          <ScrollToTop />
+          <Navbar />
+          <PageMetaUpdater />
+          <Suspense fallback={<Fallback />}>
+            <div className="app-shell">
+              <AnimatedRoutes />
+              <AIChatbot />
+            </div>
+          </Suspense>
+          <Footer />
+        </SmoothScroll>
       </Router>
     </AuthProvider>
   );
