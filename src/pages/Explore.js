@@ -1,3 +1,12 @@
+// /client/src/pages/Explore.js
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import debounce from "lodash.debounce";
+import { placesAPI, destinationsAPI, geoAPI } from "../utils/api";
+import { getDestinationHeroImage } from "../utils/imageHelpers";
+import { useAuth } from "../App";
+import { stopLenis, startLenis } from "../components/SmoothScroll";
 import DestinationDetailModal from "../components/DestinationDetailModal";
 
 const heroVariants = {
