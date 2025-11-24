@@ -562,6 +562,8 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
             maxWidth: "1100px",
             maxHeight: "90vh",
             overflowY: "auto",
+            overflowX: "hidden",
+            WebkitOverflowScrolling: "touch", // Enable momentum scrolling on iOS
             background: "linear-gradient(180deg, rgba(11,14,20,0.95) 0%, rgba(17,24,39,0.98) 100%)",
             borderRadius: "28px",
             border: "1px solid rgba(212, 175, 55, 0.25)",
