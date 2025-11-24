@@ -1,17 +1,3 @@
-// /client/src/pages/Explore.js
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-// --- REMOVED InteractiveMap import ---
-import { placesAPI, destinationsAPI, geoAPI } from "../utils/api";
-// --- REMOVED extractCoordinates import ---
-import { getDestinationHeroImage } from "../utils/imageHelpers";
-import { useAuth } from "../App";
-// --- REMOVED IoClose import ---
-
-// --- REMOVED unused destinationHelpers imports ---
-
-// --- Import the new modal component ---
 import DestinationDetailModal from "../components/DestinationDetailModal";
 
 const heroVariants = {
@@ -88,6 +74,15 @@ const Explore = () => {
   });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.6]);
   const heroTranslate = useTransform(scrollYProgress, [0, 1], [0, -80]);
+
+  // Stop/Start Lenis when modal opens/closes
+  useEffect(() => {
+    if (selectedDestination) {
+      stopLenis(); // Stop smooth scroll when modal opens
+    } else {
+      startLenis(); // Resume smooth scroll when modal closes
+    }
+  }, [selectedDestination]);
 
   useEffect(() => {
     if (searchInputRef.current) {
