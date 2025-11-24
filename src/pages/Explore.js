@@ -84,10 +84,11 @@ const Explore = () => {
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.6]);
   const heroTranslate = useTransform(scrollYProgress, [0, 1], [0, -80]);
 
-  // Stop/Start Lenis when modal opens/closes
+  // Stop/Start Lenis when modal opens/closes and allow modal to scroll
   useEffect(() => {
     if (selectedDestination) {
       stopLenis(); // Stop smooth scroll when modal opens
+      document.body.style.overflow = "auto"; // Allow scrolling
     } else {
       startLenis(); // Resume smooth scroll when modal closes
     }
