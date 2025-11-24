@@ -547,10 +547,10 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
           backdropFilter: prefersReducedMotion ? "none" : "blur(12px)",
           zIndex: 950,
           display: "flex",
-          alignItems: "flex-start", // Align to top for scrolling
+          alignItems: "center",
           justifyContent: "center",
           padding: "40px 20px",
-          overflowY: "auto", // Allow scroll on backdrop for modal
+          overflowY: "auto", // Allow scroll on backdrop
           overflowX: "hidden",
         }}
         onClick={onClose}
@@ -563,18 +563,20 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
           style={{
             width: "100%",
             maxWidth: "1100px",
-            minHeight: "200px", // Ensure minimum height
-            maxHeight: "none", // Remove max height constraint
-            margin: "auto 0", // Center vertically in flex container
+            maxHeight: "90vh", // Constrain height
+            display: "flex",
+            flexDirection: "column",
             background: "linear-gradient(180deg, rgba(11,14,20,0.95) 0%, rgba(17,24,39,0.98) 100%)",
             borderRadius: "28px",
             border: "1px solid rgba(212, 175, 55, 0.25)",
             boxShadow: "0 30px 60px rgba(0,0,0,0.35)",
-            padding: "34px",
             position: "relative",
+            overflowY: "auto", // Enable scroll on content
+            WebkitOverflowScrolling: "touch",
           }}
           onClick={(event) => event.stopPropagation()}
         >
+          <div style={{ padding: "34px" }}>
           {/* --- Sticky Close Button --- */}
           <div
             style={{
@@ -1103,13 +1105,208 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
                           ))}
                         </div>
                       </div>
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  ×
+                </motion.button>
+              </div>
+
+              {mergedNearbyPlace.heroImage && (
+                <motion.img
+                  initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+                  src={mergedNearbyPlace.heroImage}
+                  alt={mergedNearbyPlace.name}
+                  style={{
+                    width: "100%",
+                    maxHeight: "240px",
+                    objectFit: "cover",
+                    borderRadius: "16px",
+                    border: "1px solid rgba(59, 130, 246, 0.35)",
+                  }}
+                  loading="lazy"
+                />
+              )}
+
+              {nearbyPlaceStatus === "loading" && (
+                <p style={{ color: "#60a5fa", margin: "12px 0 0" }}>Fetching more details…</p>
+              )}
+              {nearbyPlaceStatus === "error" && (
+                <p style={{ color: "#f87171", margin: "12px 0 0" }}>{nearbyPlaceError}</p>
+              )}
+
+              {mergedNearbyPlace && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gap: "12px",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                    }}
+                  >
+                    {mergedNearbyPlace.rating != null && (
+                      <div
+                        style={{
+                          background: "rgba(251, 191, 36, 0.15)",
+                          borderRadius: "14px",
+                          border: "1px solid rgba(251, 191, 36, 0.25)",
+                          padding: "12px",
+                        }}
+                      >
+                        <p style={{ margin: 0, color: "#fbbf24", fontSize: "0.75rem" }}>Rating</p>
+                        <p
+                          style={{
+                            margin: "4px 0 0",
+                            color: "#fde68a",
+                            fontSize: "1.05rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {" "}
+                          {mergedNearbyPlace.rating}{" "}
+                        </p>
+                        {mergedNearbyPlace.ratingCount && (
+                          <p style={{ margin: "4px 0 0", color: "#facc15", fontSize: "0.75rem" }}>
+                            {" "}
+                            {mergedNearbyPlace.ratingCount} reviews{" "}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {mergedNearbyPlace.priceLevel != null && (
+                      <div
+                        style={{
+                          background: "rgba(134, 239, 172, 0.12)",
+                          borderRadius: "14px",
+                          border: "1px solid rgba(52, 211, 153, 0.28)",
+                          padding: "12px",
+                        }}
+                      >
+                        <p style={{ margin: 0, color: "#4ade80", fontSize: "0.75rem" }}>
+                          {" "}
+                          Price Level{" "}
+                        </p>
+                        <p
+                          style={{
+                            margin: "4px 0 0",
+                            color: "#bbf7d0",
+                            fontSize: "1rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {" "}
+                          {"₹".repeat(
+                            Math.min(Math.max(Number(mergedNearbyPlace.priceLevel) || 0, 1), 4)
+                          )}{" "}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {mergedNearbyPlace.description && (
+                    <div>
+                      {" "}
+                      <p style={{ color: "#e5e7eb", fontWeight: 600, marginBottom: "6px" }}>
+                        {" "}
+                        About this place{" "}
+                      </p>{" "}
+                      <p style={{ color: "#cbd5f5", lineHeight: 1.6 }}>
+                        {" "}
+                        {mergedNearbyPlace.description}{" "}
+                      </p>{" "}
+                    </div>
+                  )}
+
+                  {mergedNearbyPlace.website ||
+                  mergedNearbyPlace.phone ||
+                  mergedNearbyPlace.googleMapsLink ? (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                      {mergedNearbyPlace.website && (
+                        <a
+                          href={mergedNearbyPlace.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            background: "linear-gradient(135deg, #38bdf8, #3b82f6)",
+                            color: "#0f172a",
+                            borderRadius: "999px",
+                            padding: "10px 18px",
+                            fontWeight: 600,
+                            fontSize: "0.85rem",
+                            textDecoration: "none",
+                            boxShadow: "0 14px 28px rgba(56, 189, 248, 0.25)",
+                          }}
+                        >
+                          {" "}
+                          Visit Website{" "}
+                        </a>
+                      )}
+                      {mergedNearbyPlace.googleMapsLink && (
+                        <a
+                          href={mergedNearbyPlace.googleMapsLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            background: "linear-gradient(135deg, #f472b6, #ec4899)",
+                            color: "#0f172a",
+                            borderRadius: "999px",
+                            padding: "10px 18px",
+                            fontWeight: 600,
+                            fontSize: "0.85rem",
+                            textDecoration: "none",
+                            boxShadow: "0 14px 28px rgba(236, 72, 153, 0.25)",
+                          }}
+                        >
+                          {" "}
+                          View on Maps{" "}
+                        </a>
+                      )}
+                      {mergedNearbyPlace.phone && (
+                        <a
+                          href={`tel:${mergedNearbyPlace.phone.replace(/\s+/g, "")}`}
+                          style={{
+                            background: "linear-gradient(135deg, #34d399, #10b981)",
+                            color: "#022c22",
+                            borderRadius: "999px",
+                            padding: "10px 18px",
+                            fontWeight: 600,
+                            fontSize: "0.85rem",
+                            textDecoration: "none",
+                            boxShadow: "0 14px 28px rgba(16, 185, 129, 0.28)",
+                          }}
+                        >
+                          {" "}
+                          Call Now{" "}
+                        </a>
+                      )}
+                    </div>
+                  ) : null}
+
+                  {Array.isArray(mergedNearbyPlace.openingHours) &&
+                    mergedNearbyPlace.openingHours.length > 0 && (
+                      <div>
+                        <p style={{ color: "#60a5fa", marginBottom: "6px", fontWeight: 600 }}>
+                          {" "}
+                          Opening Hours{" "}
+                        </p>
+                        <div style={{ display: "grid", gap: "4px" }}>
+                          {mergedNearbyPlace.openingHours.map((line, index) => (
+                            <span key={index} style={{ color: "#cbd5f5", fontSize: "0.85rem" }}>
+                              {line}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                 </div>
               )}
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div> {/* End padding wrapper */}
+        </motion.div>
+      </motion.div>
     </AnimatePresence>
   );
 };
