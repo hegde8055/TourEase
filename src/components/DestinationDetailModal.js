@@ -584,7 +584,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
               justifyContent: "flex-end",
               paddingBottom: "12px",
               marginBottom: "12px",
-              zIndex: 20,
+              zIndex: 1000,
               background:
                 "linear-gradient(180deg, rgba(11,14,20,0.98) 0%, rgba(11,14,20,0.82) 45%, rgba(11,14,20,0) 100%)",
             }}
