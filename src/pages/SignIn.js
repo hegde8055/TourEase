@@ -247,11 +247,11 @@ const SignIn = () => {
             <div className="divider">or</div>
 
             <div className="social-buttons">
-              <button>
+              <button className="social-btn google">
                 <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" />
                 Sign in with Google
               </button>
-              <button>
+              <button className="social-btn facebook">
                 <img
                   src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
                   alt="Facebook"
@@ -274,6 +274,7 @@ const SignIn = () => {
             loop
             playsInline
             volume="0.5"
+            poster="/assets/poster.jpg"
             onLoadedMetadata={(e) => (e.target.volume = 0.5)}
           >
             <source

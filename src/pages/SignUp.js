@@ -326,7 +326,12 @@ const SignUp = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.2 }}
-                    style={{ fontSize: "12px", color: "#f87171", marginTop: "6px", fontWeight: 600 }}
+                    style={{
+                      fontSize: "12px",
+                      color: "#f87171",
+                      marginTop: "6px",
+                      fontWeight: 600,
+                    }}
                   >
                     Passwords do not match.
                   </motion.div>
@@ -344,7 +349,9 @@ const SignUp = () => {
                     transition: "background 0.2s ease",
                     cursor: "pointer",
                   }}
-                  onMouseEnter={(event) => (event.currentTarget.style.background = "rgba(255, 255, 255, 0.03)")}
+                  onMouseEnter={(event) =>
+                    (event.currentTarget.style.background = "rgba(255, 255, 255, 0.03)")
+                  }
                   onMouseLeave={(event) => (event.currentTarget.style.background = "transparent")}
                 >
                   <input
@@ -387,7 +394,9 @@ const SignUp = () => {
                     transition: "background 0.2s ease",
                     cursor: "pointer",
                   }}
-                  onMouseEnter={(event) => (event.currentTarget.style.background = "rgba(255, 255, 255, 0.03)")}
+                  onMouseEnter={(event) =>
+                    (event.currentTarget.style.background = "rgba(255, 255, 255, 0.03)")
+                  }
                   onMouseLeave={(event) => (event.currentTarget.style.background = "transparent")}
                 >
                   <input
@@ -430,7 +439,9 @@ const SignUp = () => {
                     transition: "background 0.2s ease",
                     cursor: "pointer",
                   }}
-                  onMouseEnter={(event) => (event.currentTarget.style.background = "rgba(255, 255, 255, 0.03)")}
+                  onMouseEnter={(event) =>
+                    (event.currentTarget.style.background = "rgba(255, 255, 255, 0.03)")
+                  }
                   onMouseLeave={(event) => (event.currentTarget.style.background = "transparent")}
                 >
                   <input
@@ -473,7 +484,9 @@ const SignUp = () => {
                     transition: "background 0.2s ease",
                     cursor: "pointer",
                   }}
-                  onMouseEnter={(event) => (event.currentTarget.style.background = "rgba(255, 255, 255, 0.03)")}
+                  onMouseEnter={(event) =>
+                    (event.currentTarget.style.background = "rgba(255, 255, 255, 0.03)")
+                  }
                   onMouseLeave={(event) => (event.currentTarget.style.background = "transparent")}
                 >
                   <input
@@ -517,11 +530,11 @@ const SignUp = () => {
             <div className="divider">or</div>
 
             <div className="social-buttons">
-              <button type="button">
+              <button type="button" className="social-btn google">
                 <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" />
                 Sign up with Google
               </button>
-              <button type="button">
+              <button type="button" className="social-btn facebook">
                 <img
                   src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
                   alt="Facebook"
@@ -544,11 +557,15 @@ const SignUp = () => {
             loop
             playsInline
             muted
+            poster="/assets/poster.jpg"
             onLoadedMetadata={(event) => {
               event.target.volume = 0.5;
             }}
           >
-            <source src="/assets/Welcome to Karnataka _ One State Many Worlds.mp4" type="video/mp4" />
+            <source
+              src="/assets/Welcome to Karnataka _ One State Many Worlds.mp4"
+              type="video/mp4"
+            />
             Your browser does not support the video tag.
           </video>
           <div className="video-overlay"></div>

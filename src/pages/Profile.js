@@ -1,12 +1,10 @@
-// client/src/pages/Profile.js
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { profileAPI, getImageUrl } from "../utils/api";
 import { isAuthenticated } from "../utils/auth";
 //import { aboutFeatures } from "../utils/aboutContent";
-import ReactCrop from "react-image-crop";
-import "react-image-crop/dist/ReactCrop.css";
+import ImageUploadModal from "../components/ImageUploadModal";
 import { useAuth } from "../App";
 import { useInView } from "react-intersection-observer";
 
@@ -23,16 +21,7 @@ const Profile = () => {
   const [formData, setFormData] = useState({ username: "", about: "" });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showPhotoPreview, setShowPhotoPreview] = useState(false);
-  const [uploadMethod, setUploadMethod] = useState(null);
-  const [imageSrc, setImageSrc] = useState(null);
-  const [showCropper, setShowCropper] = useState(false);
-  const [cameraLoading, setCameraLoading] = useState(false);
-  const [crop, setCrop] = useState({ unit: "%", width: 50, aspect: 1 });
-  const [completedCrop, setCompletedCrop] = useState(null);
-  const imgRef = useRef(null);
-  const videoRef = useRef(null);
-  const [stream, setStream] = useState(null);
-  const fileInputRef = useRef(null);
+
   const tabControlsRef = useRef(null);
   const aboutSectionRef = useRef(null);
   const contactSectionRef = useRef(null);
@@ -225,221 +214,14 @@ const Profile = () => {
 
   const openUploadModal = () => {
     setShowUploadModal(true);
-    setUploadMethod(null);
-    setImageSrc(null);
-    setShowCropper(false);
-    setCameraLoading(false);
   };
 
   const closeUploadModal = () => {
     setShowUploadModal(false);
-    setUploadMethod(null);
-    setImageSrc(null);
-    setCrop({ unit: "%", width: 50, aspect: 1 });
-    setCompletedCrop(null);
-    setShowCropper(false);
-    setCameraLoading(false);
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
-    }
   };
 
-  const handleFileSelect = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImageSrc(reader.result);
-      setShowCropper(false);
-      setCrop({ unit: "%", width: 50, aspect: 1 });
-      setCompletedCrop(null);
-      setUploadMethod("local");
-    };
-    reader.readAsDataURL(file);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  const startCamera = useCallback(async () => {
-    if (cameraLoading) return;
-    setCameraLoading(true);
-    try {
-      setImageSrc(null);
-      setShowCropper(false);
-
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
-
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: 640, height: 480 },
-      });
-      setStream(mediaStream);
-    } catch (error) {
-      console.error("Error accessing camera:", error);
-      setCameraLoading(false);
-      alert("Unable to access camera. Please check permissions.");
-    }
-  }, [cameraLoading, stream]);
-
-  useEffect(() => {
-    if (!stream || !videoRef.current) return;
-
-    const videoElement = videoRef.current;
-    videoElement.muted = true;
-    videoElement.setAttribute("playsinline", "true");
-    videoElement.srcObject = stream;
-
-    const handleCanPlay = () => {
-      setCameraLoading(false);
-      videoElement.removeEventListener("canplay", handleCanPlay);
-    };
-
-    videoElement.addEventListener("canplay", handleCanPlay);
-
-    const playPromise = videoElement.play();
-    if (playPromise && typeof playPromise.then === "function") {
-      playPromise.catch((err) => {
-        console.warn("Video play() failed:", err);
-        setTimeout(() => setCameraLoading(false), 500);
-      });
-    }
-
-    return () => {
-      videoElement.removeEventListener("canplay", handleCanPlay);
-      if (videoElement.srcObject === stream) {
-        videoElement.srcObject = null;
-      }
-    };
-  }, [stream]);
-
-  // Auto-start the camera when user selects the Camera upload method
-  useEffect(() => {
-    if (showUploadModal && uploadMethod === "camera" && !stream && !cameraLoading && !imageSrc) {
-      startCamera();
-    }
-  }, [showUploadModal, uploadMethod, stream, cameraLoading, imageSrc, startCamera]);
-
-  const capturePhoto = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement("canvas");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(videoRef.current, 0, 0);
-      const imageDataUrl = canvas.toDataURL("image/jpeg");
-      setImageSrc(imageDataUrl);
-      setShowCropper(false);
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-        setStream(null);
-      }
-    }
-  };
-
-  const getCroppedImg = () => {
-    if (!completedCrop || !imgRef.current) return null;
-    const canvas = document.createElement("canvas");
-    const image = imgRef.current;
-    const scaleX = image.naturalWidth / image.width;
-    const scaleY = image.naturalHeight / image.height;
-    canvas.width = completedCrop.width;
-    canvas.height = completedCrop.height;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(
-      image,
-      completedCrop.x * scaleX,
-      completedCrop.y * scaleY,
-      completedCrop.width * scaleX,
-      completedCrop.height * scaleY,
-      0,
-      0,
-      completedCrop.width,
-      completedCrop.height
-    );
-    return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/jpeg", 0.9));
-  };
-
-  const dataUrlToBlob = (dataUrl) => {
-    try {
-      const [header, base64] = dataUrl.split(",");
-      if (!base64) return null;
-      const mimeMatch = header.match(/:(.*?);/);
-      const mimeType = mimeMatch ? mimeMatch[1] : "image/jpeg";
-      const binary = atob(base64);
-      const length = binary.length;
-      const bytes = new Uint8Array(length);
-      for (let i = 0; i < length; i += 1) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      return new Blob([bytes], { type: mimeType });
-    } catch (error) {
-      console.error("Failed to convert data URL to blob", error);
-      return null;
-    }
-  };
-
-  const handlePhotoUpload = async (useCrop = false) => {
-    try {
-      let blobToUpload = null;
-
-      if (useCrop) {
-        const croppedBlob = await getCroppedImg();
-        if (!croppedBlob) {
-          alert("Please crop the image first");
-          return;
-        }
-        blobToUpload = croppedBlob;
-      } else {
-        if (!imageSrc) {
-          alert("No image found to upload. Please try again.");
-          return;
-        }
-
-        if (imageSrc.startsWith("data:")) {
-          blobToUpload = dataUrlToBlob(imageSrc);
-          if (!blobToUpload) {
-            alert("Couldn't prepare the image for upload. Please try cropping it first.");
-            return;
-          }
-        } else {
-          try {
-            const response = await fetch(imageSrc);
-            const blob = await response.blob();
-            blobToUpload = blob;
-          } catch (error) {
-            console.error("Unable to prepare image for upload:", error);
-            alert("Couldn't prepare the image for upload. Please try cropping it first.");
-            return;
-          }
-        }
-      }
-
-      if (!blobToUpload) {
-        alert("Could not prepare the image. Please try again.");
-        return;
-      }
-
-      const formData = new FormData();
-      const fileType = blobToUpload.type || "image/jpeg";
-      const extension = fileType.split("/")[1] || "jpg";
-      formData.append("photo", blobToUpload, `profile-${Date.now()}.${extension}`);
-
-      await profileAPI.uploadPhoto(formData);
-      closeUploadModal();
-      loadProfile();
-    } catch (error) {
-      console.error("Error processing image:", error);
-      alert(error.response?.data?.error || "Error processing image. Please try again.");
-    }
+  const handleUploadSuccess = () => {
+    loadProfile();
   };
 
   const handleContactSubmit = (e) => {
@@ -2114,6 +1896,11 @@ const Profile = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <ImageUploadModal
+        isOpen={showUploadModal}
+        onClose={closeUploadModal}
+        onUploadSuccess={handleUploadSuccess}
+      />
     </>
   );
 };
