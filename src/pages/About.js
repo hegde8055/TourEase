@@ -150,16 +150,68 @@ html,body{height:100%;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Rob
 .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .hero-cta .btn{min-width:190px;padding:14px 28px;font-size:1rem;line-height:1.2;text-align:center}
 .talk-to-me-wrapper .btn{padding:12px 26px;font-size:0.95rem;letter-spacing:0.04em}
-.btn{padding:12px 30px;border-radius:999px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;border:none;cursor:pointer;outline:none;text-decoration:none}
+.btn {
+  padding: 10px 22px;   /* smaller but not too small */
+  font-size: 1.05rem;   /* same text size as before */
+  border-radius: 999px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
 /* Primary button clean */
-.btn-primary{background:linear-gradient(135deg,#e3b8a5 0%,#f6d4c8 100%);color:#2a0e12;border:1px solid rgba(255,255,255,0.18);transition:transform 0.28s cubic-bezier(.2,.9,.2,1), box-shadow 0.35s ease;position:relative;overflow:hidden}
-.btn-primary:hover{transform:translateY(-4px) scale(1.03);box-shadow:0 14px 40px rgba(227,146,146,0.12)}
-.btn-primary::after{content:'';position:absolute;left:-60%;top:0;height:100%;width:60%;background:linear-gradient(120deg, rgba(255,255,255,0.25), rgba(255,255,255,0.06), rgba(255,255,255,0.18));transform:skewX(-18deg);transition:all 0.9s ease;opacity:0}
-.btn-primary:hover::after{left:120%;opacity:1}
+.btn-primary {
+  background: linear-gradient(135deg,#e3b8a5 0%,#f6d4c8 100%);
+  color: #2a0e12;
+  border: 1px solid rgba(255,255,255,0.18);
+  padding: 10px 26px;  /* reduced from 16px 40px */
+  font-size: 1.05rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(227,146,146,0.18);
+}
+/* Primary hover */
+.btn-primary:hover {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 10px 26px rgba(227,146,146,0.35);
+}
+/* Shine effect */
+.btn-primary::after {
+  content:'';
+  position:absolute;
+  left:-60%;
+  top:0;
+  height:100%;
+  width:60%;
+  background:linear-gradient(120deg, rgba(255,255,255,0.25), rgba(255,255,255,0.06), rgba(255,255,255,0.18));
+  transform:skewX(-18deg);
+  transition:all 0.9s ease;
+  opacity:0;
+}
+.btn-primary:hover::after {
+  left:120%;
+  opacity:1;
+}
 .btn-primary.neon{animation:neonPulse 2.8s ease-in-out infinite}
 @keyframes neonPulse{0%{box-shadow:0 0 0 rgba(231,150,150,0)}50%{box-shadow:0 0 24px rgba(231,150,150,0.18)}100%{box-shadow:0 0 0 rgba(231,150,150,0)}}
-.btn-ghost{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.12);color:var(--muted);transition:box-shadow 0.3s ease}
-.btn-ghost:hover{box-shadow:0 10px 28px rgba(0,0,0,0.28);transform:translateY(-3px)}
+/* Ghost button (compact variant) */
+.btn-ghost {
+  background:rgba(255,255,255,0.14);
+  border:1px solid rgba(255,255,255,0.18);
+  padding: 10px 22px;   /* reduced */
+  font-size:1.05rem;
+  color:var(--muted);
+  box-shadow:0 4px 12px rgba(0,0,0,0.15);
+}
+.btn-ghost:hover {
+  transform:translateY(-3px) scale(1.04);
+  box-shadow:0 10px 26px rgba(0,0,0,0.28);
+  border-color:rgba(255,255,255,0.32);
+}
 
 
 .content-wrapper{
