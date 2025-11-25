@@ -183,11 +183,12 @@ export const profileAPI = {
   refreshResetPin: async () => {
     return await axios.put(`${API_BASE}/api/profile/reset-pin`);
   },
-  uploadPhoto: async (formData) => {
+  uploadPhoto: async (formData, onUploadProgress) => {
     return await axios.post(`${API_BASE}/api/profile/upload-photo`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      onUploadProgress,
     });
   },
   getSavedDestinations: async () => {

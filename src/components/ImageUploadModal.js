@@ -13,6 +13,11 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
   const [completedCrop, setCompletedCrop] = useState(null);
   const [stream, setStream] = useState(null);
 
+  // New State for enhancements
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState("");
+
   const imgRef = useRef(null);
   const videoRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -38,6 +43,8 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
     setCompletedCrop(null);
     setShowCropper(false);
     setCameraLoading(false);
+    setUploadProgress(0);
+    setError("");
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
       setStream(null);
@@ -49,13 +56,25 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
     onClose();
   };
 
+  const validateFile = (file) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file (JPEG, PNG, etc.)");
+      return false;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      // 5MB limit
+      setError("File size exceeds 5MB limit.");
+      return false;
+    }
+    setError("");
+    return true;
+  };
+
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      alert("Please select a valid image file.");
-      return;
-    }
+
+    if (!validateFile(file)) return;
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -69,6 +88,38 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+  };
+
+  // Drag & Drop Handlers
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (validateFile(file)) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImageSrc(reader.result);
+          setShowCropper(false);
+          setCrop({ unit: "%", width: 50, aspect: 1 });
+          setCompletedCrop(null);
+          setUploadMethod("local");
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
@@ -90,7 +141,7 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
     } catch (error) {
       console.error("Error accessing camera:", error);
       setCameraLoading(false);
-      alert("Unable to access camera. Please check permissions.");
+      setError("Unable to access camera. Please check permissions.");
     }
   }, [cameraLoading, stream]);
 
@@ -186,25 +237,26 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
 
   const handlePhotoUpload = async (useCrop = false) => {
     try {
+      setUploadProgress(0);
       let blobToUpload = null;
 
       if (useCrop) {
         const croppedBlob = await getCroppedImg();
         if (!croppedBlob) {
-          alert("Please crop the image first");
+          setError("Please crop the image first");
           return;
         }
         blobToUpload = croppedBlob;
       } else {
         if (!imageSrc) {
-          alert("No image found to upload. Please try again.");
+          setError("No image found to upload. Please try again.");
           return;
         }
 
         if (imageSrc.startsWith("data:")) {
           blobToUpload = dataUrlToBlob(imageSrc);
           if (!blobToUpload) {
-            alert("Couldn't prepare the image for upload. Please try cropping it first.");
+            setError("Couldn't prepare the image for upload. Please try cropping it first.");
             return;
           }
         } else {
@@ -214,14 +266,14 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
             blobToUpload = blob;
           } catch (error) {
             console.error("Unable to prepare image for upload:", error);
-            alert("Couldn't prepare the image for upload. Please try cropping it first.");
+            setError("Couldn't prepare the image for upload. Please try cropping it first.");
             return;
           }
         }
       }
 
       if (!blobToUpload) {
-        alert("Could not prepare the image. Please try again.");
+        setError("Could not prepare the image. Please try again.");
         return;
       }
 
@@ -230,12 +282,17 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
       const extension = fileType.split("/")[1] || "jpg";
       formData.append("photo", blobToUpload, `profile-${Date.now()}.${extension}`);
 
-      await profileAPI.uploadPhoto(formData);
+      await profileAPI.uploadPhoto(formData, (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        setUploadProgress(percentCompleted);
+      });
+
       handleClose();
       if (onUploadSuccess) onUploadSuccess();
     } catch (error) {
       console.error("Error processing image:", error);
-      alert(error.response?.data?.error || "Error processing image. Please try again.");
+      setError(error.response?.data?.error || "Error processing image. Please try again.");
+      setUploadProgress(0);
     }
   };
 
@@ -259,6 +316,7 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
           padding: "20px",
         }}
         onClick={handleClose}
+        onDragEnter={handleDrag}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -270,11 +328,35 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
             padding: "30px",
             width: "100%",
             maxWidth: "500px",
-            border: "1px solid rgba(212, 175, 55, 0.2)",
+            border: dragActive ? "2px dashed #d4af37" : "1px solid rgba(212, 175, 55, 0.2)",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+            position: "relative",
           }}
           onClick={(e) => e.stopPropagation()}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
         >
+          {/* Drag Overlay */}
+          {dragActive && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "rgba(212, 175, 55, 0.1)",
+                borderRadius: "24px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 10,
+                pointerEvents: "none",
+              }}
+            >
+              <h3 style={{ color: "#d4af37", fontSize: "1.5rem" }}>Drop image here</h3>
+            </div>
+          )}
+
           <h3
             style={{
               color: "#d4af37",
@@ -286,26 +368,56 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
             Update Profile Photo
           </h3>
 
+          {error && (
+            <div
+              style={{
+                background: "rgba(239, 68, 68, 0.1)",
+                border: "1px solid rgba(239, 68, 68, 0.3)",
+                color: "#fca5a5",
+                padding: "12px",
+                borderRadius: "8px",
+                marginBottom: "20px",
+                textAlign: "center",
+                fontSize: "0.9rem",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
           {!uploadMethod ? (
             <div style={{ display: "grid", gap: "16px" }}>
-              <button
+              <div
                 onClick={() => fileInputRef.current?.click()}
                 style={{
-                  padding: "16px",
+                  padding: "30px",
                   background: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "12px",
-                  color: "#fff",
+                  border: "2px dashed rgba(255,255,255,0.1)",
+                  borderRadius: "16px",
+                  color: "#9ca3af",
                   cursor: "pointer",
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "10px",
-                  fontSize: "1.1rem",
+                  gap: "12px",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#d4af37";
+                  e.currentTarget.style.background = "rgba(212, 175, 55, 0.05)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.05)";
                 }}
               >
-                📁 Upload from Device
-              </button>
+                <span style={{ fontSize: "2rem" }}>📁</span>
+                <span style={{ fontSize: "1.1rem", fontWeight: 500, color: "#e5e7eb" }}>
+                  Click to Upload or Drag & Drop
+                </span>
+                <span style={{ fontSize: "0.85rem" }}>Supports JPG, PNG (Max 5MB)</span>
+              </div>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -414,11 +526,31 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                     </ReactCrop>
                   )}
 
+                  {/* Progress Bar */}
+                  {uploadProgress > 0 && (
+                    <div
+                      style={{
+                        width: "100%",
+                        background: "rgba(255,255,255,0.1)",
+                        borderRadius: "99px",
+                        height: "8px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${uploadProgress}%` }}
+                        style={{ height: "100%", background: "#10b981", borderRadius: "99px" }}
+                      />
+                    </div>
+                  )}
+
                   <div style={{ display: "flex", gap: "10px" }}>
                     {!showCropper ? (
                       <>
                         <button
                           onClick={() => handlePhotoUpload(false)}
+                          disabled={uploadProgress > 0}
                           style={{
                             flex: 1,
                             padding: "12px",
@@ -426,14 +558,16 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                             color: "#fff",
                             border: "none",
                             borderRadius: "8px",
-                            cursor: "pointer",
+                            cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
                             fontWeight: "600",
+                            opacity: uploadProgress > 0 ? 0.7 : 1,
                           }}
                         >
-                          Upload Original
+                          {uploadProgress > 0 ? `Uploading ${uploadProgress}%` : "Upload Original"}
                         </button>
                         <button
                           onClick={() => setShowCropper(true)}
+                          disabled={uploadProgress > 0}
                           style={{
                             flex: 1,
                             padding: "12px",
@@ -441,7 +575,7 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                             color: "#fff",
                             border: "none",
                             borderRadius: "8px",
-                            cursor: "pointer",
+                            cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
                             fontWeight: "600",
                           }}
                         >
@@ -451,6 +585,7 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                     ) : (
                       <button
                         onClick={() => handlePhotoUpload(true)}
+                        disabled={uploadProgress > 0}
                         style={{
                           flex: 1,
                           padding: "12px",
@@ -458,11 +593,12 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                           color: "#fff",
                           border: "none",
                           borderRadius: "8px",
-                          cursor: "pointer",
+                          cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
                           fontWeight: "600",
+                          opacity: uploadProgress > 0 ? 0.7 : 1,
                         }}
                       >
-                        Save & Upload
+                        {uploadProgress > 0 ? `Uploading ${uploadProgress}%` : "Save & Upload"}
                       </button>
                     )}
                   </div>
@@ -478,13 +614,14 @@ const ImageUploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
                     setStream(null);
                   }
                 }}
+                disabled={uploadProgress > 0}
                 style={{
                   padding: "12px",
                   background: "transparent",
                   border: "1px solid rgba(255,255,255,0.2)",
                   color: "#9ca3af",
                   borderRadius: "8px",
-                  cursor: "pointer",
+                  cursor: uploadProgress > 0 ? "not-allowed" : "pointer",
                 }}
               >
                 Back
