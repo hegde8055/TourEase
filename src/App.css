@@ -1523,17 +1523,12 @@ iframe {
 }
 
 .chatbot-messages::-webkit-scrollbar {
-  width: 6px;
-}
-
-.chatbot-messages::-webkit-scrollbar-thumb {
-  background: rgba(247, 37, 133, 0.35);
-  border-radius: 999px;
+  display: none;
 }
 
 .chatbot-messages {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(247, 37, 133, 0.38) transparent;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .chatbot-message {
