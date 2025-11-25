@@ -217,7 +217,7 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
     // --- BOSS FIX: Correct Google Maps URL ---
     // This is the one, correct URL structure
     const query = encodeURIComponent(mapQueryParts.join(", "));
-    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=$$?q=${query}${placeId ? `&query_place_id=${encodeURIComponent(placeId)}` : ""}`;
+    const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${query}${placeId ? `&query_place_id=${encodeURIComponent(placeId)}` : ""}`;
     // --- END OF FIX ---
 
     return {
@@ -537,6 +537,8 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: prefersReducedMotion ? 0 : 0.25 }}
+        onClick={onClose}
+        data-lenis-prevent="true"
         style={{
           position: "fixed",
           inset: 0,
@@ -546,11 +548,11 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
           display: "flex",
           alignItems: "flex-start", // Align to top for scrolling
           justifyContent: "center",
-          padding: "40px 20px",
+          padding: "0",
           overflowY: "auto", // Allow scroll on backdrop for modal
           overflowX: "hidden",
+          overscrollBehavior: "contain",
         }}
-        onClick={onClose}
       >
         <motion.div
           initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 30 }}
@@ -562,13 +564,14 @@ const DestinationDetailModal = ({ destination, onClose, onGenerateItinerary }) =
             maxWidth: "1100px",
             minHeight: "200px", // Ensure minimum height
             maxHeight: "none", // Remove max height constraint
-            margin: "auto 0", // Center vertically in flex container
+            margin: "40px auto", // Ensure vertical spacing
             background: "linear-gradient(180deg, rgba(11,14,20,0.95) 0%, rgba(17,24,39,0.98) 100%)",
             borderRadius: "28px",
             border: "1px solid rgba(212, 175, 55, 0.25)",
             boxShadow: "0 30px 60px rgba(0,0,0,0.35)",
             padding: "34px",
             position: "relative",
+            pointerEvents: "auto",
           }}
           onClick={(event) => event.stopPropagation()}
         >
