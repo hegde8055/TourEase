@@ -236,7 +236,11 @@ const AIChatbot = () => {
           </div>
 
           {/* Messages */}
-          <div className="chatbot-messages">
+          <div
+            className="chatbot-messages"
+            data-lenis-prevent="true"
+            style={{ overscrollBehavior: "contain" }}
+          >
             {messages.map((message, index) => (
               <div
                 key={index}
