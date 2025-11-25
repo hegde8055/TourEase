@@ -452,6 +452,7 @@ nav ul li a {
     var(--surface);
   border-top: 1px solid rgba(148, 163, 184, 0.2);
   position: relative;
+  z-index: 10;
   overflow: hidden;
 }
 

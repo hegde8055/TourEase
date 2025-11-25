@@ -76,7 +76,7 @@ const ConfirmModal = ({ isOpen, onConfirm, onCancel, onForceConfirm, message }) 
 
   return (
     <Transition as={Fragment} appear show={isOpen}>
-      <Dialog as="div" className="relative" onClose={handleCancel} style={{ zIndex: 2000 }}>
+      <Dialog as="div" className="relative" onClose={handleCancel} style={{ zIndex: 10000 }}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-200"

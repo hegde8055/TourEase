@@ -186,8 +186,6 @@ export const getDestinationHeroImage = (destination, options = {}) => {
     if (candidate) return candidate;
   }
 
-  const query = buildQueryFromDestination(destination, querySuffix);
-  if (!query) return fallback;
-
-  return `https://source.unsplash.com/featured/${size}/?${encodeURIComponent(query)}`;
+  // source.unsplash.com is deprecated. Return the static fallback instead.
+  return fallback;
 };
